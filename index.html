@@ -7,6 +7,8 @@
     <title>Panel de Administración</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
     <style>
         /* ===== ESTILOS ELEGANTES - TEMA CLARO ===== */
         :root {
@@ -139,6 +141,12 @@
         @keyframes spinBtn { to { transform:rotate(360deg); } }
         .field-status { display:block; margin-top:6px; min-height:14px; font-size:.7rem; color:var(--text-muted); }
         input[list] { background-image:none; }
+        .pedido-estado-final { display:inline-flex; align-items:center; justify-content:center; padding:5px 9px; border-radius:999px; border:1px solid var(--border); font-size:.68rem; letter-spacing:.7px; text-transform:uppercase; white-space:nowrap; }
+        .pedido-estado-final.entregado { color:#166534; background:#f0fdf4; border-color:#bbf7d0; }
+        .pedido-estado-final.cancelado { color:#b91c1c; background:#fef2f2; border-color:#fecaca; }
+        .wa-check-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:10px; }
+        .wa-check-item { display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:7px; padding:10px 12px; background:var(--card-bg); font-size:.82rem; color:var(--text-main); }
+        .wa-check-item input { width:auto; }
         .pagination-actions { display:flex; justify-content:center; gap:10px; margin-top:16px; flex-wrap:wrap; }
         .save-indicator { position:fixed; right:18px; bottom:18px; z-index:1000002; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:10px 14px; box-shadow:0 8px 24px rgba(0,0,0,.08); color:var(--text-main); font-size:.8rem; display:none; }
         .stock-fecha { display:block; color:var(--text-dark); font-size:0.65rem; margin-top:2px; text-transform:none; letter-spacing:0; }
@@ -763,19 +771,20 @@
                 <div class="modulo-header" onclick="window.toggleAcordeon('body-transacciones')"><span>Libro Diario</span></div>
                 <div id="body-transacciones" class="modulo-body table-responsive">
                     <table>
-                        <thead><tr><th>Fecha</th><th>Concepto</th><th>Detalle</th><th>Monto</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Concepto</th><th>Detalle</th><th>Medio</th><th>Monto</th></tr></thead>
                         <tbody id="tabla-transacciones"></tbody>
                     </table><div class="pagination-actions"><button type="button" class="secondary" onclick="window.cargarMasHistorico('ingresos', this)">Más ingresos</button><button type="button" class="secondary" onclick="window.cargarMasHistorico('gastos', this)">Más egresos</button></div>
                 </div>
             </div>
 
             <div class="modulo-oscuro">
-                <div class="modulo-header" onclick="window.toggleAcordeon('body-exportar-excel')"><span>Exportar movimientos a Excel</span></div>
+                <div class="modulo-header" onclick="window.toggleAcordeon('body-exportar-excel')"><span>Exportar movimientos</span></div>
                 <div id="body-exportar-excel" class="modulo-body">
                     <div class="dark-input-group">
                         <div><label>Fecha inicial</label><input type="date" id="excel-fecha-inicio"></div>
                         <div><label>Fecha final</label><input type="date" id="excel-fecha-fin"></div>
-                        <div><button onclick="window.exportarMovimientosExcel()" style="width:100%;">Exportar Excel</button></div>
+                        <div><label>Formato</label><select id="export-formato"><option value="excel">Excel (.xlsx)</option><option value="pdf">PDF (.pdf)</option></select></div>
+                        <div><button onclick="window.exportarMovimientos()" style="width:100%;">Exportar archivo</button></div>
                     </div>
                     <p style="margin:0; color:var(--text-muted); font-size:0.85rem;">Exporta movimientos, pedidos, stock, ventas y resumen de ganancias del rango seleccionado.</p>
                 </div>
@@ -802,9 +811,9 @@
                 <div class="modulo-oscuro">
                     <div class="modulo-header" onclick="window.toggleAcordeon('body-egresos-extraordinarios')"><span>Egresos Extraordinarios</span></div>
                     <div id="body-egresos-extraordinarios" class="modulo-body hidden">
-                        <div class="dark-input-group"><div><label>Concepto</label><input type="text" autocomplete="off" id="gasto-titulo"></div><div><label>Monto $</label><input type="number" autocomplete="off" id="gasto-importe"></div></div>
+                        <div class="dark-input-group"><div style="flex:2;"><label>Concepto</label><input type="text" autocomplete="off" id="gasto-titulo"></div><div><label>Efectivo $</label><input type="number" autocomplete="off" id="gasto-efectivo" min="0" step="0.01" placeholder="0"></div><div><label>Transferencia $</label><input type="number" autocomplete="off" id="gasto-transferencia" min="0" step="0.01" placeholder="0"></div></div>
                         <button onclick="window.registrarGasto()" style="width:100%;">Registrar Egreso</button>
-                        <div class="table-responsive"><table style="margin-top: 30px;"><thead><tr><th>Detalle</th><th>Importe</th><th>Acción</th></tr></thead><tbody id="tabla-gastos"></tbody></table></div>
+                        <div class="table-responsive"><table style="margin-top: 30px;"><thead><tr><th>Detalle</th><th>Efectivo</th><th>Transferencia</th><th>Total</th><th>Acción</th></tr></thead><tbody id="tabla-gastos"></tbody></table></div>
                     </div>
                 </div>
                 <div class="modulo-oscuro">
@@ -934,18 +943,50 @@
 
                 <div class="modulo-oscuro">
                     <div class="modulo-header" onclick="window.toggleAcordeon('body-config-logistica')">
-                        <span>Contacto y logística</span><span>⌄</span>
+                        <span>Logística</span><span>⌄</span>
                     </div>
                     <div id="body-config-logistica" class="modulo-body hidden">
                         <p style="margin:0 0 15px 0; font-size:0.78rem; color:var(--text-muted); line-height:1.5;">Las imágenes se guardan como URLs externas. Este panel no utiliza Firebase Storage.</p>
                         <div class="form-group"><label>URL Logo</label><input type="url" autocomplete="off" id="conf-logo" placeholder="https://..." oninput="window.previsualizarImagenURL(this, 'preview-conf-logo')"><img id="preview-conf-logo" class="preview-img-admin" alt="Vista previa del logo"></div>
-                        <div class="form-group"><label>Teléfono (WhatsApp)</label><input type="text" autocomplete="off" id="conf-tel"></div>
                         <div class="dark-input-group"><div><label>Envíos</label><select id="conf-envio-disp"><option value="si">Habilitado</option><option value="no">Deshabilitado</option></select></div><div><label>Tarifa $</label><input type="number" id="conf-envio-precio"></div></div>
+                        <hr>
+                        <h4 style="margin:0 0 15px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Descuentos por forma de pago</h4>
+                        <p style="margin:-5px 0 15px; font-size:.78rem; color:var(--text-muted); line-height:1.5;">El descuento se aplica automáticamente al elegir el medio de pago.</p>
+                        <div class="dark-input-group">
+                            <div><label class="dia-checkbox" style="margin-bottom:8px;"><input type="checkbox" id="desc-pago-efectivo-activo"> Efectivo</label><input type="number" id="desc-pago-efectivo-pct" min="0" max="100" step="0.01" placeholder="% descuento"></div>
+                            <div><label class="dia-checkbox" style="margin-bottom:8px;"><input type="checkbox" id="desc-pago-transferencia-activo"> Transferencia</label><input type="number" id="desc-pago-transferencia-pct" min="0" max="100" step="0.01" placeholder="% descuento"></div>
+                        </div>
+                        <div class="wa-check-grid" style="margin-top:5px;">
+                            <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-ofertas"> Aplicar también a ofertas</label>
+                            <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-packs"> Aplicar también a packs</label>
+                        </div>
                         <hr>
                         <h4 style="margin:0 0 15px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Horarios Operativos</h4>
                         <div class="dark-input-group"><div><label>Apertura</label><input type="time" id="conf-apertura"></div><div><label>Cierre</label><input type="time" id="conf-cierre"></div></div>
                         <div class="dias-checkbox-group"><label class="dia-checkbox"><input type="checkbox" id="check-lu"> Lu</label><label class="dia-checkbox"><input type="checkbox" id="check-ma"> Ma</label><label class="dia-checkbox"><input type="checkbox" id="check-mi"> Mi</label><label class="dia-checkbox"><input type="checkbox" id="check-ju"> Ju</label><label class="dia-checkbox"><input type="checkbox" id="check-vi"> Vi</label><label class="dia-checkbox"><input type="checkbox" id="check-sa"> Sá</label><label class="dia-checkbox"><input type="checkbox" id="check-do"> Do</label></div>
                         <button style="margin-top:20px; width:100%;" onclick="window.guardarConfiguracion()">Guardar preferencias</button>
+                    </div>
+                </div>
+
+                <div class="modulo-oscuro">
+                    <div class="modulo-header" onclick="window.toggleAcordeon('body-config-whatsapp')">
+                        <span>Mensajes automáticos y conexión con WhatsApp</span><span>⌄</span>
+                    </div>
+                    <div id="body-config-whatsapp" class="modulo-body hidden">
+                        <div class="form-group"><label>Número de WhatsApp del negocio</label><input type="text" autocomplete="off" id="wa-numero-negocio" placeholder="Ej: 5493511234567"><span class="field-status">Usá código de país y área, solo números. También se usa para el botón de WhatsApp de la tienda.</span></div>
+                        <div class="form-group"><label>Mensaje al marcar un pedido como entregado</label><textarea id="wa-mensaje-entrega" rows="4" style="width:100%; resize:vertical;" placeholder="Gracias por tu compra. Tu pedido fue entregado."></textarea><span class="field-status">Podés usar {nombre}, {codigo} y {total}.</span></div>
+                        <hr><h4 style="margin:0 0 8px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Datos que incluirá el mensaje del comprador</h4>
+                        <div class="wa-check-grid">
+                            <label class="wa-check-item"><input type="checkbox" id="wa-campo-fecha"> Fecha y hora</label>
+                            <label class="wa-check-item"><input type="checkbox" id="wa-campo-nombre"> Nombre y apellido</label>
+                            <label class="wa-check-item"><input type="checkbox" id="wa-campo-total"> Monto total</label>
+                            <label class="wa-check-item"><input type="checkbox" id="wa-campo-codigo"> Código del pedido</label>
+                            <label class="wa-check-item"><input type="checkbox" id="wa-campo-telefono"> Número del cliente</label>
+                            <label class="wa-check-item"><input type="checkbox" id="wa-campo-entrega"> Entrega y dirección</label>
+                            <label class="wa-check-item"><input type="checkbox" id="wa-campo-pago"> Método de pago</label>
+                            <label class="wa-check-item"><input type="checkbox" id="wa-campo-items"> Productos del pedido</label>
+                        </div>
+                        <button style="margin-top:20px; width:100%;" onclick="window.guardarMensajesWhatsApp()">Guardar mensajes y WhatsApp</button>
                     </div>
                 </div>
 
@@ -1110,7 +1151,7 @@
         // La tienda pública actual usa ?n=NEGOCIO_ID. Si el archivo público cambia de nombre,
         // sólo hay que modificar esta constante.
         const RUTA_TIENDA_PUBLICA = 'web.html';
-        let configTienda = { logo: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, apariencia: { ...TEMA_TIENDA_PREDETERMINADO } };
+        let configTienda = { logo: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
         let metricasChart = null;
         const PAGE_SIZE = 100;
         const SCHEMA_VERSION = 2;
@@ -1181,6 +1222,13 @@
             finally { setButtonLoading(btn,false); if(ind) ind.style.display='none'; }
         };
         window.conEstadoBoton = conEstadoBoton;
+        document.addEventListener('focusin', (event) => {
+            const campo=event.target;
+            if(!(campo instanceof HTMLInputElement) || !campo.hasAttribute('list')) return;
+            if(campo.dataset.busquedaLimpiada==='1') return;
+            campo.dataset.busquedaLimpiada='1'; campo.value=''; campo.dispatchEvent(new Event('input',{bubbles:true}));
+        });
+        document.addEventListener('focusout', (event) => { const campo=event.target; if(campo instanceof HTMLInputElement && campo.hasAttribute('list')) delete campo.dataset.busquedaLimpiada; });
 
         const validarTexto = (v, nombre, max=120, requerido=true) => {
             const t=String(v??'').trim();
@@ -2285,12 +2333,16 @@
             const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
             return conEstadoBoton(btn,'Guardando configuración…',async()=>{
                 try{
-                    const logo=String(document.getElementById('conf-logo').value||'').trim(); const telefono=String(document.getElementById('conf-tel').value||'').replace(/[^0-9]/g,'');
-                    if(telefono && (telefono.length<8||telefono.length>15)) throw new Error('El teléfono debe tener entre 8 y 15 dígitos.');
+                    const logo=String(document.getElementById('conf-logo').value||'').trim();
                     const envioPrecio=validarNumero(document.getElementById('conf-envio-precio').value||0,'Tarifa de envío',{min:0,max:999999999,requerido:false});
+                    const efectivoPct=validarNumero(document.getElementById('desc-pago-efectivo-pct').value||0,'Descuento por efectivo',{min:0,max:100,requerido:false});
+                    const transferenciaPct=validarNumero(document.getElementById('desc-pago-transferencia-pct').value||0,'Descuento por transferencia',{min:0,max:100,requerido:false});
+                    const descuentosPago={efectivo:{activo:!!document.getElementById('desc-pago-efectivo-activo').checked,porcentaje:efectivoPct},transferencia:{activo:!!document.getElementById('desc-pago-transferencia-activo').checked,porcentaje:transferenciaPct},aplicaOfertas:!!document.getElementById('desc-pago-aplica-ofertas').checked,aplicaPacks:!!document.getElementById('desc-pago-aplica-packs').checked};
+                    if(descuentosPago.efectivo.activo&&efectivoPct<=0) throw new Error('Indicá un porcentaje mayor a 0 para efectivo.');
+                    if(descuentosPago.transferencia.activo&&transferenciaPct<=0) throw new Error('Indicá un porcentaje mayor a 0 para transferencia.');
                     const diasApertura={}; ['check-lu','check-ma','check-mi','check-ju','check-vi','check-sa','check-do'].forEach(id=>diasApertura[id]=document.getElementById(id).checked);
-                    configTienda={...configTienda,logo,telefono,horaApertura:document.getElementById('conf-apertura').value,horaCierre:document.getElementById('conf-cierre').value,diasApertura,envioDisponible:document.getElementById('conf-envio-disp').value==='si',envioPrecio,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()};
-                    await setDoc(doc(db,'configuracion',negocioIdActual),configTienda,{merge:true}); await auditar('configuracion_actualizada','configuracion',negocioIdActual,{telefonoConfigurado:!!telefono,envioDisponible:configTienda.envioDisponible});
+                    configTienda={...configTienda,logo,horaApertura:document.getElementById('conf-apertura').value,horaCierre:document.getElementById('conf-cierre').value,diasApertura,envioDisponible:document.getElementById('conf-envio-disp').value==='si',envioPrecio,descuentosPago,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()};
+                    await setDoc(doc(db,'configuracion',negocioIdActual),configTienda,{merge:true}); await auditar('configuracion_actualizada','configuracion',negocioIdActual,{envioDisponible:configTienda.envioDisponible,descuentosPago});
                     window.mostrarAlertaUI('Configuración guardada correctamente.');
                 }catch(e){window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración.');throw e;}
             });
@@ -2422,9 +2474,28 @@
             });
         };
 
+        const camposWhatsAppPorDefecto = () => ({ fecha:true,nombre:true,total:true,codigo:true,telefono:true,entrega:true,pago:true,items:true });
+        const normalizarConfigWhatsApp = () => { const wa=configTienda.whatsapp||{}; return { numeroNegocio:String(wa.numeroNegocio||configTienda.telefono||'').replace(/[^0-9]/g,''), mensajeEntrega:String(wa.mensajeEntrega||'Gracias por tu compra. Tu pedido #{codigo} fue entregado.'), camposMensajeCliente:{...camposWhatsAppPorDefecto(),...(wa.camposMensajeCliente||{})} }; };
+        window.guardarMensajesWhatsApp = async () => {
+            const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
+            return conEstadoBoton(btn,'Guardando WhatsApp…',async()=>{
+                try { exigirContextoAdmin(); const numero=String(document.getElementById('wa-numero-negocio')?.value||'').replace(/[^0-9]/g,''); if(numero&&(numero.length<8||numero.length>15)) throw new Error('El número de WhatsApp debe tener entre 8 y 15 dígitos.'); const mensajeEntrega=validarTexto(document.getElementById('wa-mensaje-entrega')?.value||'','Mensaje de entrega',800,true); const camposMensajeCliente={ fecha:!!document.getElementById('wa-campo-fecha')?.checked,nombre:!!document.getElementById('wa-campo-nombre')?.checked,total:!!document.getElementById('wa-campo-total')?.checked,codigo:!!document.getElementById('wa-campo-codigo')?.checked,telefono:!!document.getElementById('wa-campo-telefono')?.checked,entrega:!!document.getElementById('wa-campo-entrega')?.checked,pago:!!document.getElementById('wa-campo-pago')?.checked,items:!!document.getElementById('wa-campo-items')?.checked }; if(!Object.values(camposMensajeCliente).some(Boolean)) throw new Error('Seleccioná al menos un dato para el mensaje del comprador.'); const whatsapp={numeroNegocio:numero,mensajeEntrega,camposMensajeCliente}; configTienda={...configTienda,telefono:numero,whatsapp}; await setDoc(doc(db,'configuracion',negocioIdActual),{telefono:numero,whatsapp,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()},{merge:true}); const telGeneral=document.getElementById('conf-tel'); if(telGeneral) telGeneral.value=numero; await auditar('whatsapp_configurado','configuracion',negocioIdActual,{camposMensajeCliente}); window.mostrarAlertaUI('Configuración de WhatsApp guardada correctamente.'); } catch(e){ window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración de WhatsApp.'); throw e; }
+            });
+        };
+
         window.triggerConfiguracion = () => {
             document.getElementById('conf-logo').value = configTienda.logo || '';
-            document.getElementById('conf-tel').value = configTienda.telefono || '';
+            const dp=configTienda.descuentosPago||{}, dpe=dp.efectivo||{}, dpt=dp.transferencia||{};
+            const ea=document.getElementById('desc-pago-efectivo-activo'); if(ea) ea.checked=!!dpe.activo;
+            const ep=document.getElementById('desc-pago-efectivo-pct'); if(ep) ep.value=Number(dpe.porcentaje)||0;
+            const ta=document.getElementById('desc-pago-transferencia-activo'); if(ta) ta.checked=!!dpt.activo;
+            const tp=document.getElementById('desc-pago-transferencia-pct'); if(tp) tp.value=Number(dpt.porcentaje)||0;
+            const ao=document.getElementById('desc-pago-aplica-ofertas'); if(ao) ao.checked=!!dp.aplicaOfertas;
+            const ap=document.getElementById('desc-pago-aplica-packs'); if(ap) ap.checked=!!dp.aplicaPacks;
+            const wa = normalizarConfigWhatsApp();
+            const waNumero=document.getElementById('wa-numero-negocio'); if(waNumero) waNumero.value=wa.numeroNegocio;
+            const waMensaje=document.getElementById('wa-mensaje-entrega'); if(waMensaje) waMensaje.value=wa.mensajeEntrega;
+            const mapaWaChecks={fecha:'wa-campo-fecha',nombre:'wa-campo-nombre',total:'wa-campo-total',codigo:'wa-campo-codigo',telefono:'wa-campo-telefono',entrega:'wa-campo-entrega',pago:'wa-campo-pago',items:'wa-campo-items'}; Object.entries(mapaWaChecks).forEach(([clave,id])=>{const el=document.getElementById(id);if(el)el.checked=!!wa.camposMensajeCliente[clave];});
             document.getElementById('conf-apertura').value = configTienda.horaApertura || '09:00';
             document.getElementById('conf-cierre').value = configTienda.horaCierre || '18:00';
             document.getElementById('conf-envio-disp').value = configTienda.envioDisponible ? 'si' : 'no';
@@ -2753,7 +2824,7 @@
         };
 
         window.registrarIngresoManual = async () => { const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null; return conEstadoBoton(btn,'Registrando ingreso…',async()=>{ const d = validarTexto(document.getElementById('ingreso-manual-detalle').value, 'Concepto', 160, true); const e = parseFloat(document.getElementById('ingreso-manual-efectivo').value) || 0; const t = parseFloat(document.getElementById('ingreso-manual-transf').value) || 0; if (d && (e>0 || t>0)) { let i = { schemaVersion: SCHEMA_VERSION, fecha: serverTimestamp(), tipo: 'manual', detalle: d, efectivo: e, transferencia: t, negocioId: negocioIdActual, createdAt: serverTimestamp(), createdBy: actorActual() }; await addDoc(collection(db, "ingresos"), i); document.getElementById('ingreso-manual-detalle').value = ""; document.getElementById('ingreso-manual-efectivo').value = ""; document.getElementById('ingreso-manual-transf').value = ""; window.triggerIngresos(); } }); };
-        window.registrarGasto = async () => { const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null; return conEstadoBoton(btn,'Registrando egreso…',async()=>{ const t = validarTexto(document.getElementById('gasto-titulo').value, 'Concepto', 160, true); const i = parseFloat(document.getElementById('gasto-importe').value) || 0; if (t && i > 0) { if(i >= 50000 && !(await pedirConfirmacion(`Vas a registrar un egreso de $${window.formatearNum(i)}. ¿Confirmar?`))) return; let g = { schemaVersion: SCHEMA_VERSION, fecha: serverTimestamp(), titulo: t, importe: i, negocioId: negocioIdActual, createdAt: serverTimestamp(), createdBy: actorActual() }; await addDoc(collection(db, "gastos"), g); document.getElementById('gasto-titulo').value = ""; document.getElementById('gasto-importe').value = ""; window.triggerGastos(); } }); };
+        window.registrarGasto = async () => { const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null; return conEstadoBoton(btn,'Registrando egreso…',async()=>{ const t=validarTexto(document.getElementById('gasto-titulo').value,'Concepto',160,true); const efectivo=parseFloat(document.getElementById('gasto-efectivo').value)||0; const transferencia=parseFloat(document.getElementById('gasto-transferencia').value)||0; if(efectivo<0||transferencia<0) throw new Error('Los importes no pueden ser negativos.'); const i=efectivo+transferencia; if(i<=0) throw new Error('Indicá cuánto se pagó en efectivo y/o transferencia.'); if(i>=50000 && !(await pedirConfirmacion(`Vas a registrar un egreso de $${window.formatearNum(i)}. ¿Confirmar?`))) return; const g={schemaVersion:SCHEMA_VERSION,fecha:serverTimestamp(),titulo:t,importe:i,efectivo,transferencia,negocioId:negocioIdActual,createdAt:serverTimestamp(),createdBy:actorActual()}; await addDoc(collection(db,'gastos'),g); document.getElementById('gasto-titulo').value=''; document.getElementById('gasto-efectivo').value=''; document.getElementById('gasto-transferencia').value=''; window.triggerGastos(); }); };
         window.borrarGasto = async (id) => { if(!(await pedirConfirmacion("¿Eliminar este egreso?"))) return; await deleteDoc(doc(db, "gastos", id)); gastosGlobales = gastosGlobales.filter(g => g.id !== id); window.triggerGastos(); };
         window.calcularBalanceEnVivo = () => {
             const p = document.getElementById('filtro-periodo').value; const hoy = new Date(); let dias = p==='hoy'?1:p==='semana'?7:p==='mes'?30:99999; let tIng = 0; let tGas = 0;
@@ -2763,8 +2834,13 @@
             document.getElementById('bal-ingresos').textContent = `$${window.formatearNum(tIng)}`; document.getElementById('bal-gastos').textContent = `$${window.formatearNum(tGas)}`; document.getElementById('bal-neta').textContent = `${net>=0?'':'-'}$${window.formatearNum(Math.abs(net))}`; document.getElementById('bal-neta').style.color = net>=0?'var(--primary)':'var(--text-muted)';
         };
         window.renderizarTransacciones = () => {
-            let tr = []; ingresosGlobales.forEach(i => tr.push({ id: i.id, f: i.fecha, t: 'Ingreso', d: i.detalle, m: i.efectivo + i.transferencia })); gastosGlobales.forEach(g => tr.push({ id: g.id, f: g.fecha, t: 'Egreso', d: g.titulo+(g.descripcion?` - ${g.descripcion}`:''), m: g.importe })); tr.sort((a,b) => b.f - a.f); const tb = document.getElementById('tabla-transacciones'); if(!tb) return; tb.innerHTML = '';
-            tr.forEach(x => { const c = x.t === 'Ingreso' ? 'var(--text-main)' : 'var(--text-muted)'; tb.innerHTML += `<tr><td style="color:var(--text-dark);">${x.f.toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="color:${c}; text-transform:uppercase; font-size:0.7rem;">${x.t}</td><td style="color:var(--text-muted);">${x.d}</td><td style="color:${c}; font-weight:500;">$${window.formatearNum(x.m)}</td></tr>`; });
+            const describirMedio=(efectivo,transferencia,totalFallback=0)=>{const e=Number(efectivo)||0,t=Number(transferencia)||0;if(e>0&&t>0)return `Efectivo $${window.formatearNum(e)} · Transferencia $${window.formatearNum(t)}`;if(e>0)return 'Efectivo';if(t>0)return 'Transferencia';return totalFallback>0?'Sin especificar':'-';};
+            const tr=[]; ingresosGlobales.forEach(i=>tr.push({f:i.fecha,t:'Ingreso',d:i.detalle,medio:describirMedio(i.efectivo,i.transferencia,totalIngreso(i)),m:totalIngreso(i)})); gastosGlobales.forEach(g=>tr.push({f:g.fecha,t:'Egreso',d:g.titulo+(g.descripcion?` - ${g.descripcion}`:''),medio:describirMedio(g.efectivo,g.transferencia,Number(g.importe)||0),m:Number(g.importe)||0})); tr.sort((a,b)=>b.f-a.f); const tb=document.getElementById('tabla-transacciones'); if(!tb)return; tb.innerHTML='';
+            tr.forEach(x=>{const c=x.t==='Ingreso'?'var(--text-main)':'var(--text-muted)';tb.innerHTML+=`<tr><td style="color:var(--text-dark);">${x.f.toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="color:${c}; text-transform:uppercase; font-size:0.7rem;">${x.t}</td><td style="color:var(--text-muted);">${escaparHtml(x.d||'-')}</td><td style="color:var(--text-muted);">${escaparHtml(x.medio||'-')}</td><td style="color:${c}; font-weight:500;">$${window.formatearNum(x.m)}</td></tr>`;});
+        };
+        window.exportarMovimientos = () => { const formato=document.getElementById('export-formato')?.value||'excel'; return formato==='pdf'?window.exportarMovimientosPDF():window.exportarMovimientosExcel(); };
+        window.exportarMovimientosPDF = () => {
+            const inicioVal=document.getElementById('excel-fecha-inicio').value, finVal=document.getElementById('excel-fecha-fin').value; if(!inicioVal||!finVal){alert('Seleccioná la fecha inicial y la fecha final.');return;} const inicio=new Date(inicioVal+'T00:00:00'),fin=new Date(finVal+'T23:59:59'); if(inicio>fin){alert('La fecha inicial no puede ser posterior a la fecha final.');return;} const enRango=(fecha)=>{const f=fecha instanceof Date?fecha:new Date(fecha);return f>=inicio&&f<=fin;}; const movimientos=[]; ingresosGlobales.forEach(i=>{if(enRango(i.fecha))movimientos.push({fecha:fechaCorta(i.fecha),tipo:'Ingreso',detalle:i.detalle||i.tipo||'Ingreso',efectivo:Number(i.efectivo)||0,transferencia:Number(i.transferencia)||0,total:totalIngreso(i)});}); gastosGlobales.forEach(g=>{if(enRango(g.fecha))movimientos.push({fecha:fechaCorta(g.fecha),tipo:'Egreso',detalle:g.titulo||'Egreso',efectivo:Number(g.efectivo)||0,transferencia:Number(g.transferencia)||0,total:-(Number(g.importe)||0)});}); const pedidos=pedidosGlobales.filter(p=>p.fecha&&enRango(p.fecha)); if(!movimientos.length&&!pedidos.length){alert('No hay datos en ese período.');return;} if(!window.jspdf?.jsPDF){alert('No se pudo cargar el generador de PDF. Recargá la página e intentá nuevamente.');return;} const {jsPDF}=window.jspdf; const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}); const ti=movimientos.filter(m=>m.tipo==='Ingreso').reduce((s,m)=>s+Math.max(0,m.total),0), te=movimientos.filter(m=>m.tipo==='Egreso').reduce((s,m)=>s+Math.abs(Math.min(0,m.total)),0); pdf.setFontSize(16);pdf.text('Reporte de movimientos - Shopo',14,14);pdf.setFontSize(9);pdf.text(`Período: ${inicioVal} a ${finVal}`,14,20);pdf.text(`Ingresos: $${window.formatearNum(ti)}   Egresos: $${window.formatearNum(te)}   Neto: $${window.formatearNum(ti-te)}`,14,26); pdf.autoTable({startY:32,head:[['Fecha','Tipo','Detalle','Efectivo','Transferencia','Total']],body:movimientos.map(m=>[m.fecha,m.tipo,m.detalle,`$${window.formatearNum(m.efectivo)}`,`$${window.formatearNum(m.transferencia)}`,`${m.total<0?'-':''}$${window.formatearNum(Math.abs(m.total))}`]),styles:{fontSize:8,cellPadding:2}}); let y=(pdf.lastAutoTable?.finalY||32)+8;if(y>170){pdf.addPage();y=14;}pdf.setFontSize(12);pdf.text('Pedidos',14,y);y+=4;pdf.autoTable({startY:y,head:[['Fecha','Código','Cliente','Estado','Pago','Entrega','Total']],body:pedidos.map(p=>[fechaCorta(p.fecha),p.idCorto||'',obtenerNombreClientePedido(p),normalizarEstadoPedido(p),p.estadoPago?'Pagado':'Pendiente',p.metodoEntrega||'',`$${window.formatearNum(Number(p.total)||0)}`]),styles:{fontSize:7.5,cellPadding:2}});pdf.save(`reporte_completo_${inicioVal}_a_${finVal}.pdf`);
         };
         window.exportarMovimientosExcel = () => {
             const inicioVal = document.getElementById('excel-fecha-inicio').value;
@@ -2776,7 +2852,7 @@
             const enRango = (fecha) => { const f = fecha instanceof Date ? fecha : new Date(fecha); return f >= inicio && f <= fin; };
             const movimientos = [];
             ingresosGlobales.forEach(i => { if(enRango(i.fecha)) movimientos.push({ Fecha: i.fecha.toLocaleDateString('es-AR'), Hora: i.fecha.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}), Tipo:'Ingreso', Concepto:i.tipo || 'Ingreso', Detalle:i.detalle || '', Efectivo:Number(i.efectivo)||0, Transferencia:Number(i.transferencia)||0, Total:totalIngreso(i) }); });
-            gastosGlobales.forEach(g => { if(enRango(g.fecha)) movimientos.push({ Fecha: g.fecha.toLocaleDateString('es-AR'), Hora: g.fecha.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}), Tipo:'Egreso', Concepto:g.titulo || 'Egreso', Detalle:g.descripcion || '', Efectivo:'', Transferencia:'', Total:-(Number(g.importe)||0) }); });
+            gastosGlobales.forEach(g => { if(enRango(g.fecha)) movimientos.push({ Fecha: g.fecha.toLocaleDateString('es-AR'), Hora: g.fecha.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}), Tipo:'Egreso', Concepto:g.titulo || 'Egreso', Detalle:g.descripcion || '', Efectivo:Number(g.efectivo)||0, Transferencia:Number(g.transferencia)||0, Total:-(Number(g.importe)||0) }); });
             const pedidos = pedidosGlobales.filter(p => p.fecha && enRango(p.fecha)).map(p => ({ Fecha:p.fecha.toLocaleDateString('es-AR'), Código:p.idCorto || '', Cliente:obtenerNombreClientePedido(p), Teléfono:p.telefono || '', Estado:normalizarEstadoPedido(p), Pago:p.estadoPago?'Cobrado':'Pendiente', Método:p.metodoPago || '', Entrega:p.metodoEntrega || '', Total:Number(p.total)||0, Stock:p.stockDescontado===false?'No descontado':'Descontado' }));
             const ventas = [];
             pedidosGlobales.filter(p => p.fecha && enRango(p.fecha)).forEach(p => (p.items||[]).forEach(it => ventas.push({ Fecha:p.fecha.toLocaleDateString('es-AR'), Origen:'Web', Código:p.idCorto || '', Producto:it.nombre, Variante:it.detalle, Cantidad:it.cantidad, PrecioUnitario:it.precio, Total:(it.precio||0)*(it.cantidad||1) })));
@@ -2796,7 +2872,7 @@
             XLSX.writeFile(wb, `reporte_completo_${inicioVal}_a_${finVal}.xlsx`);
         };
 
-        window.triggerGastos = () => { window.actualizarNotificaciones(); gastosGlobales.sort((a,b) => b.fecha - a.fecha); const t = document.getElementById('tabla-gastos'); if(t) {t.innerHTML = ''; gastosGlobales.forEach(g => { t.innerHTML += `<tr><td><span style="color:var(--text-main); text-transform:uppercase; font-size:0.8rem;">${g.titulo}</span></td><td style="color:var(--text-muted);">$${window.formatearNum(g.importe)}</td><td><button class="danger" style="padding: 4px 8px; border-radius: 4px;" onclick="window.borrarGasto('${g.id}')">X</button></td></tr>`; });} window.calcularBalanceEnVivo(); window.renderizarTransacciones(); if(!document.getElementById('panel-metricas').classList.contains('hidden')) window.actualizarGraficos(); };
+        window.triggerGastos = () => { window.actualizarNotificaciones(); gastosGlobales.sort((a,b)=>b.fecha-a.fecha); const t=document.getElementById('tabla-gastos'); if(t){t.innerHTML='';gastosGlobales.forEach(g=>{const ef=Number(g.efectivo)||0,tr=Number(g.transferencia)||0,total=Number(g.importe)||0;t.innerHTML+=`<tr><td><span style="color:var(--text-main); text-transform:uppercase; font-size:0.8rem;">${escaparHtml(g.titulo||'')}</span></td><td style="color:var(--text-muted);">$${window.formatearNum(ef)}</td><td style="color:var(--text-muted);">$${window.formatearNum(tr)}</td><td style="color:var(--text-main);">$${window.formatearNum(total)}</td><td><button class="danger" style="padding:4px 8px;border-radius:4px;" onclick="window.borrarGasto('${g.id}')">X</button></td></tr>`;});} window.calcularBalanceEnVivo();window.renderizarTransacciones();if(!document.getElementById('panel-metricas').classList.contains('hidden'))window.actualizarGraficos(); };
         window.triggerIngresos = () => { window.actualizarNotificaciones(); ingresosGlobales.sort((a,b) => b.fecha - a.fecha); window.calcularBalanceEnVivo(); window.renderizarTransacciones(); if(!document.getElementById('panel-metricas').classList.contains('hidden')) window.actualizarGraficos(); };
 
         // PEDIDOS Y MÉTRICAS
@@ -2838,7 +2914,7 @@
                 const tipoClienteSeguro = p.tipoCliente ? `(${escaparHtml(p.tipoCliente)})` : '';
                 const metodoEntregaSeguro = escaparHtml(p.metodoEntrega || '');
                 const direccionSegura = p.direccion && p.direccion!=='Retiro en local' ? ' - ' + escaparHtml(p.direccion) : '';
-                return `<div class="pedido-card"><div class="pedido-header"><div><span class="pedido-id">#${escaparHtml(p.idCorto || 'S/C')}</span><br><span style="font-size:0.75rem; color:var(--text-dark); text-transform:uppercase;">${p.fecha ? p.fecha.toLocaleString() : ''}</span></div><span style="font-size:1.1rem; font-weight:600; color:var(--primary);">$${window.formatearNum(p.total || 0)}</span></div><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">CLIENTE: <span style="color:var(--text-main); font-weight:500;">${clienteSeguro} ${tipoClienteSeguro}</span></p><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">TEL: <a href="https://wa.me/${telefonoSeguro}" target="_blank" rel="noopener noreferrer" style="color:var(--primary); font-weight:500; text-decoration:none;">${escaparHtml(p.telefono || '')}</a></p><p style="margin:0 0 20px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">ENTREGA: <span style="color:var(--text-main); font-weight:500;">${metodoEntregaSeguro}</span>${direccionSegura}</p><ul class="pedido-items">${it}</ul><div class="pedido-actions" style="align-items:center;">${bC} ${bP} ${bE}</div></div>`;
+                const estadoFinalHtml=!isP?(estado==='cancelado'?`<span class="pedido-estado-final cancelado">Cancelado</span>`:`<span class="pedido-estado-final entregado">${p.estadoPago?'Entregado · Pagado':'Entregado · Pago pendiente'}</span>`):''; return `<div class="pedido-card"><div class="pedido-header"><div><span class="pedido-id">#${escaparHtml(p.idCorto || 'S/C')}</span><br><span style="font-size:0.75rem; color:var(--text-dark); text-transform:uppercase;">${p.fecha ? p.fecha.toLocaleString() : ''}</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">${estadoFinalHtml}<span style="font-size:1.1rem;font-weight:600;color:var(--primary);">$${window.formatearNum(p.total || 0)}</span></div></div><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">CLIENTE: <span style="color:var(--text-main); font-weight:500;">${clienteSeguro} ${tipoClienteSeguro}</span></p><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">TEL: <a href="https://wa.me/${telefonoSeguro}" target="_blank" rel="noopener noreferrer" style="color:var(--primary); font-weight:500; text-decoration:none;">${escaparHtml(p.telefono || '')}</a></p><p style="margin:0 0 20px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">ENTREGA: <span style="color:var(--text-main); font-weight:500;">${metodoEntregaSeguro}</span>${direccionSegura}</p><ul class="pedido-items">${it}</ul><div class="pedido-actions" style="align-items:center;">${bC} ${bP} ${bE}</div></div>`;
             };
             pend.forEach(p => lP.innerHTML += card(p, true)); entr.forEach(p => lH.innerHTML += card(p, false));
             if(!pend.length) lP.innerHTML = '<p style="color:var(--text-muted);">No hay pedidos pendientes con estos filtros.</p>';
@@ -2971,7 +3047,7 @@
                 if (font) {
                     const numLimpio = String(font || '').replace(/[^0-9]/g, '');
                     if(numLimpio) {
-                        window.open(`https://wa.me/${numLimpio}?text=${encodeURIComponent("Gracias por comprar con nosotros, su pedido ha sido entregado.")}`, '_blank');
+                        const wa=normalizarConfigWhatsApp(); const nombre=obtenerNombreClientePedido(p); const mensaje=String(wa.mensajeEntrega||'Gracias por tu compra. Tu pedido #{codigo} fue entregado.').replaceAll('{nombre}',nombre).replaceAll('{codigo}',String(p.idCorto||idDoc)).replaceAll('{total}',`$${window.formatearNum(Number(p.total)||0)}`); window.open(`https://wa.me/${numLimpio}?text=${encodeURIComponent(mensaje)}`,'_blank','noopener,noreferrer');
                     }
                 }
             } catch(e) {
