@@ -633,14 +633,16 @@
             window.renderizarCarrito();
         };
 
+        let compraEnProceso = false;
+
         window.generarResumenConfirmacionHTML = (pedido) => {
             if(!pedido) return '';
-            const itemsHTML = pedido.items.map(i => `• ${i.cantidad}x ${i.nombre} (${i.detalle}) - $${window.formatearNum(i.precio * i.cantidad)}`).join('<br>');
+            const itemsHTML = pedido.items.map(i => `• ${Number(i.cantidad)||0}x ${escaparHtml(i.nombre || '')} (${escaparHtml(i.detalle || '')}) - $${window.formatearNum((Number(i.precio)||0) * (Number(i.cantidad)||0))}`).join('<br>');
             return `
-                <strong>Cliente:</strong> ${pedido.nombreCliente} ${pedido.apellidoCliente}<br>
-                <strong>Teléfono:</strong> ${pedido.telefono}<br>
-                <strong>Entrega:</strong> ${pedido.metodoEntrega} - ${pedido.direccion}<br>
-                <strong>Pago:</strong> ${pedido.metodoPago}<br>
+                <strong>Cliente:</strong> ${escaparHtml(pedido.nombreCliente || '')} ${escaparHtml(pedido.apellidoCliente || '')}<br>
+                <strong>Teléfono:</strong> ${escaparHtml(pedido.telefono || '')}<br>
+                <strong>Entrega:</strong> ${escaparHtml(pedido.metodoEntrega || '')} - ${escaparHtml(pedido.direccion || '')}<br>
+                <strong>Pago:</strong> ${escaparHtml(pedido.metodoPago || '')}<br>
                 <strong>Pedido:</strong><br>${itemsHTML}<br>
                 <strong>Total final:</strong> $${window.formatearNum(pedido.total)}
             `;
@@ -648,7 +650,8 @@
 
         // 1. OBTENER EL ID DEL NEGOCIO DESDE LA URL
         const urlParams = new URLSearchParams(window.location.search);
-        const negocioIdURL = urlParams.get('n');
+        const negocioIdURL = String(urlParams.get('n') || '').trim();
+        const NEGOCIO_ID_RE = /^[A-Za-z0-9_-]{4,128}$/;
         const SCHEMA_VERSION = 2;
         const CATALOG_PAGE_SIZE = 40;
         let catalogoPagina = 1;
@@ -691,7 +694,7 @@
 
         // CARGA DE DATOS DESDE FIREBASE (FILTRADA)
         const cargarDatosBD = async () => {
-            if (!negocioIdURL) {
+            if (!NEGOCIO_ID_RE.test(negocioIdURL)) {
                 document.body.innerHTML = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:var(--bg-color); font-family:sans-serif; text-align: center; padding: 20px;">
                         <h2 style="color:var(--primary); font-size:2rem; margin-bottom:10px;">Enlace Inválido</h2>
@@ -1346,10 +1349,14 @@
         const validarDatosCheckout = ({nombre, apellido, telefono, metodoEntrega, direccion}) => {
             const errores = [];
             const telLimpio = String(telefono || '').replace(/[^0-9]/g, '');
-            if(String(nombre || '').trim().length < 2) errores.push('El nombre debe tener al menos 2 caracteres.');
-            if(String(apellido || '').trim().length < 2) errores.push('El apellido debe tener al menos 2 caracteres.');
-            if(telLimpio.length < 8) errores.push('El teléfono debe tener al menos 8 números.');
-            if(metodoEntrega === 'Envio' && String(direccion || '').trim().length < 8) errores.push('La dirección de envío debe tener al menos 8 caracteres.');
+            const nom = String(nombre || '').trim();
+            const ape = String(apellido || '').trim();
+            const dir = String(direccion || '').trim();
+            if(nom.length < 2 || nom.length > 80) errores.push('El nombre debe tener entre 2 y 80 caracteres.');
+            if(ape.length < 2 || ape.length > 80) errores.push('El apellido debe tener entre 2 y 80 caracteres.');
+            if(telLimpio.length < 8 || telLimpio.length > 15) errores.push('El teléfono debe tener entre 8 y 15 números.');
+            if(!['Retiro','Envio'].includes(metodoEntrega)) errores.push('La modalidad de entrega no es válida.');
+            if(metodoEntrega === 'Envio' && (dir.length < 8 || dir.length > 250)) errores.push('La dirección de envío debe tener entre 8 y 250 caracteres.');
             return errores;
         };
 
@@ -1377,7 +1384,16 @@
                 return data;
             };
 
+            if(!Array.isArray(resumenCarrito) || resumenCarrito.length < 1 || resumenCarrito.length > 50) {
+                return { ok:false, faltantes:[{nombre:'Pedido inválido',pedido:resumenCarrito?.length||0,disponible:50}] };
+            }
+
             for(const item of resumenCarrito) {
+                const cantidadSolicitada = Number(item?.cantidad);
+                if(!Number.isInteger(cantidadSolicitada) || cantidadSolicitada < 1 || cantidadSolicitada > 9999) {
+                    faltantes.push({ nombre: item?.nombre || 'Producto', pedido: cantidadSolicitada || 0, disponible: 0 });
+                    continue;
+                }
                 if(!item.isPack) {
                     const prod = await leerProducto(item.idProd);
                     const variante = prod?.variantes?.[item.idVar];
@@ -1424,7 +1440,12 @@
                         const prod = await leerProducto(comp.idProd);
                         const variante = prod?.variantes?.[comp.idVar];
                         const stockActual = Number(variante?.stock) || 0;
-                        combosDisponibles = Math.min(combosDisponibles, Math.floor(stockActual / (Number(comp.cantidad) || 1)));
+                        const cantidadComponente = Number(comp.cantidad) || 0;
+                        if(!prod || prod.negocioId !== negocioIdURL || !variante || cantidadComponente <= 0) {
+                            combosDisponibles = 0;
+                            break;
+                        }
+                        combosDisponibles = Math.min(combosDisponibles, Math.floor(stockActual / cantidadComponente));
                     }
                     if(!Number.isFinite(combosDisponibles)) combosDisponibles = 0;
                     if(combosDisponibles < item.cantidad) {
@@ -1495,7 +1516,7 @@
         };
 
         window.finalizarCompra = async () => {
-            if (carrito.length === 0) return;
+            if (compraEnProceso || carrito.length === 0) return;
             const campoNombre = document.getElementById('checkout-nombre');
             const campoApellido = document.getElementById('checkout-apellido');
             const campoDireccion = document.getElementById('checkout-direccion');
@@ -1505,11 +1526,14 @@
 
             const n = String(campoNombre.value || '').trim();
             const a = String(campoApellido.value || '').trim();
-            const t = String(document.getElementById('checkout-telefono').value || '').trim();
+            const t = String(document.getElementById('checkout-telefono').value || '').replace(/[^0-9]/g, '');
             const mE = document.getElementById('metodo-entrega').value;
+            const metodoPago = document.getElementById('metodo-pago').value;
             const d = String(document.getElementById('checkout-direccion').value || '').trim();
 
             const erroresCheckout = validarDatosCheckout({ nombre: n, apellido: a, telefono: t, metodoEntrega: mE, direccion: d });
+            if(!['Efectivo','Transferencia'].includes(metodoPago)) erroresCheckout.push('El método de pago no es válido.');
+            if(mE === 'Envio' && !configTienda.envioDisponible) erroresCheckout.push('Esta tienda no tiene envíos habilitados.');
             if(erroresCheckout.length) {
                 alert(erroresCheckout.join('\n'));
                 return;
@@ -1518,6 +1542,7 @@
 
             const btnComprar = document.getElementById('btn-comprar');
             const textoOriginalComprar = btnComprar.textContent;
+            compraEnProceso = true;
             btnComprar.disabled = true;
             btnComprar.textContent = 'Procesando…';
             try {
@@ -1552,7 +1577,7 @@
                     apellidoCliente: a,
                     telefono: t,
                     direccion: mE === 'Envio' ? d : 'Retiro en local',
-                    metodoPago: document.getElementById('metodo-pago').value,
+                    metodoPago,
                     metodoEntrega: mE,
                     estadoPago: false,
                     estadoEntrega: false,
@@ -1588,6 +1613,7 @@
                 console.error(e);
                 alert("Hubo un error al procesar el pedido. Intentá nuevamente.");
             } finally {
+                compraEnProceso = false;
                 btnComprar.disabled = false;
                 btnComprar.textContent = textoOriginalComprar;
             }
