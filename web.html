@@ -450,7 +450,7 @@
                 <div class="checkout-options" id="checkout-form" style="margin-top: 25px;">
                     <div style="display: flex; gap: 15px; margin-bottom: 20px;"><div style="flex: 1;"><label>Nombre</label><input type="text" id="checkout-nombre" required></div><div style="flex: 1;"><label>Apellido</label><input type="text" id="checkout-apellido" required></div></div>
                     <div class="form-group"><label>Teléfono de Contacto</label><input type="tel" id="checkout-telefono" required></div>
-                    <div class="form-group"><label>Forma de Pago</label><select id="metodo-pago" onchange="window.renderizarCarrito()"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia Bancaria</option></select></div>
+                    <div class="form-group"><label>Forma de Pago</label><select id="metodo-pago" onchange="window.renderizarCarrito()"><option id="opcion-pago-efectivo" value="Efectivo">Efectivo</option><option id="opcion-pago-transferencia" value="Transferencia">Transferencia Bancaria</option></select></div>
                     <div class="form-group"><label>Entrega</label><select id="metodo-entrega" onchange="window.toggleDireccion()"><option value="Retiro">Retiro en local</option><option value="Envio">Envío a domicilio</option></select></div>
                     <div class="form-group" id="caja-direccion" style="display: none;"><label>Dirección Completa</label><input type="text" id="checkout-direccion"><span id="aviso-envio" style="color: var(--accent); font-size: 0.8rem; display: block; margin-top: 8px;"></span></div>
                 </div>
@@ -777,6 +777,7 @@
             
             cargarCarritoLocal();
             actualizarBadge();
+            actualizarOpcionesMetodoPago();
             window.renderizarBotonesCategorias();
             window.renderizarBotonesSubcategorias();
             window.actualizarSelectsClientes();
@@ -1227,6 +1228,11 @@
         const porcentajeDescuentoPorPago = (metodoPago) => {
             const dp=normalizarDescuentosPago(), cfg=metodoPago==='Transferencia'?dp.transferencia:dp.efectivo;
             return cfg.activo?cfg.porcentaje:0;
+        };
+        const actualizarOpcionesMetodoPago = () => {
+            const ef=document.getElementById('opcion-pago-efectivo'), tr=document.getElementById('opcion-pago-transferencia');
+            if(ef){const pct=porcentajeDescuentoPorPago('Efectivo');ef.textContent=pct>0?`Efectivo — ${window.formatearNum(pct)}% desc.`:'Efectivo';}
+            if(tr){const pct=porcentajeDescuentoPorPago('Transferencia');tr.textContent=pct>0?`Transferencia Bancaria — ${window.formatearNum(pct)}% desc.`:'Transferencia Bancaria';}
         };
         const aplicaDescuentoPagoAItem = (item) => {
             const dp=normalizarDescuentosPago();
