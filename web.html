@@ -444,14 +444,13 @@
             <div id="carrito-vista-lista">
                 <h3>Resumen de Pedido</h3>
                 <div id="lista-carrito"></div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; border-top: 1px solid var(--border-light); padding-top: 20px; flex-wrap: wrap; gap: 10px;">
-                    <div style="flex: 1; min-width: 180px;"><label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:500; display:block; margin-bottom:5px;">Tipo de Cliente</label><select id="checkout-tipo-cliente" onchange="window.renderizarCarrito()" style="width:100%; padding: 8px;"></select></div>
+                <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:20px; border-top: 1px solid var(--border-light); padding-top: 20px;">
                     <div class="carrito-total" style="margin: 0; min-width: 150px;">Total: $<span id="total-carrito">0</span></div>
                 </div>
                 <div class="checkout-options" id="checkout-form" style="margin-top: 25px;">
                     <div style="display: flex; gap: 15px; margin-bottom: 20px;"><div style="flex: 1;"><label>Nombre</label><input type="text" id="checkout-nombre" required></div><div style="flex: 1;"><label>Apellido</label><input type="text" id="checkout-apellido" required></div></div>
                     <div class="form-group"><label>Teléfono de Contacto</label><input type="tel" id="checkout-telefono" required></div>
-                    <div class="form-group"><label>Forma de Pago</label><select id="metodo-pago"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia Bancaria</option></select></div>
+                    <div class="form-group"><label>Forma de Pago</label><select id="metodo-pago" onchange="window.renderizarCarrito()"><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia Bancaria</option></select></div>
                     <div class="form-group"><label>Entrega</label><select id="metodo-entrega" onchange="window.toggleDireccion()"><option value="Retiro">Retiro en local</option><option value="Envio">Envío a domicilio</option></select></div>
                     <div class="form-group" id="caja-direccion" style="display: none;"><label>Dirección Completa</label><input type="text" id="checkout-direccion"><span id="aviso-envio" style="color: var(--accent); font-size: 0.8rem; display: block; margin-top: 8px;"></span></div>
                 </div>
@@ -515,7 +514,7 @@
             border:'#e0e0e0', borderLight:'#eeeeee',
             textMain:'#212121', textMuted:'#616161', textDark:'#9e9e9e'
         });
-        let configTienda = { logo: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, apariencia: { ...TEMA_TIENDA_PREDETERMINADO } };
+        let configTienda = { logo: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
 
         const colorHexValido = (valor) => /^#[0-9a-fA-F]{6}$/.test(String(valor || ''));
         const normalizarTemaTienda = (tema = {}) => {
@@ -768,7 +767,7 @@
             if (configTienda.logo && configTienda.logo.trim() !== '') { logoImg.src = configTienda.logo; logoCont.classList.remove('hidden'); }
             
             const btnWsp = document.getElementById('btn-flotante-wsp');
-            if(configTienda.telefono) btnWsp.classList.remove('hidden');
+            if(String(configTienda.whatsapp?.numeroNegocio || configTienda.telefono || '').replace(/[^0-9]/g,'')) btnWsp.classList.remove('hidden');
 
             const info = document.getElementById('info-local-comprador'); let html = ''; let diasAbiertos = []; const strDias = { 'check-lu':'Lu', 'check-ma':'Ma', 'check-mi':'Mi', 'check-ju':'Ju', 'check-vi':'Vi', 'check-sa':'Sá', 'check-do':'Do' };
             if(configTienda.diasApertura) Object.entries(configTienda.diasApertura).forEach(([id, c]) => { if(c) diasAbiertos.push(strDias[id]); });
@@ -800,7 +799,7 @@
             if(!configTienda.diasApertura[diasMapa[diaSemana]]) return false;
             return horaActual >= configTienda.horaApertura && horaActual < configTienda.horaCierre;
         };
-        window.contactarWspLocal = () => { if(!configTienda.telefono) return; const numeroLimpio = configTienda.telefono.replace(/[^0-9]/g, ''); window.open(`https://wa.me/${numeroLimpio}?text=${encodeURIComponent("Hola, me comunico desde la tienda en línea.")}`, '_blank'); };
+        window.contactarWspLocal = () => { const numeroLimpio=String(configTienda.whatsapp?.numeroNegocio||configTienda.telefono||'').replace(/[^0-9]/g,''); if(!numeroLimpio)return; window.open(`https://wa.me/${numeroLimpio}?text=${encodeURIComponent('Hola, me comunico desde la tienda en línea.')}`,'_blank','noopener,noreferrer'); };
         window.toggleDireccion = () => { const m = document.getElementById('metodo-entrega').value; const c = document.getElementById('caja-direccion'); if (m === 'Envio') { if(!configTienda.envioDisponible) { document.getElementById('metodo-entrega').value = 'Retiro'; c.style.display = 'none'; return; } c.style.display = 'block'; document.getElementById('aviso-envio').textContent = `Coste adicional $${window.formatearNum(configTienda.envioPrecio)}`; } else { c.style.display = 'none'; } window.renderizarCarrito(); };
         window.buscarProductos = (texto) => { terminoBusqueda = String(texto || '').toLocaleLowerCase('es-AR').trim(); catalogoPagina = 1; window.renderizarCatalogoYStock(); };
         window.verificarVigenciaOferta = (fechaLimite) => { if(!fechaLimite) return false; const hoy = new Date(); hoy.setHours(0,0,0,0); const limite = new Date(fechaLimite + 'T00:00:00'); return hoy <= limite; };
@@ -898,11 +897,6 @@
         };
 
         window.actualizarSelectsClientes = () => {
-            const selCheckout = document.getElementById('checkout-tipo-cliente');
-            const opciones = categoriasClientes.map((c, i) =>
-                `<option value="${i}">${escaparHtml(window.formatearTextoTitulo(c.nombre))} (-${c.descuentoGlobal}% ${window.formatearTextoTitulo('Global')})</option>`
-            ).join('');
-            if(selCheckout) selCheckout.innerHTML = opciones;
             window.renderizarCarrito();
         };
 
@@ -1226,11 +1220,27 @@
         window.vaciarCarrito = () => { carrito = []; limpiarCarritoLocal(); actualizarBadge(); window.renderizarCarrito(); };
         function actualizarBadge() { const b = document.getElementById('badge-carrito'); b.textContent = carrito.length; b.style.display = carrito.length > 0 ? 'block' : 'none'; }
 
+        const normalizarDescuentosPago = () => {
+            const dp=configTienda.descuentosPago||{};
+            return {efectivo:{activo:!!dp.efectivo?.activo,porcentaje:Math.min(100,Math.max(0,Number(dp.efectivo?.porcentaje)||0))},transferencia:{activo:!!dp.transferencia?.activo,porcentaje:Math.min(100,Math.max(0,Number(dp.transferencia?.porcentaje)||0))},aplicaOfertas:!!dp.aplicaOfertas,aplicaPacks:!!dp.aplicaPacks};
+        };
+        const porcentajeDescuentoPorPago = (metodoPago) => {
+            const dp=normalizarDescuentosPago(), cfg=metodoPago==='Transferencia'?dp.transferencia:dp.efectivo;
+            return cfg.activo?cfg.porcentaje:0;
+        };
+        const aplicaDescuentoPagoAItem = (item) => {
+            const dp=normalizarDescuentosPago();
+            if(item?.isPack) return dp.aplicaPacks;
+            if(item?.precioOfertaAplicado!=null&&Number(item.precioOfertaAplicado)>0) return dp.aplicaOfertas;
+            return true;
+        };
+
         window.renderizarCarrito = () => {
             const l = document.getElementById('lista-carrito'); const ts = document.getElementById('total-carrito'); const bc = document.getElementById('btn-comprar'); if(!l) return;
-            const selectCliente = document.getElementById('checkout-tipo-cliente'); const clientIndex = selectCliente ? parseInt(selectCliente.value) : 0;
-            const perfilCli = categoriasClientes[clientIndex] || categoriasClientes[0];
-            l.innerHTML = ''; let subtotalBruto = 0; let descuentoMonto = 0;
+            const perfilCli=categoriasClientes[0]||{nombre:'Consumidor Final',descuentoGlobal:0,descuentosCat:{}};
+            const metodoPagoActual=document.getElementById('metodo-pago')?.value||'Efectivo';
+            const descuentoPagoPct=porcentajeDescuentoPorPago(metodoPagoActual);
+            l.innerHTML=''; let subtotalBruto=0; let descuentoMonto=0; let descuentoPagoMonto=0;
             
             if (carrito.length === 0) { 
                 l.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">Vacío</p>'; 
@@ -1241,8 +1251,10 @@
                 carrito.forEach((p, idx) => { 
                     const u = p.idProd+'_'+p.idVar; if(!cV[u]) cV[u] = {...p, c:0, idx}; cV[u].c++; 
                     let cat = 'General'; if(!p.isPack) { const prodRef = productos.find(x => x.id === p.idProd); cat = prodRef ? prodRef.categoria : 'General'; } else { cat = 'Packs'; }
-                    const descPct = (perfilCli.descuentosCat && perfilCli.descuentosCat[cat] !== undefined) ? perfilCli.descuentosCat[cat] : perfilCli.descuentoGlobal;
-                    subtotalBruto += p.precio; descuentoMonto += p.precio * (descPct / 100);
+                    const descPct=(perfilCli.descuentosCat&&perfilCli.descuentosCat[cat]!==undefined)?Number(perfilCli.descuentosCat[cat])||0:Number(perfilCli.descuentoGlobal)||0;
+                    const descClienteLinea=p.precio*(descPct/100);
+                    subtotalBruto+=p.precio; descuentoMonto+=descClienteLinea;
+                    if(descuentoPagoPct>0&&aplicaDescuentoPagoAItem(p)) descuentoPagoMonto+=Math.max(0,p.precio-descClienteLinea)*(descuentoPagoPct/100);
                 });
                 Object.values(cV).forEach(i => {
                     l.innerHTML += `
@@ -1263,10 +1275,11 @@
                         </div>`;
                 });
             } 
-            let total = subtotalBruto - descuentoMonto;
-            if (descuentoMonto > 0) { l.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0;"><span style="color:var(--accent); font-size:0.85rem; font-weight:500;">Ahorro Cliente (${perfilCli.nombre})</span><span style="color:var(--accent); font-weight:600;">-$${window.formatearNum(descuentoMonto)}</span></div>`; }
-            if(document.getElementById('metodo-entrega') && document.getElementById('metodo-entrega').value === 'Envio' && configTienda.envioDisponible && carrito.length > 0) { total += configTienda.envioPrecio; }
-            ts.textContent = window.formatearNum(total); ts.setAttribute('data-descuentomonto', descuentoMonto);
+            let total=subtotalBruto-descuentoMonto-descuentoPagoMonto;
+            if(descuentoMonto>0) l.innerHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;"><span style="color:var(--accent);font-size:.85rem;font-weight:500;">Descuento aplicado</span><span style="color:var(--accent);font-weight:600;">-$${window.formatearNum(descuentoMonto)}</span></div>`;
+            if(descuentoPagoMonto>0) l.innerHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;"><span style="color:var(--accent);font-size:.85rem;font-weight:500;">Descuento por ${metodoPagoActual} (${window.formatearNum(descuentoPagoPct)}%)</span><span style="color:var(--accent);font-weight:600;">-$${window.formatearNum(descuentoPagoMonto)}</span></div>`;
+            if(document.getElementById('metodo-entrega')&&document.getElementById('metodo-entrega').value==='Envio'&&configTienda.envioDisponible&&carrito.length>0) total+=Number(configTienda.envioPrecio)||0;
+            ts.textContent=window.formatearNum(Math.max(0,total)); ts.setAttribute('data-descuentomonto',descuentoMonto+descuentoPagoMonto);
         };
 
 
@@ -1368,11 +1381,13 @@
             return errores;
         };
 
-        const revalidarYRecalcularPedido = async (resumenCarrito, perfilCli, metodoEntrega) => {
+        const revalidarYRecalcularPedido = async (resumenCarrito, perfilCli, metodoEntrega, metodoPago) => {
             const items = [];
-            let subtotalBruto = 0;
-            let descuentoMonto = 0;
-            const faltantes = [];
+            let subtotalBruto=0;
+            let descuentoMonto=0;
+            let descuentoPagoMonto=0;
+            const descuentoPagoPct=porcentajeDescuentoPorPago(metodoPago);
+            const faltantes=[];
             const cacheProductos = new Map();
             const cachePacks = new Map();
 
@@ -1415,9 +1430,10 @@
                     const precioFinal = Number(esOferta ? variante.precioOferta : variante.precio) || 0;
                     const categoria = prod.categoria || 'General';
                     const descPct = (perfilCli.descuentosCat && perfilCli.descuentosCat[categoria] !== undefined) ? Number(perfilCli.descuentosCat[categoria]) || 0 : Number(perfilCli.descuentoGlobal) || 0;
-                    const brutoLinea = precioFinal * item.cantidad;
-                    subtotalBruto += brutoLinea;
-                    descuentoMonto += brutoLinea * (descPct / 100);
+                    const brutoLinea=precioFinal*item.cantidad;
+                    const descuentoClienteLinea=brutoLinea*(descPct/100);
+                    subtotalBruto+=brutoLinea; descuentoMonto+=descuentoClienteLinea;
+                    if(descuentoPagoPct>0&&(!esOferta||normalizarDescuentosPago().aplicaOfertas)) descuentoPagoMonto+=Math.max(0,brutoLinea-descuentoClienteLinea)*(descuentoPagoPct/100);
 
                     items.push({
                         idProd: item.idProd,
@@ -1464,9 +1480,10 @@
                     const precioFinal = Number(pack.precio) || 0;
                     const categoria = 'Packs';
                     const descPct = (perfilCli.descuentosCat && perfilCli.descuentosCat[categoria] !== undefined) ? Number(perfilCli.descuentosCat[categoria]) || 0 : Number(perfilCli.descuentoGlobal) || 0;
-                    const brutoLinea = precioFinal * item.cantidad;
-                    subtotalBruto += brutoLinea;
-                    descuentoMonto += brutoLinea * (descPct / 100);
+                    const brutoLinea=precioFinal*item.cantidad;
+                    const descuentoClienteLinea=brutoLinea*(descPct/100);
+                    subtotalBruto+=brutoLinea; descuentoMonto+=descuentoClienteLinea;
+                    if(descuentoPagoPct>0&&normalizarDescuentosPago().aplicaPacks) descuentoPagoMonto+=Math.max(0,brutoLinea-descuentoClienteLinea)*(descuentoPagoPct/100);
 
                     items.push({
                         idProd: `pack_${pkId}`,
@@ -1488,39 +1505,17 @@
             }
 
             if(faltantes.length > 0) return { ok: false, faltantes };
-            const costoEnvio = (metodoEntrega === 'Envio' && configTienda.envioDisponible) ? Number(configTienda.envioPrecio) || 0 : 0;
-            const total = Math.max(0, (subtotalBruto - descuentoMonto) + costoEnvio);
-            return { ok: true, items, subtotalBruto, descuentoMonto, costoEnvio, total };
+            const costoEnvio=(metodoEntrega==='Envio'&&configTienda.envioDisponible)?Number(configTienda.envioPrecio)||0:0;
+            descuentoMonto+=descuentoPagoMonto;
+            const total=Math.max(0,(subtotalBruto-descuentoMonto)+costoEnvio);
+            return {ok:true,items,subtotalBruto,descuentoMonto,costoEnvio,total};
         };
 
         window.enviarWhatsapp = () => {
-            if(!configTienda.telefono) { alert("El local aún no configuró su número de contacto."); return; }
-            const numeroLimpio = configTienda.telefono.replace(/[^0-9]/g, '');
-            
-            let texto = `Hola! Me comunico desde la tienda en línea.`;
-            
-            if (ultimoPedidoConf) {
-                texto = `Hola! Acabo de generar el pedido *#${ultimoPedidoConf.idCorto}*.\n\n`;
-                texto += `*Datos del cliente*\n`;
-                texto += `Nombre: ${ultimoPedidoConf.nombreCliente} ${ultimoPedidoConf.apellidoCliente}\n`;
-                texto += `Teléfono: ${ultimoPedidoConf.telefono}\n\n`;
-                texto += `*Entrega*\n`;
-                texto += `Modalidad: ${ultimoPedidoConf.metodoEntrega}\n`;
-                texto += `Dirección/Retiro: ${ultimoPedidoConf.direccion}\n\n`;
-                texto += `*Pago*\n`;
-                texto += `Método: ${ultimoPedidoConf.metodoPago}\n`;
-                if(ultimoPedidoConf.tipoCliente) texto += `Tipo de cliente: ${ultimoPedidoConf.tipoCliente}\n`;
-                if(ultimoPedidoConf.descuentoMonto > 0) texto += `Descuento aplicado: -$${window.formatearNum(ultimoPedidoConf.descuentoMonto)}\n`;
-                if(ultimoPedidoConf.costoEnvio > 0) texto += `Costo de envío: $${window.formatearNum(ultimoPedidoConf.costoEnvio)}\n`;
-                texto += `\n*Resumen del pedido*\n`;
-                ultimoPedidoConf.items.forEach(i => {
-                    texto += `- ${i.cantidad}x ${i.nombre} (${i.detalle}): $${window.formatearNum(i.precio * i.cantidad)}\n`;
-                });
-                texto += `\n*Total final: $${window.formatearNum(ultimoPedidoConf.total)}*\n\n`;
-                texto += `Por favor coordinemos la confirmación, el pago y la entrega.`;
-            }
-            
-            window.open(`https://wa.me/${numeroLimpio}?text=${encodeURIComponent(texto)}`, '_blank');
+            const numeroLimpio=String(configTienda.whatsapp?.numeroNegocio||configTienda.telefono||'').replace(/[^0-9]/g,''); if(!numeroLimpio){alert('El local aún no configuró su número de contacto.');return;}
+            let texto='Hola! Me comunico desde la tienda en línea.';
+            if(ultimoPedidoConf){ const campos={fecha:true,nombre:true,total:true,codigo:true,telefono:true,entrega:true,pago:true,items:true,...(configTienda.whatsapp?.camposMensajeCliente||{})}; const lineas=['Hola! Acabo de generar un pedido desde la tienda en línea.']; if(campos.codigo)lineas.push(`Código del pedido: *#${ultimoPedidoConf.idCorto}*`); if(campos.fecha){const fecha=ultimoPedidoConf.fechaClienteISO?new Date(ultimoPedidoConf.fechaClienteISO):new Date();lineas.push(`Fecha y hora: ${isNaN(fecha.getTime())?new Date().toLocaleString('es-AR'):fecha.toLocaleString('es-AR')}`);} if(campos.nombre)lineas.push(`Nombre: ${ultimoPedidoConf.nombreCliente} ${ultimoPedidoConf.apellidoCliente}`); if(campos.telefono)lineas.push(`Teléfono: ${ultimoPedidoConf.telefono}`); if(campos.entrega){lineas.push(`Entrega: ${ultimoPedidoConf.metodoEntrega}`);lineas.push(`Dirección/Retiro: ${ultimoPedidoConf.direccion}`);} if(campos.pago)lineas.push(`Método de pago: ${ultimoPedidoConf.metodoPago}`); if(campos.items){lineas.push('','*Productos*');ultimoPedidoConf.items.forEach(i=>lineas.push(`- ${i.cantidad}x ${i.nombre} (${i.detalle}): $${window.formatearNum(i.precio*i.cantidad)}`));} if(campos.total)lineas.push('',`*Total final: $${window.formatearNum(ultimoPedidoConf.total)}*`); lineas.push('','Por favor coordinemos la confirmación, el pago y la entrega.'); texto=lineas.join('\n'); }
+            window.open(`https://wa.me/${numeroLimpio}?text=${encodeURIComponent(texto)}`,'_blank','noopener,noreferrer');
         };
 
         window.finalizarCompra = async () => {
@@ -1557,10 +1552,8 @@
                 const resumenCarrito = construirResumenCarritoActual();
                 if(!resumenCarrito.length) return;
 
-                const selCliente = document.getElementById('checkout-tipo-cliente');
-                const clientIndex = selCliente ? parseInt(selCliente.value) : 0;
-                const perfilCli = categoriasClientes[clientIndex] || categoriasClientes[0];
-                const recalculo = await revalidarYRecalcularPedido(resumenCarrito, perfilCli, mE);
+                const perfilCli=categoriasClientes[0]||{nombre:'Consumidor Final',descuentoGlobal:0,descuentosCat:{}};
+                const recalculo=await revalidarYRecalcularPedido(resumenCarrito,perfilCli,mE,metodoPago);
 
                 if(!recalculo.ok) {
                     const detalle = recalculo.faltantes.map(f => `• ${f.nombre}\n  Pedido: ${f.pedido} | Disponible: ${f.disponible}`).join('\n\n');
@@ -1573,7 +1566,7 @@
                     return;
                 }
 
-                const tipoClienteTxt = selCliente ? selCliente.options[selCliente.selectedIndex].text.split(' (')[0] : '';
+                const tipoClienteTxt=String(perfilCli.nombre||'Consumidor Final');
                 const idC = generarIdCorto();
 
                 let nuevoPedido = {
