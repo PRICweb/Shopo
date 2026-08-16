@@ -476,6 +476,7 @@
     <script type="module">
         // ===== INTEGRACIÓN FIREBASE ACTUALIZADA (MULTI-TENANT) =====
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
         import { getFirestore, collection, getDocs, getDoc, doc, addDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -488,6 +489,13 @@
         };
 
         const app = initializeApp(firebaseConfig);
+
+        // ===== FIREBASE APP CHECK - reCAPTCHA Enterprise =====
+        // Debe inicializarse antes de acceder a Firestore/Auth.
+        const appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaEnterpriseProvider("6Lf4HIktAAAAAAbReYmNcVxzgurpIuJXEscFAsVy"),
+            isTokenAutoRefreshEnabled: true
+        });
         const db = getFirestore(app);
 
         // ESTADO GLOBAL
