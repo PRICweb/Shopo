@@ -1101,11 +1101,18 @@
         });
         // La tienda pública actual usa ?n=NEGOCIO_ID. Si el archivo público cambia de nombre,
         // sólo hay que modificar esta constante.
-        const RUTA_TIENDA_PUBLICA = 'tienda.html';
+        const RUTA_TIENDA_PUBLICA = 'web.html';
         let configTienda = { logo: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, apariencia: { ...TEMA_TIENDA_PREDETERMINADO } };
         let metricasChart = null;
         const PAGE_SIZE = 100;
         const SCHEMA_VERSION = 2;
+        const NEGOCIO_ID_RE = /^[A-Za-z0-9_-]{4,128}$/;
+        const negocioIdValido = (valor) => NEGOCIO_ID_RE.test(String(valor || '').trim());
+        const exigirContextoAdmin = () => {
+            if(!auth.currentUser || !negocioIdValido(negocioIdActual)) {
+                throw new Error('La sesión administrativa no es válida. Volvé a iniciar sesión.');
+            }
+        };
         const IDX_HELP = 'Si Firebase muestra un link para crear un índice compuesto, abrilo una vez desde la consola y esperá a que termine de construir.';
         let cursoresHistoricos = { pedidos:null, ingresos:null, gastos:null };
         let hayMasHistoricos = { pedidos:true, ingresos:true, gastos:true };
@@ -1754,7 +1761,8 @@
 
                         // 2. VERIFICACIÓN CRÍTICA: ¿Ya es administrador aprobado?
                         if (datosUsuario.rol === "admin") {
-                            negocioIdActual = datosUsuario.negocioId;
+                            if(!negocioIdValido(datosUsuario.negocioId)) throw new Error('El perfil no tiene un negocioId válido.');
+                            negocioIdActual = String(datosUsuario.negocioId).trim();
                             document.getElementById('nombre-negocio-display').textContent = datosUsuario.nombreNegocio ? `${datosUsuario.nombreNegocio} · ID: ${negocioIdActual}` : `(ID: ${negocioIdActual})`;
                             
                             document.getElementById('login-container').classList.add('hidden');
@@ -1852,6 +1860,12 @@
             if(!nombreNegocio || !email || !pass) {
                 return alert("Por favor, completa todos los campos para el registro.");
             }
+            if(nombreNegocio.length < 2 || nombreNegocio.length > 120) {
+                return alert("El nombre del negocio debe tener entre 2 y 120 caracteres.");
+            }
+            if(email.length > 254) {
+                return alert("El correo electrónico es demasiado largo.");
+            }
             if(pass.length < 6) {
                 return alert("La contraseña debe tener al menos 6 caracteres.");
             }
@@ -1947,7 +1961,7 @@
         };
 
         const cargarDatosBD = async () => {
-            if (!negocioIdActual) return;
+            if (!auth.currentUser || !negocioIdValido(negocioIdActual)) return;
 
             // Si el usuario vuelve a entrar o Firebase dispara Auth otra vez, evitamos listeners duplicados.
             detenerListenersTiempoReal();
@@ -2157,11 +2171,23 @@
             categoriasGlobales = categoriasGlobales.filter(c => c !== cat);
             delete subcategoriasGlobales[cat];
             for (const p of productos) {
-                if(p.categoria === cat) {
-                    p.categoria = 'General';
-                    Object.values(p.variantes || {}).forEach(v => { v.subcategoria = ''; });
-                    await setDoc(doc(db, "productos", p.id), p);
-                }
+                if(p.categoria !== cat) continue;
+                await runTransaction(db, async tx => {
+                    exigirContextoAdmin();
+                    const ref = doc(db, "productos", p.id);
+                    const snap = await tx.get(ref);
+                    if(!snap.exists()) return;
+                    const actual = snap.data();
+                    if(actual.negocioId !== negocioIdActual || actual.categoria !== cat) return;
+                    const variantes = structuredClone(actual.variantes || {});
+                    Object.values(variantes).forEach(v => { if(v && typeof v === 'object') v.subcategoria = ''; });
+                    tx.update(ref, {
+                        categoria: 'General',
+                        variantes,
+                        updatedAt: serverTimestamp(),
+                        updatedBy: actorActual()
+                    });
+                });
             }
             categoriasClientes.forEach(cli => { if(cli.descuentosCat && cli.descuentosCat[cat] !== undefined) delete cli.descuentosCat[cat]; });
             window.renderizarConfigCategorias();
@@ -2202,9 +2228,20 @@
             subcategoriasGlobales[cat] = (subcategoriasGlobales[cat] || []).filter(s => s !== subcat);
             for (const p of productos) {
                 if(p.categoria !== cat) continue;
-                let cambio = false;
-                Object.values(p.variantes || {}).forEach(v => { if(v.subcategoria === subcat) { v.subcategoria = ''; cambio = true; } });
-                if(cambio) await setDoc(doc(db, "productos", p.id), p);
+                await runTransaction(db, async tx => {
+                    exigirContextoAdmin();
+                    const ref = doc(db, "productos", p.id);
+                    const snap = await tx.get(ref);
+                    if(!snap.exists()) return;
+                    const actual = snap.data();
+                    if(actual.negocioId !== negocioIdActual || actual.categoria !== cat) return;
+                    const variantes = structuredClone(actual.variantes || {});
+                    let cambio = false;
+                    Object.values(variantes).forEach(v => {
+                        if(v && v.subcategoria === subcat) { v.subcategoria = ''; cambio = true; }
+                    });
+                    if(cambio) tx.update(ref, { variantes, updatedAt: serverTimestamp(), updatedBy: actorActual() });
+                });
             }
             window.renderizarSubcategoriasConfig();
             window.actualizarSubcategoriasVariantes();
@@ -2503,10 +2540,31 @@
         window.abrirModalOferta = () => { const sel = document.getElementById('oferta-select-prod'); sel.innerHTML = ''; productos.forEach(p => { Object.entries(p.variantes).forEach(([vId, v]) => { sel.innerHTML += `<option value="${p.id}|${vId}">${p.nombre} (${v.detalle})</option>`; }); }); window.actualizarPrecioBaseOferta(); document.getElementById('oferta-precio-final').value = ''; document.getElementById('oferta-fecha-limite').value = ''; document.getElementById('modal-oferta').classList.remove('hidden'); };
         window.cerrarModalOferta = () => document.getElementById('modal-oferta').classList.add('hidden');
         window.actualizarPrecioBaseOferta = () => { const combinedId = document.getElementById('oferta-select-prod').value; if(!combinedId) return; const [pId, vId] = combinedId.split('|'); const p = productos.find(x => x.id === pId); if(p && p.variantes[vId]) { document.getElementById('oferta-precio-base').value = `$${window.formatearNum(p.variantes[vId].precio)}`; } };
-        window.guardarOferta = async () => { 
-            const combinedId = document.getElementById('oferta-select-prod').value; const prFinal = parseFloat(document.getElementById('oferta-precio-final').value) || 0; const fLimite = document.getElementById('oferta-fecha-limite').value; if(!combinedId || prFinal <= 0 || !fLimite) { alert("Parámetros requeridos para la oferta incompletos."); return; } 
-            const [pId, vId] = combinedId.split('|'); const p = productos.find(x => x.id === pId); 
-            if(p && p.variantes[vId]) { p.variantes[vId].precioOferta = prFinal; p.variantes[vId].fechaLimiteOferta = fLimite; await setDoc(doc(db, "productos", p.id), p); alert("Oferta asignada exitosamente."); window.triggerProductos(); window.cerrarModalOferta(); } 
+        window.guardarOferta = async () => {
+            const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
+            return conEstadoBoton(btn,'Guardando oferta…',async()=>{
+                const combinedId = document.getElementById('oferta-select-prod').value;
+                const prFinal = validarNumero(document.getElementById('oferta-precio-final').value,'Precio de oferta',{min:0.01,max:999999999});
+                const fLimite = String(document.getElementById('oferta-fecha-limite').value || '');
+                if(!combinedId || !/^\d{4}-\d{2}-\d{2}$/.test(fLimite)) throw new Error('Completá producto, precio y fecha límite.');
+                const [pId, vId] = combinedId.split('|');
+                await runTransaction(db, async tx => {
+                    exigirContextoAdmin();
+                    const ref = doc(db, 'productos', pId);
+                    const snap = await tx.get(ref);
+                    if(!snap.exists()) throw new Error('El producto ya no existe.');
+                    const actual = snap.data();
+                    if(actual.negocioId !== negocioIdActual) throw new Error('Producto inválido.');
+                    if(!actual.variantes?.[vId]) throw new Error('La variante ya no existe.');
+                    const variantes = structuredClone(actual.variantes);
+                    variantes[vId].precioOferta = prFinal;
+                    variantes[vId].fechaLimiteOferta = fLimite;
+                    tx.update(ref,{variantes,updatedAt:serverTimestamp(),updatedBy:actorActual()});
+                });
+                await auditar('oferta_actualizada','producto',pId,{variante:vId,precioOferta:prFinal,fechaLimite:fLimite});
+                window.mostrarAlertaUI('Oferta asignada exitosamente.');
+                window.cerrarModalOferta();
+            });
         };
 
         window.agregarFilaItemPack = (idProd = '', idVar = '', cantidad = 1) => { const cont = document.getElementById('contenedor-items-pack'); const rowId = 'pack_row_' + Math.random().toString(36).substring(2, 7); const div = document.createElement('div'); div.className = 'variant-row'; div.id = rowId; let optProds = ''; productos.forEach(p => { Object.entries(p.variantes).forEach(([vId, v]) => { let sel = (p.id === idProd && vId === idVar) ? 'selected' : ''; optProds += `<option value="${p.id}|${vId}" ${sel}>${p.nombre} (${v.detalle})</option>`; }); }); div.innerHTML = `<div style="flex:3"><span class="mini-label">Producto Componente</span><select class="pack-item-select">${optProds}</select></div><div style="flex:1; max-width:100px;"><span class="mini-label">Cantidad</span><input type="number" class="pack-item-cant" value="${cantidad}" min="1"></div><button type="button" class="danger" style="margin-top: 15px; padding: 6px 10px;" onclick="document.getElementById('${rowId}').remove()">X</button>`; cont.appendChild(div); };
@@ -2758,15 +2816,21 @@
             const pend = listaCompleta.filter(p => !p.estadoEntrega && normalizarEstadoPedido(p) !== 'cancelado' && pasaFiltros(p));
             const entr = listaCompleta.filter(p => (p.estadoEntrega || normalizarEstadoPedido(p) === 'cancelado') && pasaFiltros(p));
             const card = (p, isP) => {
-                let it = ''; (p.items || []).forEach(i => it += `<li>${i.nombre} - ${i.detalle} x${i.cantidad} - $${window.formatearNum((i.precio || 0) * (i.cantidad || 1))}</li>`);
-                if (p.descuentoMonto > 0) it += `<li style="color:var(--accent); font-weight:500;">Descuento Aplicado (${p.tipoCliente}) - -$${window.formatearNum(p.descuentoMonto)}</li>`;
+                let it = ''; (p.items || []).forEach(i => it += `<li>${escaparHtml(i.nombre || '')} - ${escaparHtml(i.detalle || '')} x${Number(i.cantidad) || 0} - $${window.formatearNum((Number(i.precio) || 0) * (Number(i.cantidad) || 1))}</li>`);
+                if (p.descuentoMonto > 0) it += `<li style="color:var(--accent); font-weight:500;">Descuento Aplicado (${escaparHtml(p.tipoCliente || '')}) - -$${window.formatearNum(p.descuentoMonto)}</li>`;
                 if (p.costoEnvio) it += `<li style="color:var(--text-dark);">Envío - $${window.formatearNum(p.costoEnvio)}</li>`;
-                if (p.alertaStock) it += `<li style="color:#ef4444; font-weight:600;">FALTA STOCK: ${p.alertaStock}</li>`;
+                if (p.alertaStock) it += `<li style="color:#ef4444; font-weight:600;">FALTA STOCK: ${escaparHtml(p.alertaStock)}</li>`;
                 const estado = normalizarEstadoPedido(p);
-                const bC = isP ? `<button class="danger" style="border: 1px solid #ef4444; color: #ef4444;" onclick="window.cancelarPedido('${p.idDoc}', '${p.telefono || ''}')">Cancelar</button>` : '';
-                const bP = p.estadoPago ? `<span style="color:var(--text-dark); font-size:0.8rem; margin-top:10px;">COBRADO</span>` : `<button class="secondary" onclick="window.marcarPagado('${p.idDoc}')">Registrar Pago</button>`;
-                const bE = isP ? `<button onclick="window.marcarEntregado('${p.idDoc}', '${p.telefono || ''}')">Entregado</button>` : `<span style="color:var(--text-dark); font-size:0.8rem;">FINALIZADO</span>`;
-                return `<div class="pedido-card"><div class="pedido-header"><div><span class="pedido-id">#${p.idCorto || 'S/C'}</span><br><span style="font-size:0.75rem; color:var(--text-dark); text-transform:uppercase;">${p.fecha ? p.fecha.toLocaleString() : ''}</span></div><span style="font-size:1.1rem; font-weight:600; color:var(--primary);">$${window.formatearNum(p.total || 0)}</span></div><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">CLIENTE: <span style="color:var(--text-main); font-weight:500;">${obtenerNombreClientePedido(p)} ${p.tipoCliente?`(${p.tipoCliente})`:''}</span></p><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">TEL: <a href="https://wa.me/${String(p.telefono || '').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--primary); font-weight:500; text-decoration:none;">${p.telefono || ''}</a></p><p style="margin:0 0 20px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">ENTREGA: <span style="color:var(--text-main); font-weight:500;">${p.metodoEntrega || ''}</span> ${p.direccion && p.direccion!=='Retiro en local'? ' - ' + p.direccion : ''}</p><ul class="pedido-items">${it}</ul><div class="pedido-actions" style="align-items:center;">${bC} ${bP} ${bE}</div></div>`;
+                const telefonoSeguro = String(p.telefono || '').replace(/[^0-9]/g,'').slice(0,15);
+                const idSeguro = String(p.idDoc || '').replace(/[^A-Za-z0-9_-]/g,'');
+                const bC = isP ? `<button class="danger" style="border: 1px solid #ef4444; color: #ef4444;" onclick="window.cancelarPedido('${idSeguro}', '${telefonoSeguro}')">Cancelar</button>` : '';
+                const bP = p.estadoPago ? `<span style="color:var(--text-dark); font-size:0.8rem; margin-top:10px;">COBRADO</span>` : `<button class="secondary" onclick="window.marcarPagado('${idSeguro}')">Registrar Pago</button>`;
+                const bE = isP ? `<button onclick="window.marcarEntregado('${idSeguro}', '${telefonoSeguro}')">Entregado</button>` : `<span style="color:var(--text-dark); font-size:0.8rem;">FINALIZADO</span>`;
+                const clienteSeguro = escaparHtml(obtenerNombreClientePedido(p));
+                const tipoClienteSeguro = p.tipoCliente ? `(${escaparHtml(p.tipoCliente)})` : '';
+                const metodoEntregaSeguro = escaparHtml(p.metodoEntrega || '');
+                const direccionSegura = p.direccion && p.direccion!=='Retiro en local' ? ' - ' + escaparHtml(p.direccion) : '';
+                return `<div class="pedido-card"><div class="pedido-header"><div><span class="pedido-id">#${escaparHtml(p.idCorto || 'S/C')}</span><br><span style="font-size:0.75rem; color:var(--text-dark); text-transform:uppercase;">${p.fecha ? p.fecha.toLocaleString() : ''}</span></div><span style="font-size:1.1rem; font-weight:600; color:var(--primary);">$${window.formatearNum(p.total || 0)}</span></div><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">CLIENTE: <span style="color:var(--text-main); font-weight:500;">${clienteSeguro} ${tipoClienteSeguro}</span></p><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">TEL: <a href="https://wa.me/${telefonoSeguro}" target="_blank" rel="noopener noreferrer" style="color:var(--primary); font-weight:500; text-decoration:none;">${escaparHtml(p.telefono || '')}</a></p><p style="margin:0 0 20px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">ENTREGA: <span style="color:var(--text-main); font-weight:500;">${metodoEntregaSeguro}</span>${direccionSegura}</p><ul class="pedido-items">${it}</ul><div class="pedido-actions" style="align-items:center;">${bC} ${bP} ${bE}</div></div>`;
             };
             pend.forEach(p => lP.innerHTML += card(p, true)); entr.forEach(p => lH.innerHTML += card(p, false));
             if(!pend.length) lP.innerHTML = '<p style="color:var(--text-muted);">No hay pedidos pendientes con estos filtros.</p>';
