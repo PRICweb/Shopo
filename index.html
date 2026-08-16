@@ -771,9 +771,9 @@
                 <div class="modulo-header" onclick="window.toggleAcordeon('body-transacciones')"><span>Libro Diario</span></div>
                 <div id="body-transacciones" class="modulo-body table-responsive">
                     <table>
-                        <thead><tr><th>Fecha</th><th>Concepto</th><th>Detalle</th><th>Medio</th><th>Monto</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Concepto</th><th>Detalle</th><th>Efectivo</th><th>Transferencia</th><th>Monto</th></tr></thead>
                         <tbody id="tabla-transacciones"></tbody>
-                    </table><div class="pagination-actions"><button type="button" class="secondary" onclick="window.cargarMasHistorico('ingresos', this)">Más ingresos</button><button type="button" class="secondary" onclick="window.cargarMasHistorico('gastos', this)">Más egresos</button></div>
+                    </table><div class="pagination-actions"><button type="button" class="secondary" onclick="window.cargarMasLibroDiario(this)">Más</button></div>
                 </div>
             </div>
 
@@ -833,6 +833,7 @@
             <div class="dark-input-group">
                 <div style="flex: 1;"><label>Período:</label><select id="select-periodo-metricas" onchange="window.actualizarGraficos()"><option value="1y">1 Año (Mes a Mes)</option><option value="6m" selected>6 Meses (Mes a Mes)</option><option value="3m">3 Meses (Mes a Mes)</option><option value="1m">1 Mes (Semanas)</option><option value="7d">1 Semana (Días)</option></select></div>
                 <div style="flex: 1;"><label>Categoría Analizada:</label><select id="select-categoria-metricas" onchange="window.actualizarGraficos()"><option value="efectivo">Pagos en Efectivo</option><option value="transferencia">Pagos Transferencia</option><option value="ventas_web">Ventas Web</option><option value="ventas_fisicas">Ventas Físicas</option><option value="neto">Ganancias Netas</option><option value="gastos">Gastos</option></select></div>
+                <div style="flex:0 0 auto; align-self:flex-end;"><button type="button" class="secondary" onclick="window.exportarGraficoPNG()">Exportar PNG</button></div>
             </div>
             <div style="height: 350px; margin-top: 20px; margin-bottom: 25px; background: var(--bg-color); padding: 15px; border: 1px solid var(--border); border-radius: 8px;"><canvas id="graficoMetricas"></canvas></div>
             <div id="metricas-data-list" style="font-size:0.85rem; color:var(--text-muted); border: 1px solid var(--border-light); padding: 15px; border-radius: 6px;"></div>
@@ -952,11 +953,19 @@
                         <hr>
                         <h4 style="margin:0 0 15px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Descuentos por forma de pago</h4>
                         <p style="margin:-5px 0 15px; font-size:.78rem; color:var(--text-muted); line-height:1.5;">El descuento se aplica automáticamente al elegir el medio de pago.</p>
-                        <div class="dark-input-group">
-                            <div><label class="dia-checkbox" style="margin-bottom:8px;"><input type="checkbox" id="desc-pago-efectivo-activo"> Efectivo</label><input type="number" id="desc-pago-efectivo-pct" min="0" max="100" step="0.01" placeholder="% descuento"></div>
-                            <div><label class="dia-checkbox" style="margin-bottom:8px;"><input type="checkbox" id="desc-pago-transferencia-activo"> Transferencia</label><input type="number" id="desc-pago-transferencia-pct" min="0" max="100" step="0.01" placeholder="% descuento"></div>
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div style="display:grid; grid-template-columns:auto 150px minmax(160px,1fr); gap:12px; align-items:center;">
+                                <input type="checkbox" id="desc-pago-efectivo-activo" style="width:auto; margin:0;">
+                                <label for="desc-pago-efectivo-activo" style="margin:0; font-size:.82rem; text-transform:uppercase;">Efectivo</label>
+                                <div style="display:flex; align-items:center; gap:8px;"><input type="number" id="desc-pago-efectivo-pct" min="0" max="100" step="0.01" placeholder="0" style="width:100%;"><span style="color:var(--text-muted);">%</span></div>
+                            </div>
+                            <div style="display:grid; grid-template-columns:auto 150px minmax(160px,1fr); gap:12px; align-items:center;">
+                                <input type="checkbox" id="desc-pago-transferencia-activo" style="width:auto; margin:0;">
+                                <label for="desc-pago-transferencia-activo" style="margin:0; font-size:.82rem; text-transform:uppercase;">Transferencia</label>
+                                <div style="display:flex; align-items:center; gap:8px;"><input type="number" id="desc-pago-transferencia-pct" min="0" max="100" step="0.01" placeholder="0" style="width:100%;"><span style="color:var(--text-muted);">%</span></div>
+                            </div>
                         </div>
-                        <div class="wa-check-grid" style="margin-top:5px;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;">
                             <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-ofertas"> Aplicar también a ofertas</label>
                             <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-packs"> Aplicar también a packs</label>
                         </div>
@@ -2170,6 +2179,16 @@
             });
         };
 
+        window.cargarMasLibroDiario = async (btn) => {
+            if(!hayMasHistoricos.ingresos && !hayMasHistoricos.gastos){ if(btn){btn.textContent='No hay más';btn.disabled=true;} return; }
+            await conEstadoBoton(btn,'Cargando…',async()=>{
+                if(hayMasHistoricos.ingresos && cursoresHistoricos.ingresos) await window.cargarMasHistorico('ingresos', null);
+                if(hayMasHistoricos.gastos && cursoresHistoricos.gastos) await window.cargarMasHistorico('gastos', null);
+                window.renderizarTransacciones();
+            });
+            if(!hayMasHistoricos.ingresos && !hayMasHistoricos.gastos && btn){btn.textContent='No hay más';btn.disabled=true;}
+        };
+
         window.togglePanel = (id) => {
             ['panel-inventario', 'panel-finanzas', 'panel-movimientos', 'panel-pedidos', 'panel-metricas', 'panel-config'].forEach(p => {
                 const panel = document.getElementById(p);
@@ -2834,9 +2853,12 @@
             document.getElementById('bal-ingresos').textContent = `$${window.formatearNum(tIng)}`; document.getElementById('bal-gastos').textContent = `$${window.formatearNum(tGas)}`; document.getElementById('bal-neta').textContent = `${net>=0?'':'-'}$${window.formatearNum(Math.abs(net))}`; document.getElementById('bal-neta').style.color = net>=0?'var(--primary)':'var(--text-muted)';
         };
         window.renderizarTransacciones = () => {
-            const describirMedio=(efectivo,transferencia,totalFallback=0)=>{const e=Number(efectivo)||0,t=Number(transferencia)||0;if(e>0&&t>0)return `Efectivo $${window.formatearNum(e)} · Transferencia $${window.formatearNum(t)}`;if(e>0)return 'Efectivo';if(t>0)return 'Transferencia';return totalFallback>0?'Sin especificar':'-';};
-            const tr=[]; ingresosGlobales.forEach(i=>tr.push({f:i.fecha,t:'Ingreso',d:i.detalle,medio:describirMedio(i.efectivo,i.transferencia,totalIngreso(i)),m:totalIngreso(i)})); gastosGlobales.forEach(g=>tr.push({f:g.fecha,t:'Egreso',d:g.titulo+(g.descripcion?` - ${g.descripcion}`:''),medio:describirMedio(g.efectivo,g.transferencia,Number(g.importe)||0),m:Number(g.importe)||0})); tr.sort((a,b)=>b.f-a.f); const tb=document.getElementById('tabla-transacciones'); if(!tb)return; tb.innerHTML='';
-            tr.forEach(x=>{const c=x.t==='Ingreso'?'var(--text-main)':'var(--text-muted)';tb.innerHTML+=`<tr><td style="color:var(--text-dark);">${x.f.toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="color:${c}; text-transform:uppercase; font-size:0.7rem;">${x.t}</td><td style="color:var(--text-muted);">${escaparHtml(x.d||'-')}</td><td style="color:var(--text-muted);">${escaparHtml(x.medio||'-')}</td><td style="color:${c}; font-weight:500;">$${window.formatearNum(x.m)}</td></tr>`;});
+            const tr=[];
+            ingresosGlobales.forEach(i=>tr.push({f:i.fecha,t:'Ingreso',d:i.detalle,efectivo:Number(i.efectivo)||0,transferencia:Number(i.transferencia)||0,m:totalIngreso(i)}));
+            gastosGlobales.forEach(g=>tr.push({f:g.fecha,t:'Egreso',d:g.titulo+(g.descripcion?` - ${g.descripcion}`:''),efectivo:Number(g.efectivo)||0,transferencia:Number(g.transferencia)||0,m:Number(g.importe)||0}));
+            tr.sort((a,b)=>b.f-a.f);
+            const tb=document.getElementById('tabla-transacciones'); if(!tb)return; tb.innerHTML='';
+            tr.forEach(x=>{const c=x.t==='Ingreso'?'var(--text-main)':'var(--text-muted)';tb.innerHTML+=`<tr><td style="color:var(--text-dark);">${x.f.toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="color:${c}; text-transform:uppercase; font-size:0.7rem;">${x.t}</td><td style="color:var(--text-muted);">${escaparHtml(x.d||'-')}</td><td style="color:var(--text-muted);">$${window.formatearNum(x.efectivo)}</td><td style="color:var(--text-muted);">$${window.formatearNum(x.transferencia)}</td><td style="color:${c}; font-weight:500;">$${window.formatearNum(x.m)}</td></tr>`;});
         };
         window.exportarMovimientos = () => { const formato=document.getElementById('export-formato')?.value||'excel'; return formato==='pdf'?window.exportarMovimientosPDF():window.exportarMovimientosExcel(); };
         window.exportarMovimientosPDF = () => {
@@ -3128,6 +3150,17 @@
             else if(periodo === '3m' || periodo === '6m' || periodo === '1y') { let meses = periodo === '3m' ? 3 : (periodo === '6m' ? 6 : 12); for(let i=meses-1; i>=0; i--) { let d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1); let n = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]; let end = new Date(hoy.getFullYear(), hoy.getMonth() - i + 1, 0); cestas.push({ label: `${n[d.getMonth()]} ${d.getFullYear().toString().substring(2)}`, start: d.getTime(), end: end.getTime() + 86400000 }); } }
             return cestas;
         }
+
+        window.exportarGraficoPNG = () => {
+            const canvas=document.getElementById('graficoMetricas');
+            if(!canvas || !metricasChart){window.mostrarAlertaUI('No hay un gráfico disponible para exportar.');return;}
+            const ps=document.getElementById('select-periodo-metricas'), cs=document.getElementById('select-categoria-metricas');
+            const periodo=ps?.options[ps.selectedIndex]?.text||'periodo', categoria=cs?.options[cs.selectedIndex]?.text||'metrica';
+            const salida=document.createElement('canvas'); salida.width=canvas.width; salida.height=canvas.height;
+            const ctx=salida.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,salida.width,salida.height); ctx.drawImage(canvas,0,0);
+            const nombre=`shopo_${categoria}_${periodo}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+            const a=document.createElement('a'); a.href=salida.toDataURL('image/png'); a.download=(nombre||'shopo_grafico')+'.png'; document.body.appendChild(a); a.click(); a.remove();
+        };
 
         window.actualizarGraficos = function() {
             const ctxCanvas = document.getElementById('graficoMetricas'); if(!ctxCanvas) return;
