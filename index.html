@@ -144,6 +144,11 @@
         .pedido-estado-final { display:inline-flex; align-items:center; justify-content:center; padding:5px 9px; border-radius:999px; border:1px solid var(--border); font-size:.68rem; letter-spacing:.7px; text-transform:uppercase; white-space:nowrap; }
         .pedido-estado-final.entregado { color:#166534; background:#f0fdf4; border-color:#bbf7d0; }
         .pedido-estado-final.cancelado { color:#b91c1c; background:#fef2f2; border-color:#fecaca; }
+        .pedido-pago-slot { min-width:132px; display:inline-flex; align-items:center; justify-content:center; }
+        .pedido-pago-slot > button { width:100%; }
+        .pedido-cobrado-fijo { width:100%; min-height:36px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); border-radius:6px; color:var(--text-dark); font-size:.76rem; letter-spacing:.6px; }
+        .pago-selector-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:18px; }
+        .pago-selector-btn { width:100%; min-height:58px; }
         .wa-check-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:10px; }
         .wa-check-item { display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:7px; padding:10px 12px; background:var(--card-bg); font-size:.82rem; color:var(--text-main); }
         .wa-check-item input { width:auto; }
@@ -692,7 +697,7 @@
                     Métricas
                 </button>
                 <button class="admin-nav-btn" data-panel="panel-config" onclick="window.togglePanel('panel-config')">
-                    <span class="admin-nav-icon"><svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2 3.4-.2-.1a1.7 1.7 0 0 0-2 .4l-.1.1-4-.1-.1-.2a1.7 1.7 0 0 0-1.7-1.1h-.2l-2-3.5.1-.1a1.7 1.7 0 0 0 .3-1.9l-.1-.2 2-3.4.2.1a1.7 1.7 0 0 0 2-.4l.1-.1h4l.1.1a1.7 1.7 0 0 0 2 .4l.2-.1 2 3.5z"/></svg></span>
+                    <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 4.2 10 2h4l.8 2.2 2 .8 2.1-1 2 3.5-1.8 1.4.3 2.1-1.5 1.1"/><path d="M13.7 13.7a5 5 0 1 1-3.4-7.4"/><circle cx="9.2" cy="11.2" r="2.6"/><path d="M14.2 9.3a4.3 4.3 0 0 0 5.1 5.1l-6.8 6.8-2.4-2.4 6.8-6.8a4.3 4.3 0 0 0-2.7-2.7z"/><path d="m18.4 11.7 2.2-2.2"/></svg></span>
                     Configuración
                 </button>
             </nav>
@@ -1321,6 +1326,51 @@
             });
         };
         window.pedirConfirmacion = pedirConfirmacion;
+
+        const pedirMedioPagoPedido = (pedido) => new Promise((resolve) => {
+            let modal = document.getElementById('modal-seleccionar-pago');
+            if(!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-seleccionar-pago';
+                modal.className = 'modal-overlay hidden';
+                modal.style.zIndex = '1000002';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width:440px; text-align:center; padding:32px 28px;">
+                        <h3 style="color:var(--primary); margin:0 0 10px; border:0; padding:0;">Registrar pago</h3>
+                        <p id="modal-pago-texto" style="color:var(--text-muted); margin:0;">Seleccioná cómo se recibió el pago.</p>
+                        <div class="pago-selector-grid">
+                            <button type="button" id="modal-pago-efectivo" class="pago-selector-btn">Efectivo</button>
+                            <button type="button" id="modal-pago-transferencia" class="pago-selector-btn secondary">Transferencia</button>
+                        </div>
+                        <button type="button" id="modal-pago-cancelar" class="outline" style="margin-top:14px; width:100%;">Cancelar</button>
+                    </div>`;
+                document.body.appendChild(modal);
+            }
+
+            const dp = configTienda.descuentosPago || {};
+            const efPct = dp.efectivo?.activo ? Number(dp.efectivo?.porcentaje)||0 : 0;
+            const trPct = dp.transferencia?.activo ? Number(dp.transferencia?.porcentaje)||0 : 0;
+            const btnEf = document.getElementById('modal-pago-efectivo');
+            const btnTr = document.getElementById('modal-pago-transferencia');
+            const btnCancelar = document.getElementById('modal-pago-cancelar');
+            const texto = document.getElementById('modal-pago-texto');
+
+            if(texto) texto.textContent = `Pedido #${pedido?.idCorto || ''}. El total se recalculará según el medio seleccionado.`;
+            if(btnEf) btnEf.textContent = efPct > 0 ? `Efectivo · ${window.formatearNum(efPct)}% desc.` : 'Efectivo';
+            if(btnTr) btnTr.textContent = trPct > 0 ? `Transferencia · ${window.formatearNum(trPct)}% desc.` : 'Transferencia';
+
+            const cerrar = (valor) => {
+                modal.classList.add('hidden');
+                if(btnEf) btnEf.onclick = null;
+                if(btnTr) btnTr.onclick = null;
+                if(btnCancelar) btnCancelar.onclick = null;
+                resolve(valor);
+            };
+            if(btnEf) btnEf.onclick = () => cerrar('Efectivo');
+            if(btnTr) btnTr.onclick = () => cerrar('Transferencia');
+            if(btnCancelar) btnCancelar.onclick = () => cerrar(null);
+            modal.classList.remove('hidden');
+        });
 
         // Bloquea el confirm nativo del navegador para que ninguna acción vuelva a mostrar el cuadro violeta del navegador/GitHub Pages.
         window.confirm = (mensaje) => {
@@ -2862,7 +2912,7 @@
         };
         window.exportarMovimientos = () => { const formato=document.getElementById('export-formato')?.value||'excel'; return formato==='pdf'?window.exportarMovimientosPDF():window.exportarMovimientosExcel(); };
         window.exportarMovimientosPDF = () => {
-            const inicioVal=document.getElementById('excel-fecha-inicio').value, finVal=document.getElementById('excel-fecha-fin').value; if(!inicioVal||!finVal){alert('Seleccioná la fecha inicial y la fecha final.');return;} const inicio=new Date(inicioVal+'T00:00:00'),fin=new Date(finVal+'T23:59:59'); if(inicio>fin){alert('La fecha inicial no puede ser posterior a la fecha final.');return;} const enRango=(fecha)=>{const f=fecha instanceof Date?fecha:new Date(fecha);return f>=inicio&&f<=fin;}; const movimientos=[]; ingresosGlobales.forEach(i=>{if(enRango(i.fecha))movimientos.push({fecha:fechaCorta(i.fecha),tipo:'Ingreso',detalle:i.detalle||i.tipo||'Ingreso',efectivo:Number(i.efectivo)||0,transferencia:Number(i.transferencia)||0,total:totalIngreso(i)});}); gastosGlobales.forEach(g=>{if(enRango(g.fecha))movimientos.push({fecha:fechaCorta(g.fecha),tipo:'Egreso',detalle:g.titulo||'Egreso',efectivo:Number(g.efectivo)||0,transferencia:Number(g.transferencia)||0,total:-(Number(g.importe)||0)});}); const pedidos=pedidosGlobales.filter(p=>p.fecha&&enRango(p.fecha)); if(!movimientos.length&&!pedidos.length){alert('No hay datos en ese período.');return;} if(!window.jspdf?.jsPDF){alert('No se pudo cargar el generador de PDF. Recargá la página e intentá nuevamente.');return;} const {jsPDF}=window.jspdf; const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}); const ti=movimientos.filter(m=>m.tipo==='Ingreso').reduce((s,m)=>s+Math.max(0,m.total),0), te=movimientos.filter(m=>m.tipo==='Egreso').reduce((s,m)=>s+Math.abs(Math.min(0,m.total)),0); pdf.setFontSize(16);pdf.text('Reporte de movimientos - Shopo',14,14);pdf.setFontSize(9);pdf.text(`Período: ${inicioVal} a ${finVal}`,14,20);pdf.text(`Ingresos: $${window.formatearNum(ti)}   Egresos: $${window.formatearNum(te)}   Neto: $${window.formatearNum(ti-te)}`,14,26); pdf.autoTable({startY:32,head:[['Fecha','Tipo','Detalle','Efectivo','Transferencia','Total']],body:movimientos.map(m=>[m.fecha,m.tipo,m.detalle,`$${window.formatearNum(m.efectivo)}`,`$${window.formatearNum(m.transferencia)}`,`${m.total<0?'-':''}$${window.formatearNum(Math.abs(m.total))}`]),styles:{fontSize:8,cellPadding:2}}); let y=(pdf.lastAutoTable?.finalY||32)+8;if(y>170){pdf.addPage();y=14;}pdf.setFontSize(12);pdf.text('Pedidos',14,y);y+=4;pdf.autoTable({startY:y,head:[['Fecha','Código','Cliente','Estado','Pago','Entrega','Total']],body:pedidos.map(p=>[fechaCorta(p.fecha),p.idCorto||'',obtenerNombreClientePedido(p),normalizarEstadoPedido(p),p.estadoPago?'Pagado':'Pendiente',p.metodoEntrega||'',`$${window.formatearNum(Number(p.total)||0)}`]),styles:{fontSize:7.5,cellPadding:2}});pdf.save(`reporte_completo_${inicioVal}_a_${finVal}.pdf`);
+            const inicioVal=document.getElementById('excel-fecha-inicio').value, finVal=document.getElementById('excel-fecha-fin').value; if(!inicioVal||!finVal){alert('Seleccioná la fecha inicial y la fecha final.');return;} const inicio=new Date(inicioVal+'T00:00:00'),fin=new Date(finVal+'T23:59:59'); if(inicio>fin){alert('La fecha inicial no puede ser posterior a la fecha final.');return;} const enRango=(fecha)=>{const f=fecha instanceof Date?fecha:new Date(fecha);return f>=inicio&&f<=fin;}; const movimientos=[]; ingresosGlobales.forEach(i=>{if(enRango(i.fecha))movimientos.push({fecha:fechaCorta(i.fecha),tipo:'Ingreso',detalle:i.detalle||i.tipo||'Ingreso',efectivo:Number(i.efectivo)||0,transferencia:Number(i.transferencia)||0,total:totalIngreso(i)});}); gastosGlobales.forEach(g=>{if(enRango(g.fecha))movimientos.push({fecha:fechaCorta(g.fecha),tipo:'Egreso',detalle:g.titulo||'Egreso',efectivo:Number(g.efectivo)||0,transferencia:Number(g.transferencia)||0,total:-(Number(g.importe)||0)});}); const pedidos=pedidosGlobales.filter(p=>p.fecha&&enRango(p.fecha)); if(!movimientos.length&&!pedidos.length){alert('No hay datos en ese período.');return;} if(!window.jspdf?.jsPDF){alert('No se pudo cargar el generador de PDF. Recargá la página e intentá nuevamente.');return;} const {jsPDF}=window.jspdf; const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}); const ti=movimientos.filter(m=>m.tipo==='Ingreso').reduce((s,m)=>s+Math.max(0,m.total),0), te=movimientos.filter(m=>m.tipo==='Egreso').reduce((s,m)=>s+Math.abs(Math.min(0,m.total)),0); pdf.setFontSize(16);pdf.text('Reporte de movimientos - Shopo',14,14);pdf.setFontSize(9);pdf.text(`Período: ${inicioVal} a ${finVal}`,14,20);pdf.text(`Ingresos: $${window.formatearNum(ti)}   Egresos: $${window.formatearNum(te)}   Neto: $${window.formatearNum(ti-te)}`,14,26); pdf.autoTable({startY:32,head:[['Fecha','Tipo','Detalle','Efectivo','Transferencia','Total']],body:movimientos.map(m=>[m.fecha,m.tipo,m.detalle,`$${window.formatearNum(m.efectivo)}`,`$${window.formatearNum(m.transferencia)}`,`${m.total<0?'-':''}$${window.formatearNum(Math.abs(m.total))}`]),styles:{fontSize:8,cellPadding:2}}); let y=(pdf.lastAutoTable?.finalY||32)+8;if(y>170){pdf.addPage();y=14;}pdf.setFontSize(12);pdf.text('Pedidos',14,y);y+=4;pdf.autoTable({startY:y,head:[['Fecha','Código','Cliente','Estado','Pago','Descuento','Entrega','Total']],body:pedidos.map(p=>[fechaCorta(p.fecha),p.idCorto||'',obtenerNombreClientePedido(p),normalizarEstadoPedido(p),p.estadoPago?`Pagado · ${p.metodoPago||''}`:'Pendiente',`$${window.formatearNum(Number(p.descuentoMonto)||0)}`,p.metodoEntrega||'',`$${window.formatearNum(Number(p.total)||0)}`]),styles:{fontSize:7.5,cellPadding:2}});pdf.save(`reporte_completo_${inicioVal}_a_${finVal}.pdf`);
         };
         window.exportarMovimientosExcel = () => {
             const inicioVal = document.getElementById('excel-fecha-inicio').value;
@@ -2875,7 +2925,7 @@
             const movimientos = [];
             ingresosGlobales.forEach(i => { if(enRango(i.fecha)) movimientos.push({ Fecha: i.fecha.toLocaleDateString('es-AR'), Hora: i.fecha.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}), Tipo:'Ingreso', Concepto:i.tipo || 'Ingreso', Detalle:i.detalle || '', Efectivo:Number(i.efectivo)||0, Transferencia:Number(i.transferencia)||0, Total:totalIngreso(i) }); });
             gastosGlobales.forEach(g => { if(enRango(g.fecha)) movimientos.push({ Fecha: g.fecha.toLocaleDateString('es-AR'), Hora: g.fecha.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}), Tipo:'Egreso', Concepto:g.titulo || 'Egreso', Detalle:g.descripcion || '', Efectivo:Number(g.efectivo)||0, Transferencia:Number(g.transferencia)||0, Total:-(Number(g.importe)||0) }); });
-            const pedidos = pedidosGlobales.filter(p => p.fecha && enRango(p.fecha)).map(p => ({ Fecha:p.fecha.toLocaleDateString('es-AR'), Código:p.idCorto || '', Cliente:obtenerNombreClientePedido(p), Teléfono:p.telefono || '', Estado:normalizarEstadoPedido(p), Pago:p.estadoPago?'Cobrado':'Pendiente', Método:p.metodoPago || '', Entrega:p.metodoEntrega || '', Total:Number(p.total)||0, Stock:p.stockDescontado===false?'No descontado':'Descontado' }));
+            const pedidos = pedidosGlobales.filter(p => p.fecha && enRango(p.fecha)).map(p => ({ Fecha:p.fecha.toLocaleDateString('es-AR'), Código:p.idCorto || '', Cliente:obtenerNombreClientePedido(p), Teléfono:p.telefono || '', Estado:normalizarEstadoPedido(p), Pago:p.estadoPago?'Cobrado':'Pendiente', Método:p.metodoPago || '', Descuento:Number(p.descuentoMonto)||0, Entrega:p.metodoEntrega || '', Total:Number(p.total)||0, Stock:p.stockDescontado===false?'No descontado':'Descontado' }));
             const ventas = [];
             pedidosGlobales.filter(p => p.fecha && enRango(p.fecha)).forEach(p => (p.items||[]).forEach(it => ventas.push({ Fecha:p.fecha.toLocaleDateString('es-AR'), Origen:'Web', Código:p.idCorto || '', Producto:it.nombre, Variante:it.detalle, Cantidad:it.cantidad, PrecioUnitario:it.precio, Total:(it.precio||0)*(it.cantidad||1) })));
             ingresosGlobales.filter(i => i.fecha && enRango(i.fecha) && (i.tipo === 'venta_mostrador' || i.tipo === 'venta')).forEach(i => ventas.push({ Fecha:i.fecha.toLocaleDateString('es-AR'), Origen:'Mostrador', Código:'', Producto:i.detalle || 'Venta mostrador', Variante:'', Cantidad:i.itemsCount || 1, PrecioUnitario:'', Total:totalIngreso(i) }));
@@ -2923,20 +2973,20 @@
             const entr = listaCompleta.filter(p => (p.estadoEntrega || normalizarEstadoPedido(p) === 'cancelado') && pasaFiltros(p));
             const card = (p, isP) => {
                 let it = ''; (p.items || []).forEach(i => it += `<li>${escaparHtml(i.nombre || '')} - ${escaparHtml(i.detalle || '')} x${Number(i.cantidad) || 0} - $${window.formatearNum((Number(i.precio) || 0) * (Number(i.cantidad) || 1))}</li>`);
-                if (p.descuentoMonto > 0) it += `<li style="color:var(--accent); font-weight:500;">Descuento Aplicado (${escaparHtml(p.tipoCliente || '')}) - -$${window.formatearNum(p.descuentoMonto)}</li>`;
+                if (Number(p.descuentoMonto) > 0) it += `<li style="color:var(--accent); font-weight:600;">Descuento aplicado - -$${window.formatearNum(Number(p.descuentoMonto)||0)}</li>`;
                 if (p.costoEnvio) it += `<li style="color:var(--text-dark);">Envío - $${window.formatearNum(p.costoEnvio)}</li>`;
                 if (p.alertaStock) it += `<li style="color:#ef4444; font-weight:600;">FALTA STOCK: ${escaparHtml(p.alertaStock)}</li>`;
                 const estado = normalizarEstadoPedido(p);
                 const telefonoSeguro = String(p.telefono || '').replace(/[^0-9]/g,'').slice(0,15);
                 const idSeguro = String(p.idDoc || '').replace(/[^A-Za-z0-9_-]/g,'');
                 const bC = isP ? `<button class="danger" style="border: 1px solid #ef4444; color: #ef4444;" onclick="window.cancelarPedido('${idSeguro}', '${telefonoSeguro}')">Cancelar</button>` : '';
-                const bP = p.estadoPago ? `<span style="color:var(--text-dark); font-size:0.8rem; margin-top:10px;">COBRADO</span>` : `<button class="secondary" onclick="window.marcarPagado('${idSeguro}')">Registrar Pago</button>`;
+                const bP = `<span class="pedido-pago-slot">${p.estadoPago ? `<span class="pedido-cobrado-fijo">COBRADO</span>` : `<button class="secondary" onclick="window.marcarPagado('${idSeguro}')">Registrar Pago</button>`}</span>`;
                 const bE = isP ? `<button onclick="window.marcarEntregado('${idSeguro}', '${telefonoSeguro}')">Entregado</button>` : `<span style="color:var(--text-dark); font-size:0.8rem;">FINALIZADO</span>`;
                 const clienteSeguro = escaparHtml(obtenerNombreClientePedido(p));
                 const tipoClienteSeguro = p.tipoCliente ? `(${escaparHtml(p.tipoCliente)})` : '';
                 const metodoEntregaSeguro = escaparHtml(p.metodoEntrega || '');
                 const direccionSegura = p.direccion && p.direccion!=='Retiro en local' ? ' - ' + escaparHtml(p.direccion) : '';
-                const estadoFinalHtml=!isP?(estado==='cancelado'?`<span class="pedido-estado-final cancelado">Cancelado</span>`:`<span class="pedido-estado-final entregado">${p.estadoPago?'Entregado · Pagado':'Entregado · Pago pendiente'}</span>`):''; return `<div class="pedido-card"><div class="pedido-header"><div><span class="pedido-id">#${escaparHtml(p.idCorto || 'S/C')}</span><br><span style="font-size:0.75rem; color:var(--text-dark); text-transform:uppercase;">${p.fecha ? p.fecha.toLocaleString() : ''}</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">${estadoFinalHtml}<span style="font-size:1.1rem;font-weight:600;color:var(--primary);">$${window.formatearNum(p.total || 0)}</span></div></div><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">CLIENTE: <span style="color:var(--text-main); font-weight:500;">${clienteSeguro} ${tipoClienteSeguro}</span></p><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">TEL: <a href="https://wa.me/${telefonoSeguro}" target="_blank" rel="noopener noreferrer" style="color:var(--primary); font-weight:500; text-decoration:none;">${escaparHtml(p.telefono || '')}</a></p><p style="margin:0 0 20px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">ENTREGA: <span style="color:var(--text-main); font-weight:500;">${metodoEntregaSeguro}</span>${direccionSegura}</p><ul class="pedido-items">${it}</ul><div class="pedido-actions" style="align-items:center;">${bC} ${bP} ${bE}</div></div>`;
+                const estadoFinalHtml=!isP?(estado==='cancelado'?`<span class="pedido-estado-final cancelado">Cancelado</span>`:`<span class="pedido-estado-final entregado">${p.estadoPago?'Entregado · Pagado':'Entregado · Pago pendiente'}</span>`):''; return `<div class="pedido-card"><div class="pedido-header"><div><span class="pedido-id">#${escaparHtml(p.idCorto || 'S/C')}</span><br><span style="font-size:0.75rem; color:var(--text-dark); text-transform:uppercase;">${p.fecha ? p.fecha.toLocaleString() : ''}</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">${estadoFinalHtml}<span style="font-size:1.1rem;font-weight:600;color:var(--primary);">$${window.formatearNum(p.total || 0)}</span></div></div><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">CLIENTE: <span style="color:var(--text-main); font-weight:500;">${clienteSeguro} ${tipoClienteSeguro}</span></p><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">TEL: <a href="https://wa.me/${telefonoSeguro}" target="_blank" rel="noopener noreferrer" style="color:var(--primary); font-weight:500; text-decoration:none;">${escaparHtml(p.telefono || '')}</a></p><p style="margin:0 0 5px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">ENTREGA: <span style="color:var(--text-main); font-weight:500;">${metodoEntregaSeguro}</span>${direccionSegura}</p><p style="margin:0 0 20px 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase;">PAGO: <span style="color:var(--text-main); font-weight:500;">${escaparHtml(p.metodoPago || '')}</span>${Number(p.descuentoMonto)>0?` · <span style="color:var(--accent); font-weight:600;">Descuento $${window.formatearNum(Number(p.descuentoMonto)||0)}</span>`:''}</p><ul class="pedido-items">${it}</ul><div class="pedido-actions" style="align-items:center;">${bC} ${bP} ${bE}</div></div>`;
             };
             pend.forEach(p => lP.innerHTML += card(p, true)); entr.forEach(p => lH.innerHTML += card(p, false));
             if(!pend.length) lP.innerHTML = '<p style="color:var(--text-muted);">No hay pedidos pendientes con estos filtros.</p>';
@@ -2956,11 +3006,58 @@
             window.triggerPedidos();
         };
         
+        const normalizarDescuentosPagoAdmin = () => {
+            const dp = configTienda.descuentosPago || {};
+            return {
+                efectivo: { activo: !!dp.efectivo?.activo, porcentaje: Math.min(100, Math.max(0, Number(dp.efectivo?.porcentaje)||0)) },
+                transferencia: { activo: !!dp.transferencia?.activo, porcentaje: Math.min(100, Math.max(0, Number(dp.transferencia?.porcentaje)||0)) },
+                aplicaOfertas: !!dp.aplicaOfertas,
+                aplicaPacks: !!dp.aplicaPacks
+            };
+        };
+
+        const recalcularPedidoPorMedioPago = (pedido, metodoPago) => {
+            const perfil = categoriasClientes[0] || { descuentoGlobal:0, descuentosCat:{} };
+            const dp = normalizarDescuentosPagoAdmin();
+            const cfgPago = metodoPago === 'Transferencia' ? dp.transferencia : dp.efectivo;
+            const pctPago = cfgPago.activo ? cfgPago.porcentaje : 0;
+
+            let subtotalBruto = 0;
+            let descuentoBaseMonto = 0;
+            let descuentoPagoMonto = 0;
+
+            (pedido.items || []).forEach(item => {
+                const cantidad = Math.max(0, Number(item.cantidad)||0);
+                const precio = Math.max(0, Number(item.precio)||0);
+                const brutoLinea = precio * cantidad;
+                const categoria = item.isPack ? 'Packs' : (item.categoria || 'General');
+                const pctBase = perfil.descuentosCat && perfil.descuentosCat[categoria] !== undefined
+                    ? Number(perfil.descuentosCat[categoria])||0
+                    : Number(perfil.descuentoGlobal)||0;
+                const baseLinea = brutoLinea * (Math.min(100,Math.max(0,pctBase))/100);
+
+                subtotalBruto += brutoLinea;
+                descuentoBaseMonto += baseLinea;
+
+                const esOferta = !item.isPack && Number(item.precioOfertaAplicado) > 0;
+                const elegiblePago = item.isPack ? dp.aplicaPacks : (!esOferta || dp.aplicaOfertas);
+                if(pctPago > 0 && elegiblePago) {
+                    descuentoPagoMonto += Math.max(0, brutoLinea - baseLinea) * (pctPago/100);
+                }
+            });
+
+            const costoEnvio = Math.max(0, Number(pedido.costoEnvio)||0);
+            const descuentoMonto = descuentoBaseMonto + descuentoPagoMonto;
+            const total = Math.max(0, subtotalBruto - descuentoMonto + costoEnvio);
+            return { subtotalBruto, descuentoBaseMonto, descuentoPagoMonto, descuentoPagoPorcentaje:pctPago, descuentoMonto, costoEnvio, total };
+        };
+
         window.marcarPagado = async (idDoc) => {
             const p = pedidosGlobales.find(x => x.idDoc === idDoc);
             if(!p) return;
 
-            if(!(await pedirConfirmacion(`¿Registrar como pagado el pedido #${p.idCorto || ''}?`))) return;
+            const metodoElegido = await pedirMedioPagoPedido(p);
+            if(!metodoElegido) return;
 
             const ingresoHistoricoYaExiste = ingresosGlobales.some(ing =>
                 ing.pedidoId === idDoc ||
@@ -2976,32 +3073,57 @@
                     const pedido = pedidoSnap.data();
                     if(pedido.negocioId !== negocioIdActual) throw new Error('El pedido no pertenece a este negocio.');
                     if(normalizarEstadoPedido(pedido) === 'cancelado') throw new Error('No se puede cobrar un pedido cancelado.');
+                    if(pedido.estadoPago) return;
+
+                    const recalculo = recalcularPedidoPorMedioPago(pedido, metodoElegido);
+                    if(recalculo.total <= 0) throw new Error('El total recalculado del pedido no es válido.');
 
                     const ingresoRef = doc(db, 'ingresos', `pedido_pago_${idDoc}`);
                     const ingresoSnap = await tx.get(ingresoRef);
 
-                    if(!pedido.estadoPago) {
-                        if(!ingresoSnap.exists() && !ingresoHistoricoYaExiste) registrarIngresoPedidoTransaccion(tx, idDoc, pedido, 'pago');
+                    const pedidoAjustado = {
+                        ...pedido,
+                        metodoPago: metodoElegido,
+                        total: recalculo.total,
+                        subtotalBruto: recalculo.subtotalBruto,
+                        descuentoMonto: recalculo.descuentoMonto,
+                        costoEnvio: recalculo.costoEnvio
+                    };
 
-                        tx.update(pedidoRef, {
-                            schemaVersion: SCHEMA_VERSION,
-                            estadoPago: true,
-                            estadoGeneral: pedido.estadoEntrega ? 'entregado' : 'pagado',
-                            updatedAt: serverTimestamp(),
-                            updatedBy: actorActual()
-                        });
-
-                        const ar = doc(collection(db, 'auditoria'));
-                        tx.set(ar, {
-                            negocioId: negocioIdActual,
-                            accion: 'pedido_pagado',
-                            entidad: 'pedido',
-                            entidadId: idDoc,
-                            detalle: { total: Number(pedido.total) || 0, metodo: pedido.metodoPago || '', codigo: pedido.idCorto || '' },
-                            actor: actorActual(),
-                            fecha: serverTimestamp()
-                        });
+                    if(!ingresoSnap.exists() && !ingresoHistoricoYaExiste) {
+                        registrarIngresoPedidoTransaccion(tx, idDoc, pedidoAjustado, 'pago');
                     }
+
+                    tx.update(pedidoRef, {
+                        schemaVersion: SCHEMA_VERSION,
+                        metodoPago: metodoElegido,
+                        total: recalculo.total,
+                        subtotalBruto: recalculo.subtotalBruto,
+                        descuentoMonto: recalculo.descuentoMonto,
+                        costoEnvio: recalculo.costoEnvio,
+                        estadoPago: true,
+                        estadoGeneral: pedido.estadoEntrega ? 'entregado' : 'pagado',
+                        updatedAt: serverTimestamp(),
+                        updatedBy: actorActual()
+                    });
+
+                    const ar = doc(collection(db, 'auditoria'));
+                    tx.set(ar, {
+                        negocioId: negocioIdActual,
+                        accion: 'pedido_pagado',
+                        entidad: 'pedido',
+                        entidadId: idDoc,
+                        detalle: {
+                            total: recalculo.total,
+                            metodo: metodoElegido,
+                            codigo: pedido.idCorto || '',
+                            descuentoTotal: recalculo.descuentoMonto,
+                            descuentoPorPago: recalculo.descuentoPagoMonto,
+                            porcentajePago: recalculo.descuentoPagoPorcentaje
+                        },
+                        actor: actorActual(),
+                        fecha: serverTimestamp()
+                    });
                 });
 
                 window.triggerPedidos();
