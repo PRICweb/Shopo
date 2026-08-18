@@ -1158,6 +1158,43 @@ async function obtenerHeadersBackendAdmin() {
 
     window.obtenerHeadersBackendAdmin = obtenerHeadersBackendAdmin;
 
+
+    async function ejecutarAccionPedidoBackend(idDoc, accion, body = null) {
+        const pedidoId = String(idDoc || '').trim();
+        if(!pedidoId) throw new Error('El ID del pedido no es válido.');
+
+        const headers = await obtenerHeadersBackendAdmin();
+        const opciones = {
+            method: "POST",
+            headers: {
+                ...headers,
+                "Content-Type": "application/json"
+            },
+            cache: "no-store"
+        };
+
+        if(body !== null) {
+            opciones.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(
+            `${SHOPO_BACKEND_URL}/api/v1/pedidos/${encodeURIComponent(pedidoId)}/${accion}`,
+            opciones
+        );
+
+        const data = await response.json().catch(() => ({}));
+
+        if(!response.ok) {
+            const mensaje = data?.mensaje || data?.error || `Error ${response.status}`;
+            const error = new Error(mensaje);
+            error.codigo = data?.error || '';
+            error.status = response.status;
+            throw error;
+        }
+
+        return data;
+    }
+
 window.probarBackendAdmin = async () => {
     const headers = await obtenerHeadersBackendAdmin();
     const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/test-admin`, {
@@ -3091,72 +3128,20 @@ window.probarBackendAdmin = async () => {
             const metodoElegido = await pedirMedioPagoPedido(p);
             if(!metodoElegido) return;
 
-            const ingresoHistoricoYaExiste = ingresosGlobales.some(ing =>
-                ing.pedidoId === idDoc ||
-                String(ing.detalle || '').includes(`Liquidación #${p.idCorto || idDoc}`)
-            );
-
             try {
-                await runTransaction(db, async (tx) => {
-                    const pedidoRef = doc(db, 'pedidos', idDoc);
-                    const pedidoSnap = await tx.get(pedidoRef);
-                    if(!pedidoSnap.exists()) throw new Error('El pedido ya no existe.');
+                const resultado = await ejecutarAccionPedidoBackend(
+                    idDoc,
+                    'pagar',
+                    { metodoPago: metodoElegido }
+                );
 
-                    const pedido = pedidoSnap.data();
-                    if(pedido.negocioId !== negocioIdActual) throw new Error('El pedido no pertenece a este negocio.');
-                    if(normalizarEstadoPedido(pedido) === 'cancelado') throw new Error('No se puede cobrar un pedido cancelado.');
-                    if(pedido.estadoPago) return;
-
-                    const recalculo = recalcularPedidoPorMedioPago(pedido, metodoElegido);
-                    if(recalculo.total <= 0) throw new Error('El total recalculado del pedido no es válido.');
-
-                    const ingresoRef = doc(db, 'ingresos', `pedido_pago_${idDoc}`);
-                    const ingresoSnap = await tx.get(ingresoRef);
-
-                    const pedidoAjustado = {
-                        ...pedido,
-                        metodoPago: metodoElegido,
-                        total: recalculo.total,
-                        subtotalBruto: recalculo.subtotalBruto,
-                        descuentoMonto: recalculo.descuentoMonto,
-                        costoEnvio: recalculo.costoEnvio
-                    };
-
-                    if(!ingresoSnap.exists() && !ingresoHistoricoYaExiste) {
-                        registrarIngresoPedidoTransaccion(tx, idDoc, pedidoAjustado, 'pago');
-                    }
-
-                    tx.update(pedidoRef, {
-                        schemaVersion: SCHEMA_VERSION,
-                        metodoPago: metodoElegido,
-                        total: recalculo.total,
-                        subtotalBruto: recalculo.subtotalBruto,
-                        descuentoMonto: recalculo.descuentoMonto,
-                        costoEnvio: recalculo.costoEnvio,
-                        estadoPago: true,
-                        estadoGeneral: pedido.estadoEntrega ? 'entregado' : 'pagado',
-                        updatedAt: serverTimestamp(),
-                        updatedBy: actorActual()
-                    });
-
-                    const ar = doc(collection(db, 'auditoria'));
-                    tx.set(ar, {
-                        negocioId: negocioIdActual,
-                        accion: 'pedido_pagado',
-                        entidad: 'pedido',
-                        entidadId: idDoc,
-                        detalle: {
-                            total: recalculo.total,
-                            metodo: metodoElegido,
-                            codigo: pedido.idCorto || '',
-                            descuentoTotal: recalculo.descuentoMonto,
-                            descuentoPorPago: recalculo.descuentoPagoMonto,
-                            porcentajePago: recalculo.descuentoPagoPorcentaje
-                        },
-                        actor: actorActual(),
-                        fecha: serverTimestamp()
-                    });
-                });
+                // La operación crítica ya fue realizada y validada por el backend.
+                // La auditoría visual se conserva sin volver a modificar el pedido desde el navegador.
+                auditar('pedido_pagado', 'pedido', idDoc, {
+                    total: Number(resultado?.total) || 0,
+                    metodo: resultado?.metodoPago || metodoElegido,
+                    codigo: p.idCorto || ''
+                }).catch(console.error);
 
                 window.triggerPedidos();
                 window.triggerIngresos();
@@ -3172,50 +3157,18 @@ window.probarBackendAdmin = async () => {
 
             if(!(await pedirConfirmacion(`¿Marcar como entregado el pedido #${p.idCorto || ''}?`))) return;
 
-            const ingresoHistoricoYaExiste = ingresosGlobales.some(ing =>
-                ing.pedidoId === idDoc ||
-                String(ing.detalle || '').includes(`Liquidación #${p.idCorto || idDoc}`)
-            );
-
             try {
-                await runTransaction(db, async (tx) => {
-                    const pedidoRef = doc(db, 'pedidos', idDoc);
-                    const pedidoSnap = await tx.get(pedidoRef);
-                    if(!pedidoSnap.exists()) throw new Error('El pedido ya no existe.');
+                const resultado = await ejecutarAccionPedidoBackend(
+                    idDoc,
+                    'entregar'
+                );
 
-                    const pedido = pedidoSnap.data();
-                    if(pedido.negocioId !== negocioIdActual) throw new Error('El pedido no pertenece a este negocio.');
-                    if(normalizarEstadoPedido(pedido) === 'cancelado') throw new Error('No se puede entregar un pedido cancelado.');
-                    if(pedido.estadoEntrega === true) return;
-
-                    const ingresoRef = doc(db, 'ingresos', `pedido_pago_${idDoc}`);
-                    const ingresoSnap = await tx.get(ingresoRef);
-
-                    if(!pedido.estadoPago && !ingresoSnap.exists() && !ingresoHistoricoYaExiste) {
-                        registrarIngresoPedidoTransaccion(tx, idDoc, pedido, 'pago_auto');
-                    }
-
-                    tx.update(pedidoRef, {
-                        schemaVersion: SCHEMA_VERSION,
-                        estadoEntrega: true,
-                        estadoPago: true,
-                        estadoPedido: 'entregado',
-                        estadoGeneral: 'entregado',
-                        updatedAt: serverTimestamp(),
-                        updatedBy: actorActual()
-                    });
-
-                    const ar = doc(collection(db, 'auditoria'));
-                    tx.set(ar, {
-                        negocioId: negocioIdActual,
-                        accion: 'pedido_entregado',
-                        entidad: 'pedido',
-                        entidadId: idDoc,
-                        detalle: { codigo: pedido.idCorto || '' },
-                        actor: actorActual(),
-                        fecha: serverTimestamp()
-                    });
-                });
+                // Conservamos la auditoría del panel, pero el cambio de estado y el autocobro
+                // se realizan exclusivamente en el backend.
+                auditar('pedido_entregado', 'pedido', idDoc, {
+                    codigo: p.idCorto || '',
+                    pagoAutomatico: resultado?.pagoAutomatico === true
+                }).catch(console.error);
 
                 window.triggerPedidos();
                 window.triggerIngresos();
@@ -3223,7 +3176,20 @@ window.probarBackendAdmin = async () => {
                 if (font) {
                     const numLimpio = String(font || '').replace(/[^0-9]/g, '');
                     if(numLimpio) {
-                        const wa=normalizarConfigWhatsApp(); const nombre=obtenerNombreClientePedido(p); const mensaje=String(wa.mensajeEntrega||'Gracias por tu compra. Tu pedido #{codigo} fue entregado.').replaceAll('{nombre}',nombre).replaceAll('{codigo}',String(p.idCorto||idDoc)).replaceAll('{total}',`$${window.formatearNum(Number(p.total)||0)}`); window.open(`https://wa.me/${numLimpio}?text=${encodeURIComponent(mensaje)}`,'_blank','noopener,noreferrer');
+                        const wa = normalizarConfigWhatsApp();
+                        const nombre = obtenerNombreClientePedido(p);
+                        const mensaje = String(
+                            wa.mensajeEntrega || 'Gracias por tu compra. Tu pedido #{codigo} fue entregado.'
+                        )
+                        .replaceAll('{nombre}', nombre)
+                        .replaceAll('{codigo}', String(p.idCorto || idDoc))
+                        .replaceAll('{total}', `$${window.formatearNum(Number(p.total)||0)}`);
+
+                        window.open(
+                            `https://wa.me/${numLimpio}?text=${encodeURIComponent(mensaje)}`,
+                            '_blank',
+                            'noopener,noreferrer'
+                        );
                     }
                 }
             } catch(e) {
@@ -3233,60 +3199,24 @@ window.probarBackendAdmin = async () => {
         };
 
         window.cancelarPedido = async (idDoc, font) => {
+            const p = pedidosGlobales.find(x => x.idDoc === idDoc);
+            if(!p) return;
+
             if(!(await pedirConfirmacion("¿Cancelar este pedido y reponer el stock si corresponde?"))) return;
 
             try {
-                await runTransaction(db, async (tx) => {
-                    const pedidoRef = doc(db, 'pedidos', idDoc);
-                    const pedidoSnap = await tx.get(pedidoRef);
-                    if(!pedidoSnap.exists()) throw new Error('El pedido ya no existe.');
+                const stockEstabaDescontado = p.stockDescontado === true;
 
-                    const pedido = pedidoSnap.data();
-                    if(pedido.negocioId !== negocioIdActual) throw new Error('El pedido no pertenece a este negocio.');
-                    if(normalizarEstadoPedido(pedido) === 'cancelado') return;
+                await ejecutarAccionPedidoBackend(
+                    idDoc,
+                    'cancelar'
+                );
 
-                    let demandas = new Map();
-                    let registros = new Map();
-
-                    if(pedido.stockDescontado === true) {
-                        demandas = await construirDemandasDesdeItemsTransaccion(tx, pedido.items || []);
-                        registros = await leerProductosDemandadosTransaccion(tx, demandas);
-                    }
-
-                    if(pedido.stockDescontado === true && demandas.size) {
-                        validarYAplicarDemandasTransaccion(
-                            tx,
-                            demandas,
-                            registros,
-                            1,
-                            `Cancelación pedido #${pedido.idCorto || idDoc}`
-                        );
-                    }
-
-                    tx.update(pedidoRef, {
-                        schemaVersion: SCHEMA_VERSION,
-                        estadoPedido: 'cancelado',
-                        estadoGeneral: 'cancelado',
-                        estadoEntrega: true,
-                        stockDescontado: false,
-                        updatedAt: serverTimestamp(),
-                        updatedBy: actorActual()
-                    });
-
-                    const ar = doc(collection(db, 'auditoria'));
-                    tx.set(ar, {
-                        negocioId: negocioIdActual,
-                        accion: 'pedido_cancelado',
-                        entidad: 'pedido',
-                        entidadId: idDoc,
-                        detalle: {
-                            codigo: pedido.idCorto || '',
-                            stockRepuesto: pedido.stockDescontado === true
-                        },
-                        actor: actorActual(),
-                        fecha: serverTimestamp()
-                    });
-                });
+                // La reposición de stock y el cambio de estado ya los ejecutó el backend.
+                auditar('pedido_cancelado', 'pedido', idDoc, {
+                    codigo: p.idCorto || '',
+                    stockRepuesto: stockEstabaDescontado
+                }).catch(console.error);
 
                 window.triggerProductos();
                 window.triggerPedidos();
@@ -3295,6 +3225,7 @@ window.probarBackendAdmin = async () => {
                 window.mostrarAlertaUI(e.message || 'No se pudo cancelar el pedido.');
             }
         };
+
         window.triggerPedidos = () => { window.renderizarPedidos(); limpiarControlesEstadoPedido(); window.actualizarNotificaciones(); if(!document.getElementById('panel-metricas').classList.contains('hidden')) window.actualizarGraficos(); };
 
         function obtenerCestasPeriodo(periodo) {
