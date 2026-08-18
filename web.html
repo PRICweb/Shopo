@@ -475,7 +475,7 @@
     <script type="module">
         // ===== INTEGRACIÓN FIREBASE ACTUALIZADA (MULTI-TENANT) =====
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
+        import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
         import { getFirestore, collection, getDocs, getDoc, doc, addDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -495,6 +495,30 @@
             provider: new ReCaptchaEnterpriseProvider("6LcuHYktAAAAAKpzKswobl5x0uGUVdbC0WiPp0ip"),
             isTokenAutoRefreshEnabled: true
         });
+
+const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1.run.app";
+
+async function obtenerHeadersBackendPublico() {
+    const appCheckResult = await getToken(appCheck, false);
+    if (!appCheckResult?.token) throw new Error("No se pudo obtener el token de App Check.");
+    return {
+        "X-Firebase-AppCheck": appCheckResult.token
+    };
+}
+
+window.probarBackendTienda = async () => {
+    const headers = await obtenerHeadersBackendPublico();
+    const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/test-app-check`, {
+        method: "GET",
+        headers,
+        cache: "no-store"
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data?.error || `Error ${response.status}`);
+    console.info("Backend Shopo verificado desde tienda:", data);
+    return data;
+};
+
         const db = getFirestore(app);
 
         // ESTADO GLOBAL
