@@ -1118,7 +1118,7 @@
     <script type="module">
         // ===== INTEGRACIÓN FIREBASE ACTUALIZADA (MULTI-TENANT) =====
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
+        import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
         import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit, startAfter, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
@@ -1139,6 +1139,36 @@
             provider: new ReCaptchaEnterpriseProvider("6LcuHYktAAAAAKpzKswobl5x0uGUVdbC0WiPp0ip"),
             isTokenAutoRefreshEnabled: true
         });
+
+const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1.run.app";
+
+async function obtenerHeadersBackendAdmin() {
+    if (!auth?.currentUser) throw new Error("No hay una sesión de administrador activa.");
+    const [appCheckResult, idToken] = await Promise.all([
+        getToken(appCheck, false),
+        auth.currentUser.getIdToken()
+    ]);
+    if (!appCheckResult?.token) throw new Error("No se pudo obtener el token de App Check.");
+    if (!idToken) throw new Error("No se pudo obtener el token de autenticación.");
+    return {
+        "Authorization": `Bearer ${idToken}`,
+        "X-Firebase-AppCheck": appCheckResult.token
+    };
+}
+
+window.probarBackendAdmin = async () => {
+    const headers = await obtenerHeadersBackendAdmin();
+    const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/test-admin`, {
+        method: "GET",
+        headers,
+        cache: "no-store"
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data?.error || `Error ${response.status}`);
+    console.info("Backend Shopo verificado:", data);
+    return data;
+};
+
         const db = getFirestore(app);
         const auth = getAuth(app);
 
