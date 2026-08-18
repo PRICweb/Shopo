@@ -476,7 +476,7 @@
         // ===== INTEGRACIÓN FIREBASE ACTUALIZADA (MULTI-TENANT) =====
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
-        import { getFirestore, collection, getDocs, getDoc, doc, addDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, getDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBwjx4CSqjgDj9GN4apNQoXbfNtrMjSZjk",
@@ -1553,9 +1553,11 @@ window.probarBackendTienda = async () => {
 
         window.finalizarCompra = async () => {
             if (compraEnProceso || carrito.length === 0) return;
+
             const campoNombre = document.getElementById('checkout-nombre');
             const campoApellido = document.getElementById('checkout-apellido');
             const campoDireccion = document.getElementById('checkout-direccion');
+
             window.normalizarCampoTexto(campoNombre);
             window.normalizarCampoTexto(campoApellido);
             if(campoDireccion) window.normalizarCampoTexto(campoDireccion);
@@ -1567,13 +1569,22 @@ window.probarBackendTienda = async () => {
             const metodoPago = document.getElementById('metodo-pago').value;
             const d = String(document.getElementById('checkout-direccion').value || '').trim();
 
-            const erroresCheckout = validarDatosCheckout({ nombre: n, apellido: a, telefono: t, metodoEntrega: mE, direccion: d });
+            const erroresCheckout = validarDatosCheckout({
+                nombre: n,
+                apellido: a,
+                telefono: t,
+                metodoEntrega: mE,
+                direccion: d
+            });
+
             if(!['Efectivo','Transferencia'].includes(metodoPago)) erroresCheckout.push('El método de pago no es válido.');
             if(mE === 'Envio' && !configTienda.envioDisponible) erroresCheckout.push('Esta tienda no tiene envíos habilitados.');
+
             if(erroresCheckout.length) {
                 alert(erroresCheckout.join('\n'));
                 return;
             }
+
             if(!window.estaElLocalAbierto()) alert("El local se encuentra cerrado. El pedido quedará en cola.");
 
             const btnComprar = document.getElementById('btn-comprar');
@@ -1581,31 +1592,76 @@ window.probarBackendTienda = async () => {
             compraEnProceso = true;
             btnComprar.disabled = true;
             btnComprar.textContent = 'Procesando…';
+
             try {
                 const resumenCarrito = construirResumenCarritoActual();
-                if(!resumenCarrito.length) return;
+                if(!resumenCarrito.length) throw new Error('El carrito está vacío.');
 
-                const perfilCli=categoriasClientes[0]||{nombre:'Consumidor Final',descuentoGlobal:0,descuentosCat:{}};
-                const recalculo=await revalidarYRecalcularPedido(resumenCarrito,perfilCli,mE,metodoPago);
+                const itemsBackend = resumenCarrito.map(item => {
+                    const cantidad = Number(item.cantidad) || 0;
+                    if(item.isPack) {
+                        return {
+                            packId: String(item.idProd || '').replace(/^pack_/, ''),
+                            isPack: true,
+                            cantidad
+                        };
+                    }
+                    return {
+                        productoId: String(item.idProd || ''),
+                        varianteId: String(item.idVar || ''),
+                        isPack: false,
+                        cantidad
+                    };
+                });
 
-                if(!recalculo.ok) {
-                    const detalle = recalculo.faltantes.map(f => `• ${f.nombre}\n  Pedido: ${f.pedido} | Disponible: ${f.disponible}`).join('\n\n');
-                    alert(`No se puede confirmar el pedido porque no hay stock suficiente:\n\n${detalle}\n\nModificá las cantidades del carrito para continuar.`);
+                const payload = {
+                    negocioId: negocioIdURL,
+                    cliente: {
+                        nombre: n,
+                        apellido: a,
+                        telefono: t,
+                        direccion: mE === 'Envio' ? d : ''
+                    },
+                    metodoPago,
+                    metodoEntrega: mE,
+                    items: itemsBackend
+                };
+
+                const headersBackend = await obtenerHeadersBackendPublico();
+                const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/pedidos`, {
+                    method: 'POST',
+                    headers: {
+                        ...headersBackend,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                    cache: 'no-store'
+                });
+
+                const resultado = await response.json().catch(() => ({}));
+
+                if(!response.ok || !resultado?.ok) {
+                    const codigo = String(resultado?.error || '');
+                    if(codigo === 'STOCK_INSUFICIENTE' || codigo === 'STOCK_PACK_INSUFICIENTE') {
+                        const disponible = resultado?.disponible ?? resultado?.detalles?.disponible;
+                        const solicitado = resultado?.solicitado ?? resultado?.detalles?.solicitado;
+                        let mensaje = resultado?.mensaje || 'No hay stock suficiente para completar el pedido.';
+                        if(disponible !== undefined && solicitado !== undefined) {
+                            mensaje += `\n\nPedido: ${solicitado} | Disponible: ${disponible}`;
+                        }
+                        alert(mensaje + '\n\nActualizá el carrito para continuar.');
+                    } else {
+                        alert(resultado?.mensaje || resultado?.error || `No se pudo crear el pedido. Error ${response.status}.`);
+                    }
+                    await cargarDatosBD();
                     return;
                 }
 
-                if(recalculo.total <= 0) {
-                    alert('El total del pedido debe ser mayor a cero.');
-                    return;
-                }
-
-                const tipoClienteTxt=String(perfilCli.nombre||'Consumidor Final');
-                const idC = generarIdCorto();
-
-                let nuevoPedido = {
+                const pedidoServidor = resultado.pedido || {};
+                ultimoPedidoConf = {
                     schemaVersion: SCHEMA_VERSION,
-                    idCorto: idC,
-                    fecha: serverTimestamp(),
+                    idCorto: resultado.idCorto || '',
+                    fecha: new Date(),
                     fechaClienteISO: new Date().toISOString(),
                     nombreCliente: n,
                     apellidoCliente: a,
@@ -1617,38 +1673,40 @@ window.probarBackendTienda = async () => {
                     estadoEntrega: false,
                     estadoPedido: 'pendiente',
                     estadoGeneral: 'pendiente',
-                    stockDescontado: false,
-                    total: recalculo.total,
-                    subtotalBruto: recalculo.subtotalBruto,
-                    costoEnvio: recalculo.costoEnvio,
-                    descuentoMonto: recalculo.descuentoMonto,
-                    tipoCliente: tipoClienteTxt,
-                    items: recalculo.items,
-                    negocioId: negocioIdURL
+                    stockDescontado: true,
+                    total: Number(pedidoServidor.total) || 0,
+                    subtotalBruto: Number(pedidoServidor.subtotalBruto) || 0,
+                    costoEnvio: Number(pedidoServidor.costoEnvio) || 0,
+                    descuentoMonto: Number(pedidoServidor.descuentoMonto) || 0,
+                    tipoCliente: 'Consumidor Final',
+                    items: Array.isArray(pedidoServidor.items) ? pedidoServidor.items : [],
+                    negocioId: negocioIdURL,
+                    idDoc: resultado.pedidoId || ''
                 };
 
-                await addDoc(collection(db, "pedidos"), nuevoPedido);
+                if(!ultimoPedidoConf.idCorto || ultimoPedidoConf.total <= 0 || !ultimoPedidoConf.items.length) {
+                    throw new Error('El backend creó el pedido pero devolvió una respuesta incompleta.');
+                }
 
-                ultimoPedidoConf = { ...nuevoPedido, fecha: new Date() };
-
-                window.renderizarCatalogoYStock();
-                document.getElementById('exito-id').textContent = `#${idC}`;
-                document.getElementById('resumen-confirmacion').innerHTML = window.generarResumenConfirmacionHTML(ultimoPedidoConf);
-                document.getElementById('carrito-vista-lista').classList.add('hidden');
-                document.getElementById('carrito-vista-exito').classList.remove('hidden');
-                document.getElementById('checkout-nombre').value = "";
-                document.getElementById('checkout-apellido').value = "";
-                document.getElementById('checkout-telefono').value = "";
-                document.getElementById('checkout-direccion').value = "";
                 carrito = [];
                 limpiarCarritoLocal();
                 actualizarBadge();
+                await cargarDatosBD();
+
+                document.getElementById('exito-id').textContent = `#${ultimoPedidoConf.idCorto}`;
+                document.getElementById('resumen-confirmacion').innerHTML = window.generarResumenConfirmacionHTML(ultimoPedidoConf);
+                document.getElementById('carrito-vista-lista').classList.add('hidden');
+                document.getElementById('carrito-vista-exito').classList.remove('hidden');
+                document.getElementById('checkout-nombre').value = '';
+                document.getElementById('checkout-apellido').value = '';
+                document.getElementById('checkout-telefono').value = '';
+                document.getElementById('checkout-direccion').value = '';
             } catch (e) {
-                console.error(e);
-                alert("Hubo un error al procesar el pedido. Intentá nuevamente.");
+                console.error('Error creando pedido mediante backend:', e);
+                alert(e?.message || 'Hubo un error al procesar el pedido. Intentá nuevamente.');
             } finally {
                 compraEnProceso = false;
-                btnComprar.disabled = false;
+                btnComprar.disabled = carrito.length === 0;
                 btnComprar.textContent = textoOriginalComprar;
             }
         };
