@@ -505,6 +505,8 @@ async function obtenerHeadersBackendPublico() {
         "X-Firebase-AppCheck": appCheckResult.token
     };
 }
+       
+    window.obtenerHeadersBackendPublico = obtenerHeadersBackendPublico;
 
 window.probarBackendTienda = async () => {
     const headers = await obtenerHeadersBackendPublico();
