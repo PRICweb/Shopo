@@ -1156,6 +1156,8 @@ async function obtenerHeadersBackendAdmin() {
     };
 }
 
+    window.obtenerHeadersBackendAdmin = obtenerHeadersBackendAdmin;
+
 window.probarBackendAdmin = async () => {
     const headers = await obtenerHeadersBackendAdmin();
     const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/test-admin`, {
