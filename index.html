@@ -1191,18 +1191,6 @@ async function obtenerHeadersBackendAdmin() {
         return data;
     }
 
-window.probarBackendAdmin = async () => {
-    const headers = await obtenerHeadersBackendAdmin();
-    const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/test-admin`, {
-        method: "GET",
-        headers,
-        cache: "no-store"
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data?.error || `Error ${response.status}`);
-    console.info("Backend Shopo verificado:", data);
-    return data;
-};
 
         const db = getFirestore(app);
         const auth = getAuth(app);
