@@ -667,6 +667,58 @@ window.probarBackendTienda = async () => {
         };
 
         let compraEnProceso = false;
+        let idempotencyKeyCompraActual = null;
+        let idempotencyPayloadActual = null;
+
+        const generarIdempotencyKeyCompra = () => {
+            if(
+                window.crypto &&
+                typeof window.crypto.randomUUID === 'function'
+            ) {
+                return window.crypto.randomUUID();
+            }
+
+            const aleatorio = new Uint8Array(16);
+
+            if(
+                window.crypto &&
+                typeof window.crypto.getRandomValues === 'function'
+            ) {
+                window.crypto.getRandomValues(aleatorio);
+                return Array.from(
+                    aleatorio,
+                    b => b.toString(16).padStart(2, '0')
+                ).join('');
+            }
+
+            // Fallback para navegadores muy antiguos.
+            return [
+                Date.now().toString(36),
+                Math.random().toString(36).slice(2),
+                Math.random().toString(36).slice(2)
+            ].join('-');
+        };
+
+        const obtenerIdempotencyKeyCompra = (payload) => {
+            const firmaPayload = JSON.stringify(payload);
+
+            if(
+                !idempotencyKeyCompraActual ||
+                idempotencyPayloadActual !== firmaPayload
+            ) {
+                idempotencyKeyCompraActual =
+                    generarIdempotencyKeyCompra();
+                idempotencyPayloadActual =
+                    firmaPayload;
+            }
+
+            return idempotencyKeyCompraActual;
+        };
+
+        const limpiarIdempotenciaCompra = () => {
+            idempotencyKeyCompraActual = null;
+            idempotencyPayloadActual = null;
+        };
 
         window.generarResumenConfirmacionHTML = (pedido) => {
             if(!pedido) return '';
@@ -1627,12 +1679,18 @@ window.probarBackendTienda = async () => {
                     items: itemsBackend
                 };
 
-                const headersBackend = await obtenerHeadersBackendPublico();
+                const idempotencyKey =
+                    obtenerIdempotencyKeyCompra(payload);
+
+                const headersBackend =
+                    await obtenerHeadersBackendPublico();
+
                 const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/pedidos`, {
                     method: 'POST',
                     headers: {
                         ...headersBackend,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Idempotency-Key': idempotencyKey
                     },
                     body: JSON.stringify(payload),
                     cache: 'no-store'
@@ -1687,6 +1745,10 @@ window.probarBackendTienda = async () => {
                 if(!ultimoPedidoConf.idCorto || ultimoPedidoConf.total <= 0 || !ultimoPedidoConf.items.length) {
                     throw new Error('El backend creó el pedido pero devolvió una respuesta incompleta.');
                 }
+
+                // A partir de acá la respuesta quedó confirmada.
+                // Una compra nueva debe usar una clave nueva.
+                limpiarIdempotenciaCompra();
 
                 carrito = [];
                 limpiarCarritoLocal();
