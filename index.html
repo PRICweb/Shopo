@@ -3048,7 +3048,7 @@ window.probarBackendAdmin = async () => {
                 const estado = normalizarEstadoPedido(p);
                 const telefonoSeguro = String(p.telefono || '').replace(/[^0-9]/g,'').slice(0,15);
                 const idSeguro = String(p.idDoc || '').replace(/[^A-Za-z0-9_-]/g,'');
-                const bC = isP ? `<button class="danger" style="border: 1px solid #ef4444; color: #ef4444;" onclick="window.cancelarPedido('${idSeguro}', '${telefonoSeguro}')">Cancelar</button>` : '';
+                const bC = (isP && !p.estadoPago) ? `<button class="danger" style="border: 1px solid #ef4444; color: #ef4444;" onclick="window.cancelarPedido('${idSeguro}', '${telefonoSeguro}')">Cancelar</button>` : '';
                 const bP = `<span class="pedido-pago-slot">${p.estadoPago ? `<span class="pedido-cobrado-fijo">COBRADO</span>` : `<button class="secondary" onclick="window.marcarPagado('${idSeguro}')">Registrar Pago</button>`}</span>`;
                 const bE = isP ? `<button onclick="window.marcarEntregado('${idSeguro}', '${telefonoSeguro}')">Entregado</button>` : `<span style="color:var(--text-dark); font-size:0.8rem;">FINALIZADO</span>`;
                 const clienteSeguro = escaparHtml(obtenerNombreClientePedido(p));
@@ -3201,6 +3201,11 @@ window.probarBackendAdmin = async () => {
         window.cancelarPedido = async (idDoc, font) => {
             const p = pedidosGlobales.find(x => x.idDoc === idDoc);
             if(!p) return;
+
+            if(p.estadoPago === true) {
+                window.mostrarAlertaUI("No se puede cancelar un pedido que ya fue marcado como pagado.");
+                return;
+            }
 
             if(!(await pedirConfirmacion("¿Cancelar este pedido y reponer el stock si corresponde?"))) return;
 
