@@ -1099,6 +1099,14 @@
                         <hr>
                         <h4 style="margin:0 0 15px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Horarios Operativos</h4>
                         <div class="dark-input-group"><div><label>Apertura</label><input type="time" id="conf-apertura"></div><div><label>Cierre</label><input type="time" id="conf-cierre"></div></div>
+                        <div class="form-group">
+                            <label>Pedidos con el local cerrado</label>
+                            <select id="conf-pedidos-cerrado">
+                                <option value="si">Permitir pedidos fuera de horario</option>
+                                <option value="no">Bloquear pedidos fuera de horario</option>
+                            </select>
+                            <span class="field-status">Si se bloquean, la tienda mostrará una pantalla de cerrado y no permitirá continuar con la compra.</span>
+                        </div>
                         <div class="dias-checkbox-group"><label class="dia-checkbox"><input type="checkbox" id="check-lu"> Lu</label><label class="dia-checkbox"><input type="checkbox" id="check-ma"> Ma</label><label class="dia-checkbox"><input type="checkbox" id="check-mi"> Mi</label><label class="dia-checkbox"><input type="checkbox" id="check-ju"> Ju</label><label class="dia-checkbox"><input type="checkbox" id="check-vi"> Vi</label><label class="dia-checkbox"><input type="checkbox" id="check-sa"> Sá</label><label class="dia-checkbox"><input type="checkbox" id="check-do"> Do</label></div>
                         <button style="margin-top:20px; width:100%;" onclick="window.ejecutarAccionBoton(this, 'Guardando...', () => window.guardarConfiguracion())">Guardar preferencias</button>
                     </div>
@@ -1363,7 +1371,7 @@ async function obtenerHeadersBackendAdmin() {
         // La tienda pública actual usa ?n=NEGOCIO_ID. Si el archivo público cambia de nombre,
         // sólo hay que modificar esta constante.
         const RUTA_TIENDA_PUBLICA = 'web.html';
-        let configTienda = { logo: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
+        let configTienda = { logo: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
         let metricasChart = null;
         const PAGE_SIZE = 100;
         const SCHEMA_VERSION = 2;
@@ -2491,8 +2499,8 @@ async function obtenerHeadersBackendAdmin() {
                     if(descuentosPago.efectivo.activo&&efectivoPct<=0) throw new Error('Indicá un porcentaje mayor a 0 para efectivo.');
                     if(descuentosPago.transferencia.activo&&transferenciaPct<=0) throw new Error('Indicá un porcentaje mayor a 0 para transferencia.');
                     const diasApertura={}; ['check-lu','check-ma','check-mi','check-ju','check-vi','check-sa','check-do'].forEach(id=>diasApertura[id]=document.getElementById(id).checked);
-                    configTienda={...configTienda,logo,horaApertura:document.getElementById('conf-apertura').value,horaCierre:document.getElementById('conf-cierre').value,diasApertura,envioDisponible:document.getElementById('conf-envio-disp').value==='si',envioPrecio,descuentosPago,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()};
-                    await setDoc(doc(db,'configuracion',negocioIdActual),configTienda,{merge:true}); await auditar('configuracion_actualizada','configuracion',negocioIdActual,{envioDisponible:configTienda.envioDisponible,descuentosPago});
+                    configTienda={...configTienda,logo,horaApertura:document.getElementById('conf-apertura').value,horaCierre:document.getElementById('conf-cierre').value,diasApertura,envioDisponible:document.getElementById('conf-envio-disp').value==='si',envioPrecio,permitirPedidosCerrado:document.getElementById('conf-pedidos-cerrado').value==='si',descuentosPago,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()};
+                    await setDoc(doc(db,'configuracion',negocioIdActual),configTienda,{merge:true}); await auditar('configuracion_actualizada','configuracion',negocioIdActual,{envioDisponible:configTienda.envioDisponible,permitirPedidosCerrado:configTienda.permitirPedidosCerrado,descuentosPago});
                     window.mostrarAlertaUI('Configuración guardada correctamente.');
                 }catch(e){window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración.');throw e;}
             });
@@ -2650,6 +2658,10 @@ async function obtenerHeadersBackendAdmin() {
             document.getElementById('conf-cierre').value = configTienda.horaCierre || '18:00';
             document.getElementById('conf-envio-disp').value = configTienda.envioDisponible ? 'si' : 'no';
             document.getElementById('conf-envio-precio').value = configTienda.envioPrecio || 0;
+            const pedidosCerrado = document.getElementById('conf-pedidos-cerrado');
+            if(pedidosCerrado) {
+                pedidosCerrado.value = configTienda.permitirPedidosCerrado === false ? 'no' : 'si';
+            }
             if(configTienda.diasApertura) {
                 ['check-lu','check-ma','check-mi','check-ju','check-vi','check-sa','check-do'].forEach(id => {
                     const el=document.getElementById(id); if(el) el.checked = !!configTienda.diasApertura[id];
