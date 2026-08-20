@@ -119,7 +119,6 @@
         @media (max-width: 768px) { .search-container { max-width: 100%; margin: 5px 0; } .modal-content { padding: 20px; } .panel-oscuro-container { padding: 15px; } .dark-input-group { flex-direction: column; align-items: stretch; gap: 10px; } .dark-input-group > div { width: 100%; } }
 
 
-
         /* ===== ACTUALIZACIONES DE GESTIÓN ===== */
         .notif-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
         .notif-card { flex:1; min-width:180px; border:1px solid var(--border); border-left:4px solid var(--accent); background:var(--card-bg); padding:14px; border-radius:8px; cursor:pointer; transition: all 0.25s ease; text-align:left; }
@@ -579,7 +578,6 @@
         }
 
 
-
         /* ===== CONFIGURACIÓN DE TIENDA / APARIENCIA ===== */
         .store-settings-section { max-width: 1180px; }
         .store-settings-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:14px; }
@@ -709,7 +707,6 @@
         </aside>
 
 
-
         <div id="panel-notificaciones" class="notif-bar">
             <div class="notif-card" onclick="window.abrirResumenNotificacion('pedidos')"><strong id="notif-pedidos">0</strong><span>Pedidos pendientes</span></div>
             <div class="notif-card" onclick="window.abrirResumenNotificacion('stock')"><strong id="notif-stock">0</strong><span>Alertas de stock</span></div>
@@ -830,7 +827,6 @@
                 </div>
             </div>
         </div>
-
 
 
         <div id="panel-metricas" class="panel-oscuro-container hidden">
@@ -1224,7 +1220,6 @@ window.probarBackendAdmin = async () => {
         let categoriasClientes = [{ nombre: 'Consumidor Final', descuentoGlobal: 0, descuentosCat: {} }];
         let productos = []; let packs = []; let carritoMostrador = []; let terminoBusqueda = "";
         let ingresosGlobales = []; let gastosGlobales = []; let pedidosGlobales = [];
-        const pedidosEnProcesoStock = new Set();
         const TEMA_TIENDA_PREDETERMINADO = Object.freeze({
             primary:'#5d4037', primaryHover:'#4e342e', accent:'#8d6e63',
             bg:'#f5f5f7', card:'#ffffff', cardHover:'#f9f9f9',
@@ -1715,108 +1710,6 @@ window.probarBackendAdmin = async () => {
             }
         };
 
-        window.procesarPedidoWebPendiente = async (idDoc) => {
-            try {
-                let estadoFinal = { ok: true, errores: [] };
-
-                await runTransaction(db, async (tx) => {
-                    const pedidoRef = doc(db, 'pedidos', idDoc);
-                    const pedidoSnap = await tx.get(pedidoRef);
-
-                    if(!pedidoSnap.exists()) {
-                        estadoFinal = { ok: false, errores: ['El pedido ya no existe.'] };
-                        return;
-                    }
-
-                    const pedido = pedidoSnap.data();
-
-                    if(pedido.negocioId !== negocioIdActual) {
-                        estadoFinal = { ok: false, errores: ['El pedido no pertenece a este negocio.'] };
-                        return;
-                    }
-
-                    const estado = normalizarEstadoPedido(pedido);
-                    if(pedido.stockDescontado === true || estado === 'cancelado' || estado === 'entregado') {
-                        estadoFinal = { ok: true, errores: [] };
-                        return;
-                    }
-
-                    if(estado === 'stock_error') {
-                        estadoFinal = { ok: false, errores: [pedido.alertaStock || 'Pedido marcado con falta de stock.'] };
-                        return;
-                    }
-
-                    const demandas = await construirDemandasDesdeItemsTransaccion(tx, pedido.items || []);
-                    const registros = await leerProductosDemandadosTransaccion(tx, demandas);
-
-                    try {
-                        validarYAplicarDemandasTransaccion(
-                            tx,
-                            demandas,
-                            registros,
-                            -1,
-                            `Pedido web #${pedido.idCorto || idDoc}`
-                        );
-
-                        tx.update(pedidoRef, {
-                            schemaVersion: SCHEMA_VERSION,
-                            stockDescontado: true,
-                            estadoPedido: estado === 'confirmado' ? 'pendiente' : estado,
-                            estadoGeneral: estado === 'confirmado' ? 'pendiente' : estado,
-                            alertaStock: '',
-                            updatedAt: serverTimestamp(),
-                            updatedBy: actorActual()
-                        });
-
-                        const ar = doc(collection(db, 'auditoria'));
-                        tx.set(ar, {
-                            negocioId: negocioIdActual,
-                            accion: 'pedido_stock_descontado',
-                            entidad: 'pedido',
-                            entidadId: idDoc,
-                            detalle: {
-                                codigo: pedido.idCorto || '',
-                                demandas: [...demandas.values()]
-                            },
-                            actor: actorActual(),
-                            fecha: serverTimestamp()
-                        });
-                    } catch(errorStock) {
-                        const errores = errorStock.stockErrors || [errorStock.message || 'Stock insuficiente.'];
-                        estadoFinal = { ok: false, errores };
-
-                        tx.update(pedidoRef, {
-                            schemaVersion: SCHEMA_VERSION,
-                            stockDescontado: false,
-                            estadoPedido: 'stock_error',
-                            estadoGeneral: 'error_stock',
-                            alertaStock: errores.join(' | '),
-                            updatedAt: serverTimestamp(),
-                            updatedBy: actorActual()
-                        });
-
-                        const ar = doc(collection(db, 'auditoria'));
-                        tx.set(ar, {
-                            negocioId: negocioIdActual,
-                            accion: 'pedido_stock_insuficiente',
-                            entidad: 'pedido',
-                            entidadId: idDoc,
-                            detalle: {
-                                codigo: pedido.idCorto || '',
-                                errores
-                            },
-                            actor: actorActual(),
-                            fecha: serverTimestamp()
-                        });
-                    }
-                });
-
-                return estadoFinal;
-            } catch(e) {
-                console.error('Error procesando pedido:', e);
-                return { ok: false, errores: [e.message || 'No se pudo procesar el pedido.'] };
-            }
-        };
 
         const registrarIngresoPedidoTransaccion = (tx, idDoc, pedido, tipo = 'pago') => {
             const ingresoRef = doc(db, 'ingresos', `pedido_pago_${idDoc}`);
@@ -2235,26 +2128,11 @@ window.probarBackendAdmin = async () => {
                             const p = normalizarFechaFirestore(change.doc.data());
                             p.idDoc = change.doc.id;
 
+                            // Los pedidos ya llegan procesados por el backend.
+                            // El admin sólo escucha y renderiza; no modifica stock ni estados críticos.
                             if (p.estadoPedido === 'confirmado') {
                                 p.estadoPedido = 'pendiente';
-                                updateDoc(doc(db, 'pedidos', p.idDoc), { schemaVersion: SCHEMA_VERSION, estadoPedido: 'pendiente', estadoGeneral: 'pendiente', updatedAt: serverTimestamp(), updatedBy: actorActual() }).catch(console.error);
-                            }
-
-                            // Descuento automático atómico.
-                            // Evita doble descuento si el panel está abierto en dos pestañas o dos usuarios administradores.
-                            if ((change.type === "added" || change.type === "modified") && !p.stockDescontado && normalizarEstadoPedido(p) !== 'stock_error' && normalizarEstadoPedido(p) !== 'cancelado') {
-                                if(!pedidosEnProcesoStock.has(p.idDoc)) {
-                                    pedidosEnProcesoStock.add(p.idDoc);
-                                    try {
-                                        const resultadoStock = await window.procesarPedidoWebPendiente(p.idDoc);
-
-                                        if (!resultadoStock.ok) {
-                                            window.mostrarAlertaUI('Pedido #' + (p.idCorto || '') + ' con falta de stock: ' + resultadoStock.errores.join(' / '));
-                                        }
-                                    } finally {
-                                        pedidosEnProcesoStock.delete(p.idDoc);
-                                    }
-                                }
+                                p.estadoGeneral = 'pendiente';
                             }
                         }
 
@@ -3064,16 +2942,7 @@ window.probarBackendAdmin = async () => {
             limpiarControlesEstadoPedido();
         };
         
-        window.cambiarEstadoPedido = async (idDoc, estado) => {
-            if (estado === 'confirmado') estado = 'pendiente';
-            const p = pedidosGlobales.find(x => x.idDoc === idDoc); if(!p) return;
-            if(estado === 'cancelado') { window.cancelarPedido(idDoc, p.telefono || ''); return; }
-            const estadoGeneral = estado === 'cancelado' ? 'cancelado' : (estado === 'stock_error' ? 'error_stock' : estado);
-            await updateDoc(doc(db, 'pedidos', idDoc), { schemaVersion: SCHEMA_VERSION, estadoPedido: estado, estadoGeneral, updatedAt: serverTimestamp(), updatedBy: actorActual() }); await auditar('pedido_estado_actualizado','pedido',idDoc,{estado});
-            p.estadoPedido = estado;
-            p.estadoGeneral = estadoGeneral;
-            window.triggerPedidos();
-        };
+
         
         const normalizarDescuentosPagoAdmin = () => {
             const dp = configTienda.descuentosPago || {};
