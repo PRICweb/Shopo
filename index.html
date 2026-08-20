@@ -2926,9 +2926,9 @@ window.probarBackendAdmin = async () => {
                 const estado = normalizarEstadoPedido(p);
                 const telefonoSeguro = String(p.telefono || '').replace(/[^0-9]/g,'').slice(0,15);
                 const idSeguro = String(p.idDoc || '').replace(/[^A-Za-z0-9_-]/g,'');
-                const bC = (isP && !p.estadoPago) ? `<button class="danger" style="border: 1px solid #ef4444; color: #ef4444;" onclick="window.cancelarPedido('${idSeguro}', '${telefonoSeguro}')">Cancelar</button>` : '';
-                const bP = `<span class="pedido-pago-slot">${p.estadoPago ? `<span class="pedido-cobrado-fijo">COBRADO</span>` : `<button class="secondary" onclick="window.marcarPagado('${idSeguro}')">Registrar Pago</button>`}</span>`;
-                const bE = isP ? `<button onclick="window.marcarEntregado('${idSeguro}', '${telefonoSeguro}')">Entregado</button>` : `<span style="color:var(--text-dark); font-size:0.8rem;">FINALIZADO</span>`;
+                const bC = (isP && !p.estadoPago) ? `<button class="danger" style="border: 1px solid #ef4444; color: #ef4444;" onclick="window.cancelarPedido('${idSeguro}', '${telefonoSeguro}', this)">Cancelar</button>` : '';
+                const bP = `<span class="pedido-pago-slot">${p.estadoPago ? `<span class="pedido-cobrado-fijo">COBRADO</span>` : `<button class="secondary" onclick="window.marcarPagado('${idSeguro}', this)">Registrar Pago</button>`}</span>`;
+                const bE = isP ? `<button onclick="window.marcarEntregado('${idSeguro}', '${telefonoSeguro}', this)">Entregado</button>` : `<span style="color:var(--text-dark); font-size:0.8rem;">FINALIZADO</span>`;
                 const clienteSeguro = escaparHtml(obtenerNombreClientePedido(p));
                 const tipoClienteSeguro = p.tipoCliente ? `(${escaparHtml(p.tipoCliente)})` : '';
                 const metodoEntregaSeguro = escaparHtml(p.metodoEntrega || '');
@@ -2990,12 +2990,33 @@ window.probarBackendAdmin = async () => {
             return { subtotalBruto, descuentoBaseMonto, descuentoPagoMonto, descuentoPagoPorcentaje:pctPago, descuentoMonto, costoEnvio, total };
         };
 
-        window.marcarPagado = async (idDoc) => {
+        const activarBotonAccionPedido = (boton, texto) => {
+            if(!boton) return;
+            if(!boton.dataset.textoOriginal) {
+                boton.dataset.textoOriginal = boton.textContent;
+            }
+            boton.disabled = true;
+            boton.classList.add('btn-loading');
+            boton.textContent = texto;
+        };
+
+        const restaurarBotonAccionPedido = (boton) => {
+            if(!boton) return;
+            boton.disabled = false;
+            boton.classList.remove('btn-loading');
+            if(boton.dataset.textoOriginal) {
+                boton.textContent = boton.dataset.textoOriginal;
+            }
+        };
+
+        window.marcarPagado = async (idDoc, boton) => {
             const p = pedidosGlobales.find(x => x.idDoc === idDoc);
             if(!p) return;
 
             const metodoElegido = await pedirMedioPagoPedido(p);
             if(!metodoElegido) return;
+
+            activarBotonAccionPedido(boton, 'Registrando...');
 
             try {
                 const resultado = await ejecutarAccionPedidoBackend(
@@ -3016,15 +3037,18 @@ window.probarBackendAdmin = async () => {
                 window.triggerIngresos();
             } catch(e) {
                 console.error(e);
+                restaurarBotonAccionPedido(boton);
                 window.mostrarAlertaUI(e.message || 'No se pudo registrar el pago.');
             }
         };
 
-        window.marcarEntregado = async (idDoc, font) => {
+        window.marcarEntregado = async (idDoc, font, boton) => {
             const p = pedidosGlobales.find(x => x.idDoc === idDoc);
             if(!p) return;
 
             if(!(await pedirConfirmacion(`¿Marcar como entregado el pedido #${p.idCorto || ''}?`))) return;
+
+            activarBotonAccionPedido(boton, 'Entregando...');
 
             try {
                 const resultado = await ejecutarAccionPedidoBackend(
@@ -3063,11 +3087,12 @@ window.probarBackendAdmin = async () => {
                 }
             } catch(e) {
                 console.error(e);
+                restaurarBotonAccionPedido(boton);
                 window.mostrarAlertaUI(e.message || 'No se pudo marcar el pedido como entregado.');
             }
         };
 
-        window.cancelarPedido = async (idDoc, font) => {
+        window.cancelarPedido = async (idDoc, font, boton) => {
             const p = pedidosGlobales.find(x => x.idDoc === idDoc);
             if(!p) return;
 
@@ -3077,6 +3102,8 @@ window.probarBackendAdmin = async () => {
             }
 
             if(!(await pedirConfirmacion("¿Cancelar este pedido y reponer el stock si corresponde?"))) return;
+
+            activarBotonAccionPedido(boton, 'Cancelando...');
 
             try {
                 const stockEstabaDescontado = p.stockDescontado === true;
@@ -3096,6 +3123,7 @@ window.probarBackendAdmin = async () => {
                 window.triggerPedidos();
             } catch(e) {
                 console.error(e);
+                restaurarBotonAccionPedido(boton);
                 window.mostrarAlertaUI(e.message || 'No se pudo cancelar el pedido.');
             }
         };
