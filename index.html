@@ -3025,14 +3025,6 @@ window.probarBackendAdmin = async () => {
                     { metodoPago: metodoElegido }
                 );
 
-                // La operación crítica ya fue realizada y validada por el backend.
-                // La auditoría visual se conserva sin volver a modificar el pedido desde el navegador.
-                auditar('pedido_pagado', 'pedido', idDoc, {
-                    total: Number(resultado?.total) || 0,
-                    metodo: resultado?.metodoPago || metodoElegido,
-                    codigo: p.idCorto || ''
-                }).catch(console.error);
-
                 window.triggerPedidos();
                 window.triggerIngresos();
             } catch(e) {
@@ -3055,13 +3047,6 @@ window.probarBackendAdmin = async () => {
                     idDoc,
                     'entregar'
                 );
-
-                // Conservamos la auditoría del panel, pero el cambio de estado y el autocobro
-                // se realizan exclusivamente en el backend.
-                auditar('pedido_entregado', 'pedido', idDoc, {
-                    codigo: p.idCorto || '',
-                    pagoAutomatico: resultado?.pagoAutomatico === true
-                }).catch(console.error);
 
                 window.triggerPedidos();
                 window.triggerIngresos();
@@ -3106,18 +3091,10 @@ window.probarBackendAdmin = async () => {
             activarBotonAccionPedido(boton, 'Cancelando...');
 
             try {
-                const stockEstabaDescontado = p.stockDescontado === true;
-
                 await ejecutarAccionPedidoBackend(
                     idDoc,
                     'cancelar'
                 );
-
-                // La reposición de stock y el cambio de estado ya los ejecutó el backend.
-                auditar('pedido_cancelado', 'pedido', idDoc, {
-                    codigo: p.idCorto || '',
-                    stockRepuesto: stockEstabaDescontado
-                }).catch(console.error);
 
                 window.triggerProductos();
                 window.triggerPedidos();
