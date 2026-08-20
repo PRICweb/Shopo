@@ -387,6 +387,112 @@
             .acciones-compra { grid-template-columns: 1fr; }
         }
 
+    
+        /* ===== AVISOS DE LA TIENDA (REEMPLAZO DE ALERTAS DEL NAVEGADOR) ===== */
+        .aviso-tienda-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(0,0,0,.48);
+            backdrop-filter: blur(4px);
+        }
+
+        .aviso-tienda-card {
+            width: min(100%, 440px);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 18px 55px rgba(0,0,0,.16);
+            padding: 24px;
+            transform: translateY(0);
+        }
+
+        .aviso-tienda-cabecera {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .aviso-tienda-icono {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .aviso-tienda-titulo {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: .4px;
+        }
+
+        .aviso-tienda-mensaje {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: .88rem;
+            line-height: 1.6;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
+
+        .aviso-tienda-acciones {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 22px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .aviso-tienda-acciones button {
+            min-width: 110px;
+        }
+
+        .aviso-tienda-card[data-tipo="error"] .aviso-tienda-icono {
+            color: #b91c1c;
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .aviso-tienda-card[data-tipo="warning"] .aviso-tienda-icono {
+            color: #92400e;
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        @media (max-width: 480px) {
+            .aviso-tienda-overlay {
+                align-items: flex-end;
+                padding: 10px;
+            }
+
+            .aviso-tienda-card {
+                width: 100%;
+                border-radius: 14px;
+                padding: 20px;
+                margin-bottom: max(0px, env(safe-area-inset-bottom));
+            }
+
+            .aviso-tienda-acciones button {
+                width: 100%;
+                min-height: 44px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -399,6 +505,19 @@
     </div>
 
     <div id="toast-agregado">Producto agregado al carrito</div>
+
+    <div id="modal-aviso-tienda" class="aviso-tienda-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="aviso-tienda-titulo">
+        <div id="aviso-tienda-card" class="aviso-tienda-card" data-tipo="info">
+            <div class="aviso-tienda-cabecera">
+                <div id="aviso-tienda-icono" class="aviso-tienda-icono" aria-hidden="true">i</div>
+                <h3 id="aviso-tienda-titulo" class="aviso-tienda-titulo">Aviso</h3>
+            </div>
+            <p id="aviso-tienda-mensaje" class="aviso-tienda-mensaje"></p>
+            <div class="aviso-tienda-acciones">
+                <button id="btn-aviso-tienda-aceptar" type="button">Aceptar</button>
+            </div>
+        </div>
+    </div>
 
     <div id="vista-comprador" class="container">
         
@@ -508,20 +627,100 @@ async function obtenerHeadersBackendPublico() {
        
     window.obtenerHeadersBackendPublico = obtenerHeadersBackendPublico;
 
-window.probarBackendTienda = async () => {
-    const headers = await obtenerHeadersBackendPublico();
-    const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/test-app-check`, {
-        method: "GET",
-        headers,
-        cache: "no-store"
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data?.error || `Error ${response.status}`);
-    console.info("Backend Shopo verificado desde tienda:", data);
-    return data;
-};
 
         const db = getFirestore(app);
+
+        // ===== AVISOS VISUALES DE LA TIENDA =====
+        // Reemplaza los avisos nativos del navegador para mantener una experiencia consistente.
+        let avisoTiendaResolver = null;
+        let avisoTiendaFocoAnterior = null;
+
+        window.mostrarAvisoTienda = (mensaje, opciones = {}) => {
+            const modal = document.getElementById('modal-aviso-tienda');
+            const card = document.getElementById('aviso-tienda-card');
+            const titulo = document.getElementById('aviso-tienda-titulo');
+            const texto = document.getElementById('aviso-tienda-mensaje');
+            const icono = document.getElementById('aviso-tienda-icono');
+            const btn = document.getElementById('btn-aviso-tienda-aceptar');
+
+            if(!modal || !card || !titulo || !texto || !icono || !btn) {
+                console.warn('No se pudo mostrar el aviso visual:', mensaje);
+                return Promise.resolve();
+            }
+
+            if(avisoTiendaResolver) {
+                avisoTiendaResolver();
+                avisoTiendaResolver = null;
+            }
+
+            const tipo = ['info', 'warning', 'error'].includes(opciones.tipo)
+                ? opciones.tipo
+                : 'info';
+
+            const iconos = {
+                info: 'i',
+                warning: '!',
+                error: '!'
+            };
+
+            titulo.textContent = String(opciones.titulo || 'Aviso');
+            texto.textContent = String(mensaje || '');
+            btn.textContent = String(opciones.textoBoton || 'Aceptar');
+            icono.textContent = iconos[tipo];
+            card.dataset.tipo = tipo;
+
+            avisoTiendaFocoAnterior =
+                document.activeElement instanceof HTMLElement
+                    ? document.activeElement
+                    : null;
+
+            modal.classList.remove('hidden');
+
+            return new Promise((resolve) => {
+                avisoTiendaResolver = resolve;
+                requestAnimationFrame(() => btn.focus());
+            });
+        };
+
+        const cerrarAvisoTienda = () => {
+            const modal = document.getElementById('modal-aviso-tienda');
+            if(!modal || modal.classList.contains('hidden')) return;
+
+            modal.classList.add('hidden');
+
+            const resolver = avisoTiendaResolver;
+            avisoTiendaResolver = null;
+
+            if(
+                avisoTiendaFocoAnterior &&
+                document.contains(avisoTiendaFocoAnterior)
+            ) {
+                avisoTiendaFocoAnterior.focus();
+            }
+
+            avisoTiendaFocoAnterior = null;
+            if(resolver) resolver();
+        };
+
+        document.getElementById('btn-aviso-tienda-aceptar')
+            ?.addEventListener('click', cerrarAvisoTienda);
+
+        document.getElementById('modal-aviso-tienda')
+            ?.addEventListener('click', (event) => {
+                if(event.target?.id === 'modal-aviso-tienda') {
+                    cerrarAvisoTienda();
+                }
+            });
+
+        document.addEventListener('keydown', (event) => {
+            if(
+                event.key === 'Escape' &&
+                !document.getElementById('modal-aviso-tienda')?.classList.contains('hidden')
+            ) {
+                cerrarAvisoTienda();
+            }
+        });
+
 
         // ESTADO GLOBAL
         let categoriasGlobales = ['General', 'Bebidas', 'Snacks', 'Packs', 'Ofertas'];
@@ -1367,81 +1566,6 @@ window.probarBackendTienda = async () => {
             ts.textContent=window.formatearNum(Math.max(0,total)); ts.setAttribute('data-descuentomonto',descuentoMonto+descuentoPagoMonto);
         };
 
-
-        window.validarStockAntesDeConfirmar = async (itemsPedido) => {
-            const faltantes = [];
-            const productosActualizados = new Map();
-
-            const obtenerProductoActualizado = async (idProd) => {
-                if(productosActualizados.has(idProd)) return productosActualizados.get(idProd);
-
-                const snap = await getDoc(doc(db, "productos", idProd));
-                if(!snap.exists()) {
-                    productosActualizados.set(idProd, null);
-                    return null;
-                }
-
-                const producto = snap.data();
-                producto.id = snap.id;
-                productosActualizados.set(idProd, producto);
-                return producto;
-            };
-
-            for (const item of itemsPedido) {
-                if (!item.isPack) {
-                    const prodActual = await obtenerProductoActualizado(item.idProd);
-                    const varianteActual = prodActual && prodActual.variantes ? prodActual.variantes[item.idVar] : null;
-                    const stockActual = varianteActual ? parseInt(varianteActual.stock) || 0 : 0;
-
-                    if (!varianteActual || stockActual < item.cantidad) {
-                        faltantes.push({
-                            nombre: `${item.nombre} (${item.detalle})`,
-                            pedido: item.cantidad,
-                            disponible: stockActual
-                        });
-                    }
-                } else {
-                    const pkId = item.idProd.replace('pack_', '');
-                    const packActual = packs.find(x => x.id === pkId);
-
-                    if (!packActual || !packActual.items || packActual.items.length === 0) {
-                        faltantes.push({
-                            nombre: `${item.nombre} (${item.detalle})`,
-                            pedido: item.cantidad,
-                            disponible: 0
-                        });
-                        continue;
-                    }
-
-                    let combosDisponibles = Infinity;
-                    for (const pkItem of packActual.items) {
-                        const prodActual = await obtenerProductoActualizado(pkItem.idProd);
-                        const varianteActual = prodActual && prodActual.variantes ? prodActual.variantes[pkItem.idVar] : null;
-                        const stockActual = varianteActual ? parseInt(varianteActual.stock) || 0 : 0;
-                        const posiblesCombos = Math.floor(stockActual / pkItem.cantidad);
-                        combosDisponibles = Math.min(combosDisponibles, posiblesCombos);
-                    }
-
-                    if (!Number.isFinite(combosDisponibles)) combosDisponibles = 0;
-                    if (combosDisponibles < item.cantidad) {
-                        faltantes.push({
-                            nombre: `${item.nombre} (${item.detalle})`,
-                            pedido: item.cantidad,
-                            disponible: combosDisponibles
-                        });
-                    }
-                }
-            }
-
-            if (faltantes.length > 0) {
-                const detalle = faltantes.map(f => `• ${f.nombre}\n  Pedido: ${f.pedido} | Disponible: ${f.disponible}`).join('\n\n');
-                alert(`No se puede confirmar el pedido porque no hay stock suficiente:\n\n${detalle}\n\nModificá las cantidades del carrito para continuar.`);
-                return false;
-            }
-
-            return true;
-        };
-
         const construirResumenCarritoActual = () => {
             const cV = {};
             carrito.forEach(item => {
@@ -1596,8 +1720,8 @@ window.probarBackendTienda = async () => {
             return {ok:true,items,subtotalBruto,descuentoMonto,costoEnvio,total};
         };
 
-        window.enviarWhatsapp = () => {
-            const numeroLimpio=String(configTienda.whatsapp?.numeroNegocio||configTienda.telefono||'').replace(/[^0-9]/g,''); if(!numeroLimpio){alert('El local aún no configuró su número de contacto.');return;}
+        window.enviarWhatsapp = async () => {
+            const numeroLimpio=String(configTienda.whatsapp?.numeroNegocio||configTienda.telefono||'').replace(/[^0-9]/g,''); if(!numeroLimpio){await window.mostrarAvisoTienda('El local aún no configuró su número de contacto.', {titulo:'Contacto no disponible', tipo:'warning'});return;}
             let texto='Hola! Me comunico desde la tienda en línea.';
             if(ultimoPedidoConf){ const campos={fecha:true,nombre:true,total:true,codigo:true,telefono:true,entrega:true,pago:true,items:true,...(configTienda.whatsapp?.camposMensajeCliente||{})}; const lineas=['Hola! Acabo de generar un pedido desde la tienda en línea.']; if(campos.codigo)lineas.push(`Código del pedido: *#${ultimoPedidoConf.idCorto}*`); if(campos.fecha){const fecha=ultimoPedidoConf.fechaClienteISO?new Date(ultimoPedidoConf.fechaClienteISO):new Date();lineas.push(`Fecha y hora: ${isNaN(fecha.getTime())?new Date().toLocaleString('es-AR'):fecha.toLocaleString('es-AR')}`);} if(campos.nombre)lineas.push(`Nombre: ${ultimoPedidoConf.nombreCliente} ${ultimoPedidoConf.apellidoCliente}`); if(campos.telefono)lineas.push(`Teléfono: ${ultimoPedidoConf.telefono}`); if(campos.entrega){lineas.push(`Entrega: ${ultimoPedidoConf.metodoEntrega}`);lineas.push(`Dirección/Retiro: ${ultimoPedidoConf.direccion}`);} if(campos.pago){lineas.push(`Método de pago: ${ultimoPedidoConf.metodoPago}`); if(Number(ultimoPedidoConf.descuentoMonto)>0) lineas.push(`Descuento aplicado: -$${window.formatearNum(Number(ultimoPedidoConf.descuentoMonto)||0)}`);} if(campos.items){lineas.push('','*Productos*');ultimoPedidoConf.items.forEach(i=>lineas.push(`- ${i.cantidad}x ${i.nombre} (${i.detalle}): $${window.formatearNum(i.precio*i.cantidad)}`));} if(campos.total)lineas.push('',`*Total final: $${window.formatearNum(ultimoPedidoConf.total)}*`); lineas.push('','Por favor coordinemos la confirmación, el pago y la entrega.'); texto=lineas.join('\n'); }
             window.open(`https://wa.me/${numeroLimpio}?text=${encodeURIComponent(texto)}`,'_blank','noopener,noreferrer');
@@ -1633,11 +1757,19 @@ window.probarBackendTienda = async () => {
             if(mE === 'Envio' && !configTienda.envioDisponible) erroresCheckout.push('Esta tienda no tiene envíos habilitados.');
 
             if(erroresCheckout.length) {
-                alert(erroresCheckout.join('\n'));
+                await window.mostrarAvisoTienda(
+                    erroresCheckout.join('\n'),
+                    { titulo: 'Revisá los datos', tipo: 'warning' }
+                );
                 return;
             }
 
-            if(!window.estaElLocalAbierto()) alert("El local se encuentra cerrado. El pedido quedará en cola.");
+            if(!window.estaElLocalAbierto()) {
+                await window.mostrarAvisoTienda(
+                    'El local se encuentra cerrado. El pedido quedará en cola.',
+                    { titulo: 'Local cerrado', tipo: 'info' }
+                );
+            }
 
             const btnComprar = document.getElementById('btn-comprar');
             const textoOriginalComprar = btnComprar.textContent;
@@ -1707,9 +1839,15 @@ window.probarBackendTienda = async () => {
                         if(disponible !== undefined && solicitado !== undefined) {
                             mensaje += `\n\nPedido: ${solicitado} | Disponible: ${disponible}`;
                         }
-                        alert(mensaje + '\n\nActualizá el carrito para continuar.');
+                        await window.mostrarAvisoTienda(
+                            mensaje + '\n\nActualizá el carrito para continuar.',
+                            { titulo: 'Stock insuficiente', tipo: 'warning' }
+                        );
                     } else {
-                        alert(resultado?.mensaje || resultado?.error || `No se pudo crear el pedido. Error ${response.status}.`);
+                        await window.mostrarAvisoTienda(
+                            resultado?.mensaje || resultado?.error || `No se pudo crear el pedido. Error ${response.status}.`,
+                            { titulo: 'No se pudo crear el pedido', tipo: 'error' }
+                        );
                     }
                     await cargarDatosBD();
                     return;
@@ -1765,7 +1903,10 @@ window.probarBackendTienda = async () => {
                 document.getElementById('checkout-direccion').value = '';
             } catch (e) {
                 console.error('Error creando pedido mediante backend:', e);
-                alert(e?.message || 'Hubo un error al procesar el pedido. Intentá nuevamente.');
+                await window.mostrarAvisoTienda(
+                    e?.message || 'Hubo un error al procesar el pedido. Intentá nuevamente.',
+                    { titulo: 'Error al procesar el pedido', tipo: 'error' }
+                );
             } finally {
                 compraEnProceso = false;
                 btnComprar.disabled = carrito.length === 0;
