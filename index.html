@@ -800,28 +800,70 @@
             </div>
 
             <nav class="admin-sidebar-nav">
-                <button class="admin-nav-btn active" data-panel="panel-inventario" onclick="window.togglePanel('panel-inventario')">
-                    <span class="admin-nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>
-                    Inventario
-                </button>
-                <button class="admin-nav-btn" data-panel="panel-pedidos" onclick="window.togglePanel('panel-pedidos')">
-                    <span class="admin-nav-icon"><svg viewBox="0 0 24 24"><path d="M6 3h12l2 4v14H4V7z"/><path d="M6 7h12"/><path d="M9 11h6"/></svg></span>
-                    Pedidos
-                </button>
-                <button class="admin-nav-btn" data-panel="panel-finanzas" onclick="window.togglePanel('panel-finanzas')">
-                    <span class="admin-nav-icon"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg></span>
-                    Finanzas
-                </button>
                 <button class="admin-nav-btn" data-panel="panel-movimientos" onclick="window.togglePanel('panel-movimientos')">
-                    <span class="admin-nav-icon"><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3"/><path d="M17 17H6l3 3"/><path d="M18 7l-3 3"/><path d="M6 17l3-3"/></svg></span>
+                    <span class="admin-nav-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 7h11l-3-3"/>
+                            <path d="M17 17H6l3 3"/>
+                            <path d="M18 7l-3 3"/>
+                            <path d="M6 17l3-3"/>
+                        </svg>
+                    </span>
                     Movimientos
                 </button>
+
+                <button class="admin-nav-btn" data-panel="panel-pedidos" onclick="window.togglePanel('panel-pedidos')">
+                    <span class="admin-nav-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M6 3h12l2 4v14H4V7z"/>
+                            <path d="M6 7h12"/>
+                            <path d="M9 11h6"/>
+                        </svg>
+                    </span>
+                    Pedidos
+                </button>
+
+                <button class="admin-nav-btn active" data-panel="panel-inventario" onclick="window.togglePanel('panel-inventario')">
+                    <span class="admin-nav-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M3 9.5 12 3l9 6.5"/>
+                            <path d="M5 10v10h14V10"/>
+                            <path d="M9 20v-6h6v6"/>
+                        </svg>
+                    </span>
+                    Inventario
+                </button>
+
+                <button class="admin-nav-btn" data-panel="panel-finanzas" onclick="window.togglePanel('panel-finanzas')">
+                    <span class="admin-nav-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 19h16"/>
+                            <path d="M7 16V9"/>
+                            <path d="M12 16V5"/>
+                            <path d="M17 16v-3"/>
+                        </svg>
+                    </span>
+                    Finanzas
+                </button>
+
                 <button class="admin-nav-btn" data-panel="panel-metricas" onclick="window.togglePanel('panel-metricas')">
-                    <span class="admin-nav-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3-3 3 2 4-6"/></svg></span>
+                    <span class="admin-nav-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 19V5"/>
+                            <path d="M4 19h16"/>
+                            <path d="M8 15l3-3 3 2 4-6"/>
+                        </svg>
+                    </span>
                     Métricas
                 </button>
+
                 <button class="admin-nav-btn" data-panel="panel-config" onclick="window.togglePanel('panel-config')">
-                    <span class="admin-nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 4.2 10 2h4l.8 2.2 2 .8 2.1-1 2 3.5-1.8 1.4.3 2.1-1.5 1.1"/><path d="M13.7 13.7a5 5 0 1 1-3.4-7.4"/><circle cx="9.2" cy="11.2" r="2.6"/><path d="M14.2 9.3a4.3 4.3 0 0 0 5.1 5.1l-6.8 6.8-2.4-2.4 6.8-6.8a4.3 4.3 0 0 0-2.7-2.7z"/><path d="m18.4 11.7 2.2-2.2"/></svg></span>
+                    <span class="admin-nav-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1A1.7 1.7 0 0 0 9 20a1.7 1.7 0 0 0-1.88-.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.1A1.7 1.7 0 0 0 4 9a1.7 1.7 0 0 0 .34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15 4a1.7 1.7 0 0 0 1.88.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.1.4.3.7.6 1 .3.2.7.4 1.1.4H21v4h-.1c-.4 0-.8.1-1.1.4-.2.2-.4.6-.4 1.2z"/>
+                        </svg>
+                    </span>
                     Configuración
                 </button>
             </nav>
