@@ -1674,7 +1674,7 @@ async function obtenerHeadersBackendPublico() {
 
             return `<div class="card">
                 ${badge}
-                <img src="${escaparHtml(img)}" class="card-img" onerror="this.src='https://via.placeholder.com/300x200?text=X'">
+                <img src="${escaparHtml(img)}" class="card-img" loading="lazy" decoding="async" onerror="this.src='https://via.placeholder.com/300x200?text=X'">
                 <h3>${escaparHtml(nombre)}</h3>
                 <div style="font-size:0.82rem; color:var(--text-muted); margin:-5px 0 5px 0;">${escaparHtml(detalle)}</div>
                 ${sub ? `<div style="font-size:0.7rem; color:var(--accent); margin-bottom:12px;">${escaparHtml(sub)}</div>` : ''}
@@ -1779,7 +1779,7 @@ async function obtenerHeadersBackendPublico() {
 
                     tarjetas.push(`<div class="card">
                         ${badgeHTML}
-                        <img id="img-prod-${p.id}" src="${escaparHtml(imgInicial)}" class="card-img" onerror="this.src='https://via.placeholder.com/300x200?text=X'">
+                        <img id="img-prod-${p.id}" src="${escaparHtml(imgInicial)}" class="card-img" loading="lazy" decoding="async" onerror="this.src='https://via.placeholder.com/300x200?text=X'">
                         <h3>${escaparHtml(window.formatearTextoTitulo(p.nombre))}</h3>
                         <select id="sel-var-${p.id}" class="select-variante" onchange="window.cambiarVarianteUI('${p.id}', this)">${opciones}</select>
                         <p id="precio-display-${p.id}" style="font-size:1.3rem; font-weight:600; margin:0 0 5px 0; color:var(--primary);">${priceHtml}</p>
@@ -1818,7 +1818,7 @@ async function obtenerHeadersBackendPublico() {
 
                 tarjetas.push(`<div class="card">
                     ${badgeHTML}
-                    <img src="${escaparHtml(img)}" class="card-img" onerror="this.src='https://via.placeholder.com/300x200?text=X'">
+                    <img src="${escaparHtml(img)}" class="card-img" loading="lazy" decoding="async" onerror="this.src='https://via.placeholder.com/300x200?text=X'">
                     <h3>${escaparHtml(window.formatearTextoTitulo(pk.nombre))}</h3>
                     ${descItems}
                     <p style="font-size:1.3rem; font-weight:600; margin:0 0 5px 0; color:var(--primary);">$${window.formatearNum(pk.precio)}</p>
