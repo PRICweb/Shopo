@@ -511,7 +511,7 @@
         }
         .store-toolbar-main {
             display: grid;
-            grid-template-columns: minmax(190px, 320px) minmax(0, 1fr) auto auto;
+            grid-template-columns: auto minmax(190px, 1.35fr) minmax(0, 1fr) auto auto;
             gap: 8px;
             align-items: center;
         }
@@ -519,6 +519,12 @@
             max-width: none; min-width: 0; height: 38px; margin: 0;
             padding: 0 11px; border-radius: 10px; background: var(--card-bg);
         }
+        .toolbar-menu-btn { grid-column: 1; }
+        .store-toolbar .search-container { grid-column: 2; }
+        .store-toolbar .store-category-track { grid-column: 3; }
+        .store-view-toggle { grid-column: 4; }
+        .store-toolbar .btn-carrito-nav { grid-column: 5; }
+
         .store-search-icon {
             width: 16px; min-width: 16px; height: 16px;
             margin-right: 6px; color: var(--text-dark);
@@ -581,16 +587,18 @@
                 grid-template-columns: auto minmax(150px, 1.45fr) minmax(100px, 1fr) auto auto;
                 grid-template-areas: "menu search categories view cart";
                 align-items: center;
+                column-gap: 6px;
             }
-            .toolbar-menu-btn { grid-area: menu; }
-            .store-toolbar .search-container { grid-area: search; }
+            .toolbar-menu-btn { grid-area: menu; grid-column: auto; }
+            .store-toolbar .search-container { grid-area: search; grid-column: auto; }
             .store-toolbar .store-category-track {
                 grid-area: categories;
+                grid-column: auto;
                 padding-top: 0;
                 border-top: 0;
             }
-            .store-view-toggle { grid-area: view; }
-            .store-toolbar .btn-carrito-nav { grid-area: cart; }
+            .store-view-toggle { grid-area: view; grid-column: auto; }
+            .store-toolbar .btn-carrito-nav { grid-area: cart; grid-column: auto; justify-self: end; }
         }
         @media (max-width: 600px) {
             body { padding-left: 10px; padding-right: 10px; }
@@ -600,7 +608,7 @@
             }
             .store-toolbar-main {
                 gap: 6px;
-                grid-template-columns: auto minmax(110px, 1.5fr) minmax(72px, .9fr) auto auto;
+                grid-template-columns: auto minmax(105px, 1.55fr) minmax(68px, .8fr) auto auto;
                 grid-template-areas: "menu search categories view cart";
             }
             .store-toolbar .search-container { height: 36px; padding-left: 9px; }
