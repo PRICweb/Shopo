@@ -760,7 +760,72 @@
             .panel-oscuro-container, .modulo-body { padding: 12px !important; }
         }
 
-</style>
+
+        /* ===== LOGÍSTICA: PRESENCIA + HORARIOS DETALLADOS ===== */
+        .grid-contacto-logistica {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .horarios-detallados-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .horario-dia-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 12px;
+            align-items: start;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            background: var(--bg-color);
+        }
+        .horario-dia-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+            font-size: .82rem;
+            color: var(--text-main);
+        }
+        .horario-dia-label input { width: auto; margin: 0; }
+        .horario-tramos {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .horario-tramo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            background: var(--card-bg);
+        }
+        .horario-tramo span {
+            grid-column: 1 / -1;
+            font-size: .68rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .mini-ayuda-logistica {
+            margin: -4px 0 8px;
+            font-size: .76rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        @media (max-width: 900px) {
+            .grid-contacto-logistica { grid-template-columns: 1fr; }
+            .horario-dia-row { grid-template-columns: 1fr; }
+            .horario-tramos { grid-template-columns: 1fr; }
+        }
+
+    </style>
 </head>
 <body>
 
@@ -1122,6 +1187,7 @@
                     </div>
                     <div id="body-config-logistica" class="modulo-body hidden">
                         <p style="margin:0 0 15px 0; font-size:0.78rem; color:var(--text-muted); line-height:1.5;">Las imágenes se optimizan y se guardan en Firebase Storage. Formatos permitidos: JPG, PNG y WebP. Máximo original: 5 MB.</p>
+
                         <div class="form-group">
                             <label>Logo del negocio</label>
                             <div class="storage-upload-box">
@@ -1130,7 +1196,35 @@
                                 <div class="storage-upload-preview"><img id="preview-conf-logo" class="preview-img-admin" alt="Vista previa del logo"></div>
                             </div>
                         </div>
-                        <div class="dark-input-group"><div><label>Envíos</label><select id="conf-envio-disp"><option value="si">Habilitado</option><option value="no">Deshabilitado</option></select></div><div><label>Tarifa $</label><input type="number" id="conf-envio-precio"></div></div>
+
+                        <h4 style="margin:0 0 12px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Presencia del negocio</h4>
+                        <div class="grid-contacto-logistica">
+                            <div class="form-group">
+                                <label>Instagram</label>
+                                <input type="url" autocomplete="off" id="conf-instagram" placeholder="https://instagram.com/tu_negocio">
+                                <span class="field-status">Si lo completás, aparecerá junto al logo en la tienda.</span>
+                            </div>
+                            <div class="form-group">
+                                <label>WhatsApp del negocio</label>
+                                <input type="text" autocomplete="off" id="conf-wsp-negocio" placeholder="5493511234567">
+                                <span class="field-status">Código de país + área + número, solo dígitos.</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Link de Google Maps</label>
+                                <input type="url" autocomplete="off" id="conf-maps" placeholder="https://maps.app.goo.gl/...">
+                            </div>
+                            <div class="form-group">
+                                <label>Ubicación visible</label>
+                                <input type="text" autocomplete="off" id="conf-ubicacion-texto" placeholder="Av. Ejemplo 123, Córdoba">
+                                <span class="field-status">Este texto se mostrará al lado del pin rojo.</span>
+                            </div>
+                        </div>
+
+                        <div class="dark-input-group">
+                            <div><label>Envíos</label><select id="conf-envio-disp"><option value="si">Habilitado</option><option value="no">Deshabilitado</option></select></div>
+                            <div><label>Tarifa $</label><input type="number" id="conf-envio-precio"></div>
+                        </div>
+
                         <hr>
                         <h4 style="margin:0 0 15px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Descuentos por forma de pago</h4>
                         <p style="margin:-5px 0 15px; font-size:.78rem; color:var(--text-muted); line-height:1.5;">El descuento se aplica automáticamente al elegir el medio de pago.</p>
@@ -1150,10 +1244,13 @@
                             <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-ofertas"> Aplicar también a ofertas</label>
                             <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-packs"> Aplicar también a packs</label>
                         </div>
+
                         <hr>
-                        <h4 style="margin:0 0 15px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Horarios Operativos</h4>
-                        <div class="dark-input-group"><div><label>Apertura</label><input type="time" id="conf-apertura"></div><div><label>Cierre</label><input type="time" id="conf-cierre"></div></div>
-                        <div class="form-group">
+                        <h4 style="margin:0 0 12px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Horarios del local</h4>
+                        <p class="mini-ayuda-logistica">Podés configurar hasta dos franjas por día, por ejemplo 08:00–14:00 y 16:00–21:00.</p>
+                        <div id="horarios-detallados-editor" class="horarios-detallados-editor"></div>
+
+                        <div class="form-group" style="margin-top:14px;">
                             <label>Pedidos con el local cerrado</label>
                             <select id="conf-pedidos-cerrado">
                                 <option value="si">Permitir pedidos fuera de horario</option>
@@ -1161,7 +1258,7 @@
                             </select>
                             <span class="field-status">Si se bloquean, la tienda mostrará una pantalla de cerrado y no permitirá continuar con la compra.</span>
                         </div>
-                        <div class="dias-checkbox-group"><label class="dia-checkbox"><input type="checkbox" id="check-lu"> Lu</label><label class="dia-checkbox"><input type="checkbox" id="check-ma"> Ma</label><label class="dia-checkbox"><input type="checkbox" id="check-mi"> Mi</label><label class="dia-checkbox"><input type="checkbox" id="check-ju"> Ju</label><label class="dia-checkbox"><input type="checkbox" id="check-vi"> Vi</label><label class="dia-checkbox"><input type="checkbox" id="check-sa"> Sá</label><label class="dia-checkbox"><input type="checkbox" id="check-do"> Do</label></div>
+
                         <button style="margin-top:20px; width:100%;" onclick="window.ejecutarAccionBoton(this, 'Guardando...', () => window.guardarConfiguracion())">Guardar preferencias</button>
                     </div>
                 </div>
@@ -1434,7 +1531,7 @@ async function obtenerHeadersBackendAdmin() {
         // La tienda pública actual usa ?n=NEGOCIO_ID. Si el archivo público cambia de nombre,
         // sólo hay que modificar esta constante.
         const RUTA_TIENDA_PUBLICA = 'web.html';
-        let configTienda = { logo: '', logoPath: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
+        let configTienda = { logo: '', logoPath: '', telefono: '', instagramUrl: '', mapsUrl: '', ubicacionTexto: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, horariosDetallados: {}, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
         let metricasChart = null;
         const PAGE_SIZE = 100;
         const SCHEMA_VERSION = 2;
@@ -2671,6 +2768,130 @@ async function obtenerHeadersBackendAdmin() {
 
         window.actualizarSelectsClientes = () => { const selMostrador = document.getElementById('mostrador-tipo-cliente'); if(!selMostrador) return; const opciones = categoriasClientes.map((c, i) => `<option value="${i}">${c.nombre} (-${c.descuentoGlobal}% Global)</option>`).join(''); selMostrador.innerHTML = opciones; window.renderizarCarritoMostrador(); };
 
+
+        const DIAS_META_CONFIG = [
+            { id:'check-lu', nombre:'Lunes' },
+            { id:'check-ma', nombre:'Martes' },
+            { id:'check-mi', nombre:'Miércoles' },
+            { id:'check-ju', nombre:'Jueves' },
+            { id:'check-vi', nombre:'Viernes' },
+            { id:'check-sa', nombre:'Sábado' },
+            { id:'check-do', nombre:'Domingo' }
+        ];
+
+        const normalizarHorariosDetallados = (
+            raw = {},
+            diasApertura = {},
+            horaApertura = '09:00',
+            horaCierre = '18:00'
+        ) => {
+            const resultado = {};
+            DIAS_META_CONFIG.forEach(dia => {
+                const origen = raw?.[dia.id] || {};
+                const activosFallback = !!diasApertura?.[dia.id];
+                let tramos = Array.isArray(origen.tramos) ? origen.tramos.slice(0, 2) : [];
+                while(tramos.length < 2) tramos.push({ desde:'', hasta:'' });
+
+                resultado[dia.id] = {
+                    activo: typeof origen.activo === 'boolean' ? origen.activo : activosFallback,
+                    tramos: [
+                        {
+                            desde: String(tramos[0]?.desde || (activosFallback ? horaApertura : '')).slice(0,5),
+                            hasta: String(tramos[0]?.hasta || (activosFallback ? horaCierre : '')).slice(0,5)
+                        },
+                        {
+                            desde: String(tramos[1]?.desde || '').slice(0,5),
+                            hasta: String(tramos[1]?.hasta || '').slice(0,5)
+                        }
+                    ]
+                };
+            });
+            return resultado;
+        };
+
+        const renderizarEditorHorariosDetallados = () => {
+            const cont = document.getElementById('horarios-detallados-editor');
+            if(!cont) return;
+
+            const horarios = normalizarHorariosDetallados(
+                configTienda.horariosDetallados,
+                configTienda.diasApertura,
+                configTienda.horaApertura,
+                configTienda.horaCierre
+            );
+
+            cont.innerHTML = DIAS_META_CONFIG.map(dia => {
+                const data = horarios[dia.id];
+                return `
+                    <div class="horario-dia-row">
+                        <label class="horario-dia-label">
+                            <input type="checkbox" id="${dia.id}" ${data.activo ? 'checked' : ''}>
+                            <span>${dia.nombre}</span>
+                        </label>
+                        <div class="horario-tramos">
+                            <div class="horario-tramo">
+                                <span>Primer tramo</span>
+                                <input type="time" id="${dia.id}-desde-1" value="${data.tramos[0]?.desde || ''}">
+                                <input type="time" id="${dia.id}-hasta-1" value="${data.tramos[0]?.hasta || ''}">
+                            </div>
+                            <div class="horario-tramo">
+                                <span>Segundo tramo (opcional)</span>
+                                <input type="time" id="${dia.id}-desde-2" value="${data.tramos[1]?.desde || ''}">
+                                <input type="time" id="${dia.id}-hasta-2" value="${data.tramos[1]?.hasta || ''}">
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        };
+
+        const leerHorariosDetalladosDesdeFormulario = () => {
+            const horarios = {};
+
+            DIAS_META_CONFIG.forEach(dia => {
+                const activo = !!document.getElementById(dia.id)?.checked;
+                const tramos = [1,2].map(n => ({
+                    desde: String(document.getElementById(`${dia.id}-desde-${n}`)?.value || '').trim(),
+                    hasta: String(document.getElementById(`${dia.id}-hasta-${n}`)?.value || '').trim()
+                })).filter(t => t.desde || t.hasta);
+
+                if(activo && !tramos.length) {
+                    throw new Error(`Cargá al menos un horario para ${dia.nombre}.`);
+                }
+
+                tramos.forEach((tramo, index) => {
+                    if(!tramo.desde || !tramo.hasta) {
+                        throw new Error(`Completá apertura y cierre del tramo ${index + 1} de ${dia.nombre}.`);
+                    }
+                    if(tramo.desde >= tramo.hasta) {
+                        throw new Error(`El cierre debe ser posterior a la apertura en ${dia.nombre}.`);
+                    }
+                });
+
+                horarios[dia.id] = {
+                    activo,
+                    tramos: tramos.slice(0,2)
+                };
+            });
+
+            return horarios;
+        };
+
+        const obtenerRangoGeneralCompatibilidad = (horarios) => {
+            const aperturas = [];
+            const cierres = [];
+            Object.values(horarios || {}).forEach(dia => {
+                if(!dia?.activo) return;
+                (dia.tramos || []).forEach(t => {
+                    if(t?.desde) aperturas.push(t.desde);
+                    if(t?.hasta) cierres.push(t.hasta);
+                });
+            });
+            return {
+                horaApertura: aperturas.sort()[0] || '09:00',
+                horaCierre: cierres.sort().slice(-1)[0] || '18:00'
+            };
+        };
+
         window.guardarConfiguracion = async () => {
             const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
             return conEstadoBoton(btn,'Guardando configuración…',async()=>{
@@ -2695,17 +2916,57 @@ async function obtenerHeadersBackendAdmin() {
                         nuevaRutaLogo = subida.path;
                     }
 
+                    const instagramUrl=String(document.getElementById('conf-instagram')?.value||'').trim();
+                    const mapsUrl=String(document.getElementById('conf-maps')?.value||'').trim();
+                    const ubicacionTexto=String(document.getElementById('conf-ubicacion-texto')?.value||'').trim();
+                    const telefono=String(document.getElementById('conf-wsp-negocio')?.value||'').replace(/[^0-9]/g,'');
+
+                    if(telefono && (telefono.length < 8 || telefono.length > 15)) {
+                        throw new Error('El número de WhatsApp debe tener entre 8 y 15 dígitos.');
+                    }
+
                     const envioPrecio=validarNumero(document.getElementById('conf-envio-precio').value||0,'Tarifa de envío',{min:0,max:999999999,requerido:false});
                     const efectivoPct=validarNumero(document.getElementById('desc-pago-efectivo-pct').value||0,'Descuento por efectivo',{min:0,max:100,requerido:false});
                     const transferenciaPct=validarNumero(document.getElementById('desc-pago-transferencia-pct').value||0,'Descuento por transferencia',{min:0,max:100,requerido:false});
                     const descuentosPago={efectivo:{activo:!!document.getElementById('desc-pago-efectivo-activo').checked,porcentaje:efectivoPct},transferencia:{activo:!!document.getElementById('desc-pago-transferencia-activo').checked,porcentaje:transferenciaPct},aplicaOfertas:!!document.getElementById('desc-pago-aplica-ofertas').checked,aplicaPacks:!!document.getElementById('desc-pago-aplica-packs').checked};
+
                     if(descuentosPago.efectivo.activo&&efectivoPct<=0) throw new Error('Indicá un porcentaje mayor a 0 para efectivo.');
                     if(descuentosPago.transferencia.activo&&transferenciaPct<=0) throw new Error('Indicá un porcentaje mayor a 0 para transferencia.');
 
-                    const diasApertura={};
-                    ['check-lu','check-ma','check-mi','check-ju','check-vi','check-sa','check-do'].forEach(id=>diasApertura[id]=document.getElementById(id).checked);
+                    const horariosDetallados = leerHorariosDetalladosDesdeFormulario();
+                    const diasApertura = {};
+                    DIAS_META_CONFIG.forEach(dia => {
+                        diasApertura[dia.id] = !!horariosDetallados[dia.id]?.activo;
+                    });
+                    const rangoCompatibilidad = obtenerRangoGeneralCompatibilidad(horariosDetallados);
 
-                    configTienda={...configTienda,logo,logoPath,horaApertura:document.getElementById('conf-apertura').value,horaCierre:document.getElementById('conf-cierre').value,diasApertura,envioDisponible:document.getElementById('conf-envio-disp').value==='si',envioPrecio,permitirPedidosCerrado:document.getElementById('conf-pedidos-cerrado').value==='si',descuentosPago,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()};
+                    const waActual = normalizarConfigWhatsApp();
+                    const whatsapp = {
+                        ...waActual,
+                        numeroNegocio: telefono || waActual.numeroNegocio || ''
+                    };
+
+                    configTienda={
+                        ...configTienda,
+                        logo,
+                        logoPath,
+                        instagramUrl,
+                        mapsUrl,
+                        ubicacionTexto,
+                        telefono,
+                        whatsapp,
+                        horaApertura:rangoCompatibilidad.horaApertura,
+                        horaCierre:rangoCompatibilidad.horaCierre,
+                        diasApertura,
+                        horariosDetallados,
+                        envioDisponible:document.getElementById('conf-envio-disp').value==='si',
+                        envioPrecio,
+                        permitirPedidosCerrado:document.getElementById('conf-pedidos-cerrado').value==='si',
+                        descuentosPago,
+                        negocioId:negocioIdActual,
+                        updatedAt:serverTimestamp(),
+                        updatedBy:actorActual()
+                    };
 
                     await setDoc(doc(db,'configuracion',negocioIdActual),configTienda,{merge:true});
 
@@ -2715,7 +2976,19 @@ async function obtenerHeadersBackendAdmin() {
 
                     nuevaRutaLogo = '';
                     if(inputLogo) inputLogo.value = '';
-                    await auditar('configuracion_actualizada','configuracion',negocioIdActual,{envioDisponible:configTienda.envioDisponible,permitirPedidosCerrado:configTienda.permitirPedidosCerrado,descuentosPago,logoStorage:!!configTienda.logoPath});
+
+                    const waNumero=document.getElementById('wa-numero-negocio');
+                    if(waNumero) waNumero.value=telefono||'';
+
+                    await auditar('configuracion_actualizada','configuracion',negocioIdActual,{
+                        envioDisponible:configTienda.envioDisponible,
+                        permitirPedidosCerrado:configTienda.permitirPedidosCerrado,
+                        descuentosPago,
+                        logoStorage:!!configTienda.logoPath,
+                        instagramConfigurado:!!instagramUrl,
+                        mapsConfigurado:!!mapsUrl
+                    });
+
                     window.triggerConfiguracion();
                     window.mostrarAlertaUI('Configuración guardada correctamente.');
                 }catch(e){
@@ -2857,12 +3130,22 @@ async function obtenerHeadersBackendAdmin() {
         window.guardarMensajesWhatsApp = async () => {
             const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
             return conEstadoBoton(btn,'Guardando WhatsApp…',async()=>{
-                try { exigirContextoAdmin(); const numero=String(document.getElementById('wa-numero-negocio')?.value||'').replace(/[^0-9]/g,''); if(numero&&(numero.length<8||numero.length>15)) throw new Error('El número de WhatsApp debe tener entre 8 y 15 dígitos.'); const mensajeEntrega=validarTexto(document.getElementById('wa-mensaje-entrega')?.value||'','Mensaje de entrega',800,true); const camposMensajeCliente={ fecha:!!document.getElementById('wa-campo-fecha')?.checked,nombre:!!document.getElementById('wa-campo-nombre')?.checked,total:!!document.getElementById('wa-campo-total')?.checked,codigo:!!document.getElementById('wa-campo-codigo')?.checked,telefono:!!document.getElementById('wa-campo-telefono')?.checked,entrega:!!document.getElementById('wa-campo-entrega')?.checked,pago:!!document.getElementById('wa-campo-pago')?.checked,items:!!document.getElementById('wa-campo-items')?.checked }; if(!Object.values(camposMensajeCliente).some(Boolean)) throw new Error('Seleccioná al menos un dato para el mensaje del comprador.'); const whatsapp={numeroNegocio:numero,mensajeEntrega,camposMensajeCliente}; configTienda={...configTienda,telefono:numero,whatsapp}; await setDoc(doc(db,'configuracion',negocioIdActual),{telefono:numero,whatsapp,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()},{merge:true}); const telGeneral=document.getElementById('conf-tel'); if(telGeneral) telGeneral.value=numero; await auditar('whatsapp_configurado','configuracion',negocioIdActual,{camposMensajeCliente}); window.mostrarAlertaUI('Configuración de WhatsApp guardada correctamente.'); } catch(e){ window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración de WhatsApp.'); throw e; }
+                try { exigirContextoAdmin(); const numero=String(document.getElementById('wa-numero-negocio')?.value||'').replace(/[^0-9]/g,''); if(numero&&(numero.length<8||numero.length>15)) throw new Error('El número de WhatsApp debe tener entre 8 y 15 dígitos.'); const mensajeEntrega=validarTexto(document.getElementById('wa-mensaje-entrega')?.value||'','Mensaje de entrega',800,true); const camposMensajeCliente={ fecha:!!document.getElementById('wa-campo-fecha')?.checked,nombre:!!document.getElementById('wa-campo-nombre')?.checked,total:!!document.getElementById('wa-campo-total')?.checked,codigo:!!document.getElementById('wa-campo-codigo')?.checked,telefono:!!document.getElementById('wa-campo-telefono')?.checked,entrega:!!document.getElementById('wa-campo-entrega')?.checked,pago:!!document.getElementById('wa-campo-pago')?.checked,items:!!document.getElementById('wa-campo-items')?.checked }; if(!Object.values(camposMensajeCliente).some(Boolean)) throw new Error('Seleccioná al menos un dato para el mensaje del comprador.'); const whatsapp={numeroNegocio:numero,mensajeEntrega,camposMensajeCliente}; configTienda={...configTienda,telefono:numero,whatsapp}; await setDoc(doc(db,'configuracion',negocioIdActual),{telefono:numero,whatsapp,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()},{merge:true}); const telGeneral=document.getElementById('conf-wsp-negocio'); if(telGeneral) telGeneral.value=numero; await auditar('whatsapp_configurado','configuracion',negocioIdActual,{camposMensajeCliente}); window.mostrarAlertaUI('Configuración de WhatsApp guardada correctamente.'); } catch(e){ window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración de WhatsApp.'); throw e; }
             });
         };
 
         window.triggerConfiguracion = () => {
             const inputLogo=document.getElementById('conf-logo'); if(inputLogo) inputLogo.value='';
+
+            const confInstagram=document.getElementById('conf-instagram');
+            if(confInstagram) confInstagram.value=configTienda.instagramUrl || '';
+
+            const confMaps=document.getElementById('conf-maps');
+            if(confMaps) confMaps.value=configTienda.mapsUrl || '';
+
+            const confUbicacion=document.getElementById('conf-ubicacion-texto');
+            if(confUbicacion) confUbicacion.value=configTienda.ubicacionTexto || '';
+
             const dp=configTienda.descuentosPago||{}, dpe=dp.efectivo||{}, dpt=dp.transferencia||{};
             const ea=document.getElementById('desc-pago-efectivo-activo'); if(ea) ea.checked=!!dpe.activo;
             const ep=document.getElementById('desc-pago-efectivo-pct'); if(ep) ep.value=Number(dpe.porcentaje)||0;
@@ -2870,28 +3153,36 @@ async function obtenerHeadersBackendAdmin() {
             const tp=document.getElementById('desc-pago-transferencia-pct'); if(tp) tp.value=Number(dpt.porcentaje)||0;
             const ao=document.getElementById('desc-pago-aplica-ofertas'); if(ao) ao.checked=!!dp.aplicaOfertas;
             const ap=document.getElementById('desc-pago-aplica-packs'); if(ap) ap.checked=!!dp.aplicaPacks;
+
             const wa = normalizarConfigWhatsApp();
             const waNumero=document.getElementById('wa-numero-negocio'); if(waNumero) waNumero.value=wa.numeroNegocio;
+            const wspLogistica=document.getElementById('conf-wsp-negocio'); if(wspLogistica) wspLogistica.value=wa.numeroNegocio || configTienda.telefono || '';
             const waMensaje=document.getElementById('wa-mensaje-entrega'); if(waMensaje) waMensaje.value=wa.mensajeEntrega;
-            const mapaWaChecks={fecha:'wa-campo-fecha',nombre:'wa-campo-nombre',total:'wa-campo-total',codigo:'wa-campo-codigo',telefono:'wa-campo-telefono',entrega:'wa-campo-entrega',pago:'wa-campo-pago',items:'wa-campo-items'}; Object.entries(mapaWaChecks).forEach(([clave,id])=>{const el=document.getElementById(id);if(el)el.checked=!!wa.camposMensajeCliente[clave];});
-            document.getElementById('conf-apertura').value = configTienda.horaApertura || '09:00';
-            document.getElementById('conf-cierre').value = configTienda.horaCierre || '18:00';
+            const mapaWaChecks={fecha:'wa-campo-fecha',nombre:'wa-campo-nombre',total:'wa-campo-total',codigo:'wa-campo-codigo',telefono:'wa-campo-telefono',entrega:'wa-campo-entrega',pago:'wa-campo-pago',items:'wa-campo-items'};
+            Object.entries(mapaWaChecks).forEach(([clave,id])=>{const el=document.getElementById(id);if(el)el.checked=!!wa.camposMensajeCliente[clave];});
+
             document.getElementById('conf-envio-disp').value = configTienda.envioDisponible ? 'si' : 'no';
             document.getElementById('conf-envio-precio').value = configTienda.envioPrecio || 0;
+
             const pedidosCerrado = document.getElementById('conf-pedidos-cerrado');
             if(pedidosCerrado) {
                 pedidosCerrado.value = configTienda.permitirPedidosCerrado === false ? 'no' : 'si';
             }
-            if(configTienda.diasApertura) {
-                ['check-lu','check-ma','check-mi','check-ju','check-vi','check-sa','check-do'].forEach(id => {
-                    const el=document.getElementById(id); if(el) el.checked = !!configTienda.diasApertura[id];
-                });
-            }
+
+            configTienda.horariosDetallados = normalizarHorariosDetallados(
+                configTienda.horariosDetallados,
+                configTienda.diasApertura,
+                configTienda.horaApertura,
+                configTienda.horaCierre
+            );
+            renderizarEditorHorariosDetallados();
+
             const prevLogo = document.getElementById('preview-conf-logo');
             if(prevLogo) {
                 if(configTienda.logo){ prevLogo.src=configTienda.logo; prevLogo.style.display='block'; }
                 else { prevLogo.removeAttribute('src'); prevLogo.style.display='none'; }
             }
+
             cargarTemaEnFormulario(configTienda.apariencia || TEMA_TIENDA_PREDETERMINADO);
             actualizarLinkTienda();
         };
