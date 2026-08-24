@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- GitHub Pages safe: archivo HTML estático, sin build ni Firebase Storage. -->
+    <!-- GitHub Pages safe: archivo HTML estático con Firebase Storage mediante SDK web. -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
@@ -135,6 +135,11 @@
         .estado-badge { display:none !important; padding:4px 8px; border-radius:999px; background:var(--border-light); color:var(--primary); font-size:0.68rem; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
         .filtros-pedidos { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px; padding:15px; border:1px solid var(--border); border-radius:8px; margin-bottom:18px; background:var(--card-bg); }
         .preview-img-admin { width:70px; height:70px; object-fit:cover; border:1px solid var(--border); border-radius:6px; display:none; margin-top:8px; }
+        .storage-upload-box { border:1px solid var(--border); border-radius:8px; padding:10px; background:var(--card-bg); }
+        .storage-upload-box input[type="file"] { padding:8px; background:var(--bg-color); }
+        .storage-upload-help { display:block; margin-top:6px; font-size:.68rem; color:var(--text-muted); line-height:1.4; }
+        .storage-upload-preview { display:flex; align-items:center; gap:10px; margin-top:8px; }
+        .storage-upload-preview .preview-img-admin { margin-top:0; flex:0 0 auto; }
         .btn-loading { position:relative; pointer-events:none; opacity:.78; }
         .btn-loading::before { content:""; width:12px; height:12px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; display:inline-block; margin-right:8px; vertical-align:-2px; animation:spinBtn .7s linear infinite; }
         @keyframes spinBtn { to { transform:rotate(360deg); } }
@@ -1116,8 +1121,15 @@
                         <span>Logística</span><span>⌄</span>
                     </div>
                     <div id="body-config-logistica" class="modulo-body hidden">
-                        <p style="margin:0 0 15px 0; font-size:0.78rem; color:var(--text-muted); line-height:1.5;">Las imágenes se guardan como URLs externas. Este panel no utiliza Firebase Storage.</p>
-                        <div class="form-group"><label>URL Logo</label><input type="url" autocomplete="off" id="conf-logo" placeholder="https://..." oninput="window.previsualizarImagenURL(this, 'preview-conf-logo')"><img id="preview-conf-logo" class="preview-img-admin" alt="Vista previa del logo"></div>
+                        <p style="margin:0 0 15px 0; font-size:0.78rem; color:var(--text-muted); line-height:1.5;">Las imágenes se optimizan y se guardan en Firebase Storage. Formatos permitidos: JPG, PNG y WebP. Máximo original: 5 MB.</p>
+                        <div class="form-group">
+                            <label>Logo del negocio</label>
+                            <div class="storage-upload-box">
+                                <input type="file" id="conf-logo" accept="image/jpeg,image/png,image/webp" onchange="window.previsualizarArchivoImagen(this, 'preview-conf-logo')">
+                                <span class="storage-upload-help">Se redimensiona y convierte a WebP antes de subir.</span>
+                                <div class="storage-upload-preview"><img id="preview-conf-logo" class="preview-img-admin" alt="Vista previa del logo"></div>
+                            </div>
+                        </div>
                         <div class="dark-input-group"><div><label>Envíos</label><select id="conf-envio-disp"><option value="si">Habilitado</option><option value="no">Deshabilitado</option></select></div><div><label>Tarifa $</label><input type="number" id="conf-envio-precio"></div></div>
                         <hr>
                         <h4 style="margin:0 0 15px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Descuentos por forma de pago</h4>
@@ -1227,7 +1239,14 @@
         <div class="modal-content">
             <h3>Configurar Pack Promocional</h3>
             <div class="form-group"><label>Nombre del Pack</label><input type="text" autocomplete="off" id="pack-nombre"></div>
-            <div class="form-group"><label>URL Imagen</label><input type="url" autocomplete="off" id="pack-imagen" placeholder="https://..." oninput="window.previsualizarImagenURL(this, 'preview-pack-imagen')"><img id="preview-pack-imagen" class="preview-img-admin" alt="Vista previa del pack"></div>
+            <div class="form-group">
+                <label>Imagen del pack</label>
+                <div class="storage-upload-box">
+                    <input type="file" id="pack-imagen" accept="image/jpeg,image/png,image/webp" onchange="window.previsualizarArchivoImagen(this, 'preview-pack-imagen')">
+                    <span class="storage-upload-help">JPG, PNG o WebP. Máximo 5 MB. Shopo la optimiza antes de subir.</span>
+                    <div class="storage-upload-preview"><img id="preview-pack-imagen" class="preview-img-admin" alt="Vista previa del pack"></div>
+                </div>
+            </div>
             <div class="form-group"><label>Precio de Venta ($)</label><input type="number" id="pack-precio"></div>
             <hr>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;"><label style="font-weight: 600; font-size: 0.8rem; text-transform: uppercase;">Componentes</label><button type="button" class="secondary" onclick="window.agregarFilaItemPack()">Añadir</button></div>
@@ -1292,6 +1311,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
         import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit, startAfter, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -1370,6 +1390,7 @@ async function obtenerHeadersBackendAdmin() {
 
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const storage = getStorage(app);
 
         // Persistencia local para mantener la sesión iniciada sin bloquear la carga del panel.
         // Antes estaba con await + signOut al inicio y podía dejar la pantalla trabada en el loader.
@@ -1413,7 +1434,7 @@ async function obtenerHeadersBackendAdmin() {
         // La tienda pública actual usa ?n=NEGOCIO_ID. Si el archivo público cambia de nombre,
         // sólo hay que modificar esta constante.
         const RUTA_TIENDA_PUBLICA = 'web.html';
-        let configTienda = { logo: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
+        let configTienda = { logo: '', logoPath: '', telefono: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
         let metricasChart = null;
         const PAGE_SIZE = 100;
         const SCHEMA_VERSION = 2;
@@ -1729,6 +1750,127 @@ async function obtenerHeadersBackendAdmin() {
                 prev.removeAttribute('src');
                 prev.style.display = 'none';
             }
+        };
+
+
+
+        // ===== FIREBASE STORAGE / IMÁGENES OPTIMIZADAS =====
+        const STORAGE_MAX_ORIGINAL_BYTES = 5 * 1024 * 1024;
+        const STORAGE_MAX_DIMENSION = 1200;
+        const STORAGE_TARGET_BYTES = 350 * 1024;
+        const STORAGE_ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+        const normalizarSegmentoStorage = (valor, fallback = 'archivo') => {
+            const limpio = String(valor || '')
+                .normalize('NFKD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^A-Za-z0-9_-]/g, '_')
+                .replace(/_+/g, '_')
+                .replace(/^_+|_+$/g, '');
+            return limpio || fallback;
+        };
+
+        const validarArchivoImagen = (archivo) => {
+            if(!archivo) throw new Error('Seleccioná una imagen.');
+            if(!STORAGE_ALLOWED_TYPES.has(archivo.type)) throw new Error('La imagen debe ser JPG, PNG o WebP.');
+            if(archivo.size > STORAGE_MAX_ORIGINAL_BYTES) throw new Error('La imagen original no puede superar los 5 MB.');
+        };
+
+        const cargarImagenArchivo = (archivo) => new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(archivo);
+            const img = new Image();
+            img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen seleccionada.')); };
+            img.src = url;
+        });
+
+        const canvasAWebP = (canvas, quality) => new Promise(resolve => canvas.toBlob(resolve, 'image/webp', quality));
+
+        const optimizarImagenParaStorage = async (archivo) => {
+            validarArchivoImagen(archivo);
+            const img = await cargarImagenArchivo(archivo);
+            const ancho = img.naturalWidth || img.width;
+            const alto = img.naturalHeight || img.height;
+            const escala = Math.min(1, STORAGE_MAX_DIMENSION / Math.max(ancho, alto));
+            const width = Math.max(1, Math.round(ancho * escala));
+            const height = Math.max(1, Math.round(alto * escala));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d', { alpha: true });
+            if(!ctx) throw new Error('El navegador no pudo procesar la imagen.');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            let blob = null;
+            for(const quality of [0.84, 0.76, 0.68, 0.60]) {
+                blob = await canvasAWebP(canvas, quality);
+                if(blob && blob.size <= STORAGE_TARGET_BYTES) break;
+            }
+            if(!blob) throw new Error('No se pudo convertir la imagen a WebP.');
+            if(blob.size > 1024 * 1024) throw new Error('La imagen optimizada sigue siendo demasiado pesada.');
+            return blob;
+        };
+
+        window.previsualizarArchivoImagen = (input, idPreview) => {
+            const prev = document.getElementById(idPreview);
+            if(!prev) return;
+            const archivo = input?.files?.[0];
+            if(!archivo) return;
+
+            try { validarArchivoImagen(archivo); }
+            catch(e) {
+                input.value = '';
+                window.mostrarAlertaUI(e.message);
+                return;
+            }
+
+            if(prev.dataset.objectUrl) URL.revokeObjectURL(prev.dataset.objectUrl);
+            const objectUrl = URL.createObjectURL(archivo);
+            prev.dataset.objectUrl = objectUrl;
+            prev.src = objectUrl;
+            prev.style.display = 'block';
+        };
+
+        const subirImagenStorage = async ({ archivo, carpeta, nombreBase }) => {
+            exigirContextoAdmin();
+            const blob = await optimizarImagenParaStorage(archivo);
+            const nombreSeguro = normalizarSegmentoStorage(nombreBase);
+            const ruta = `negocios/${negocioIdActual}/${carpeta}/${nombreSeguro}_${Date.now()}_${Math.random().toString(36).slice(2,8)}.webp`;
+            const refArchivo = storageRef(storage, ruta);
+            await uploadBytes(refArchivo, blob, {
+                contentType: 'image/webp',
+                cacheControl: 'public,max-age=31536000,immutable'
+            });
+            return {
+                url: await getDownloadURL(refArchivo),
+                path: ruta,
+                size: blob.size
+            };
+        };
+
+        const eliminarImagenStorageSegura = async (path) => {
+            const ruta = String(path || '').trim();
+            if(!ruta || !ruta.startsWith(`negocios/${negocioIdActual}/`)) return false;
+            try {
+                await deleteObject(storageRef(storage, ruta));
+                return true;
+            } catch(e) {
+                if(e?.code === 'storage/object-not-found') return true;
+                console.warn('No se pudo eliminar una imagen antigua de Storage.', e);
+                return false;
+            }
+        };
+
+        const limpiarPreviewArchivo = (idPreview) => {
+            const prev = document.getElementById(idPreview);
+            if(!prev) return;
+            if(prev.dataset.objectUrl) {
+                URL.revokeObjectURL(prev.dataset.objectUrl);
+                delete prev.dataset.objectUrl;
+            }
+            prev.removeAttribute('src');
+            prev.style.display = 'none';
         };
 
 
@@ -2532,19 +2674,55 @@ async function obtenerHeadersBackendAdmin() {
         window.guardarConfiguracion = async () => {
             const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
             return conEstadoBoton(btn,'Guardando configuración…',async()=>{
+                let nuevaRutaLogo = '';
+                const rutaLogoAnterior = String(configTienda.logoPath || '').trim();
+
                 try{
-                    const logo=String(document.getElementById('conf-logo').value||'').trim();
+                    exigirContextoAdmin();
+
+                    const inputLogo = document.getElementById('conf-logo');
+                    let logo = String(configTienda.logo || '').trim();
+                    let logoPath = rutaLogoAnterior;
+
+                    if(inputLogo?.files?.[0]) {
+                        const subida = await subirImagenStorage({
+                            archivo: inputLogo.files[0],
+                            carpeta: 'config',
+                            nombreBase: 'logo'
+                        });
+                        logo = subida.url;
+                        logoPath = subida.path;
+                        nuevaRutaLogo = subida.path;
+                    }
+
                     const envioPrecio=validarNumero(document.getElementById('conf-envio-precio').value||0,'Tarifa de envío',{min:0,max:999999999,requerido:false});
                     const efectivoPct=validarNumero(document.getElementById('desc-pago-efectivo-pct').value||0,'Descuento por efectivo',{min:0,max:100,requerido:false});
                     const transferenciaPct=validarNumero(document.getElementById('desc-pago-transferencia-pct').value||0,'Descuento por transferencia',{min:0,max:100,requerido:false});
                     const descuentosPago={efectivo:{activo:!!document.getElementById('desc-pago-efectivo-activo').checked,porcentaje:efectivoPct},transferencia:{activo:!!document.getElementById('desc-pago-transferencia-activo').checked,porcentaje:transferenciaPct},aplicaOfertas:!!document.getElementById('desc-pago-aplica-ofertas').checked,aplicaPacks:!!document.getElementById('desc-pago-aplica-packs').checked};
                     if(descuentosPago.efectivo.activo&&efectivoPct<=0) throw new Error('Indicá un porcentaje mayor a 0 para efectivo.');
                     if(descuentosPago.transferencia.activo&&transferenciaPct<=0) throw new Error('Indicá un porcentaje mayor a 0 para transferencia.');
-                    const diasApertura={}; ['check-lu','check-ma','check-mi','check-ju','check-vi','check-sa','check-do'].forEach(id=>diasApertura[id]=document.getElementById(id).checked);
-                    configTienda={...configTienda,logo,horaApertura:document.getElementById('conf-apertura').value,horaCierre:document.getElementById('conf-cierre').value,diasApertura,envioDisponible:document.getElementById('conf-envio-disp').value==='si',envioPrecio,permitirPedidosCerrado:document.getElementById('conf-pedidos-cerrado').value==='si',descuentosPago,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()};
-                    await setDoc(doc(db,'configuracion',negocioIdActual),configTienda,{merge:true}); await auditar('configuracion_actualizada','configuracion',negocioIdActual,{envioDisponible:configTienda.envioDisponible,permitirPedidosCerrado:configTienda.permitirPedidosCerrado,descuentosPago});
+
+                    const diasApertura={};
+                    ['check-lu','check-ma','check-mi','check-ju','check-vi','check-sa','check-do'].forEach(id=>diasApertura[id]=document.getElementById(id).checked);
+
+                    configTienda={...configTienda,logo,logoPath,horaApertura:document.getElementById('conf-apertura').value,horaCierre:document.getElementById('conf-cierre').value,diasApertura,envioDisponible:document.getElementById('conf-envio-disp').value==='si',envioPrecio,permitirPedidosCerrado:document.getElementById('conf-pedidos-cerrado').value==='si',descuentosPago,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()};
+
+                    await setDoc(doc(db,'configuracion',negocioIdActual),configTienda,{merge:true});
+
+                    if(nuevaRutaLogo && rutaLogoAnterior && rutaLogoAnterior !== nuevaRutaLogo) {
+                        await eliminarImagenStorageSegura(rutaLogoAnterior);
+                    }
+
+                    nuevaRutaLogo = '';
+                    if(inputLogo) inputLogo.value = '';
+                    await auditar('configuracion_actualizada','configuracion',negocioIdActual,{envioDisponible:configTienda.envioDisponible,permitirPedidosCerrado:configTienda.permitirPedidosCerrado,descuentosPago,logoStorage:!!configTienda.logoPath});
+                    window.triggerConfiguracion();
                     window.mostrarAlertaUI('Configuración guardada correctamente.');
-                }catch(e){window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración.');throw e;}
+                }catch(e){
+                    if(nuevaRutaLogo) await eliminarImagenStorageSegura(nuevaRutaLogo);
+                    window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración.');
+                    throw e;
+                }
             });
         };
         
@@ -2684,7 +2862,7 @@ async function obtenerHeadersBackendAdmin() {
         };
 
         window.triggerConfiguracion = () => {
-            document.getElementById('conf-logo').value = configTienda.logo || '';
+            const inputLogo=document.getElementById('conf-logo'); if(inputLogo) inputLogo.value='';
             const dp=configTienda.descuentosPago||{}, dpe=dp.efectivo||{}, dpt=dp.transferencia||{};
             const ea=document.getElementById('desc-pago-efectivo-activo'); if(ea) ea.checked=!!dpe.activo;
             const ep=document.getElementById('desc-pago-efectivo-pct'); if(ep) ep.value=Number(dpe.porcentaje)||0;
@@ -2721,7 +2899,7 @@ async function obtenerHeadersBackendAdmin() {
         // PRODUCTOS Y PACKS
         window.verificarVigenciaOferta = (fechaLimite) => { if(!fechaLimite) return false; const hoy = new Date(); hoy.setHours(0,0,0,0); const limite = new Date(fechaLimite + 'T00:00:00'); return hoy <= limite; };
         window.calcularStockPack = (pack) => { let stocksDisponibles = []; pack.items.forEach(it => { const p = productos.find(x => x.id === it.idProd); if(p && p.variantes[it.idVar]) stocksDisponibles.push(Math.floor(p.variantes[it.idVar].stock / it.cantidad)); else stocksDisponibles.push(0); }); return stocksDisponibles.length > 0 ? Math.min(...stocksDisponibles) : 0; };
-        window.agregarFilaVariante = (idVar = '', detalle = '', precio = '', stock = '', bloqueado = false, subcategoria = '', imagen = '') => {
+        window.agregarFilaVariante = (idVar = '', detalle = '', precio = '', stock = '', bloqueado = false, subcategoria = '', imagen = '', imagenPath = '') => {
             const cont = document.getElementById('contenedor-variantes');
             const vId = idVar || ('var_' + Date.now() + Math.floor(Math.random() * 1000));
             const safeId = vId.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -2732,11 +2910,20 @@ async function obtenerHeadersBackendAdmin() {
             div.style.alignItems = 'flex-end';
             div.innerHTML = `
                 <input type="hidden" class="v-id" value="${escaparHtml(vId)}">
+                <input type="hidden" class="v-imagen-actual" value="${escaparHtml(imagen)}">
+                <input type="hidden" class="v-imagen-path-actual" value="${escaparHtml(imagenPath)}">
                 <div style="flex:2; min-width:170px;"><span class="mini-label">Atributo / Tamaño</span><input type="text" class="v-detalle" value="${escaparHtml(detalle)}" placeholder="Ej: Rojo / M"></div>
                 <div style="min-width:170px;"><span class="mini-label">Subcategoría</span><input type="text" class="v-subcategoria" list="subcats-${safeId}" value="${escaparHtml(subcategoria)}" placeholder="Sin subcategoría / buscar…" autocomplete="off"><datalist id="subcats-${safeId}">${(subcategoriasGlobales[categoria]||[]).map(s=>`<option value="${escaparHtml(s)}"></option>`).join('')}</datalist></div>
                 <div style="min-width:130px;"><span class="mini-label">Valor Venta $</span><input type="number" class="v-precio" value="${escaparHtml(precio)}" min="0" step="0.01"></div>
                 <div style="min-width:120px;"><span class="mini-label">Stock Actual</span><input type="number" class="v-stock" value="${escaparHtml(stock)}" min="0" ${bloqueado ? 'disabled' : ''}></div>
-                <div style="flex:2; min-width:210px;"><span class="mini-label">Imagen propia de la variante (URL)</span><input type="url" class="v-imagen" id="v-img-${safeId}" value="${escaparHtml(imagen)}" placeholder="https://..." oninput="window.previsualizarImagenURL(this, 'v-prev-${safeId}')"><img id="v-prev-${safeId}" class="preview-img-admin" src="${escaparHtml(imagen)}" style="${imagen ? 'display:block;' : ''}" alt="Vista previa"></div>
+                <div style="flex:2; min-width:220px;">
+                    <span class="mini-label">Imagen propia de la variante</span>
+                    <div class="storage-upload-box">
+                        <input type="file" class="v-imagen" id="v-img-${safeId}" accept="image/jpeg,image/png,image/webp" onchange="window.previsualizarArchivoImagen(this, 'v-prev-${safeId}')">
+                        <span class="storage-upload-help">JPG, PNG o WebP · máximo 5 MB</span>
+                        <div class="storage-upload-preview"><img id="v-prev-${safeId}" class="preview-img-admin" src="${escaparHtml(imagen)}" style="${imagen ? 'display:block;' : ''}" alt="Vista previa"></div>
+                    </div>
+                </div>
                 <button type="button" class="danger" style="margin-bottom:2px; padding:6px 10px;" onclick="this.parentElement.remove()">X</button>`;
             cont.appendChild(div);
         };
@@ -2750,7 +2937,7 @@ async function obtenerHeadersBackendAdmin() {
                 document.getElementById('prod-id').value = p.id;
                 document.getElementById('prod-nombre').value = p.nombre || '';
                 window.actualizarSelectCategoriasModal(p.categoria || 'General');
-                Object.entries(p.variantes || {}).forEach(([vId, v]) => window.agregarFilaVariante(vId, v.detalle, v.precio, v.stock, true, v.subcategoria || '', v.imagen || p.imagen || ''));
+                Object.entries(p.variantes || {}).forEach(([vId, v]) => window.agregarFilaVariante(vId, v.detalle, v.precio, v.stock, true, v.subcategoria || '', v.imagen || p.imagen || '', v.imagenPath || ''));
             } else {
                 document.getElementById('modal-titulo').textContent = "Alta de Producto";
                 document.getElementById('prod-id').value = "";
@@ -2765,38 +2952,116 @@ async function obtenerHeadersBackendAdmin() {
         window.guardarProducto = async () => {
             const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
             return conEstadoBoton(btn,'Guardando producto…',async()=>{
+                const nuevasRutas = [];
+                let firestoreConfirmado = false;
+
                 try {
-                    const id=document.getElementById('prod-id').value;
+                    exigirContextoAdmin();
+
+                    const idExistente=document.getElementById('prod-id').value;
+                    const productoAnterior=idExistente?productos.find(p=>p.id===idExistente):null;
+                    const productoId=idExistente || genIdDB();
                     const nombre=validarTexto(document.getElementById('prod-nombre').value,'Nombre del producto',120,true);
                     const categoriaProd=validarTexto(document.getElementById('prod-categoria').value,'Categoría',80,true);
+
                     if(!categoriasProductoDisponibles().includes(categoriaProd)) throw new Error('Elegí una categoría existente.');
-                    const filas=[...document.querySelectorAll('#contenedor-variantes .variant-row')]; if(!filas.length) throw new Error('El producto debe tener al menos una variante.');
+
+                    const filas=[...document.querySelectorAll('#contenedor-variantes .variant-row')];
+                    if(!filas.length) throw new Error('El producto debe tener al menos una variante.');
+
                     const vars={};
+
                     for(const f of filas){
                         const vId=f.querySelector('.v-id').value || genIdDB();
                         const detalle=validarTexto(f.querySelector('.v-detalle').value,'Nombre de variante',100,true);
                         const precio=validarNumero(f.querySelector('.v-precio').value,`Precio de ${detalle}`,{min:0,max:999999999});
                         const subcategoria=String(f.querySelector('.v-subcategoria').value||'').trim();
-                        const imagen=esUrlImagenValida(f.querySelector('.v-imagen').value, true);
-                        if(subcategoria && !(subcategoriasGlobales[categoriaProd]||[]).includes(subcategoria)) throw new Error(`La subcategoría de "${detalle}" no pertenece a ${categoriaProd}.`);
-                        const sInp=f.querySelector('.v-stock'); const anterior=id?productos.find(p=>p.id===id)?.variantes?.[vId]:null;
-                        const stock=anterior?(Number(anterior.stock)||0):validarNumero(sInp.value,`Stock de ${detalle}`,{min:0,max:999999999});
-                        vars[vId]={detalle,precio,subcategoria,imagen,stock};
-                        for(const k of ['precioOferta','fechaLimiteOferta','ultimaModificacionStock','motivoUltimaModificacionStock']) if(anterior?.[k]!=null) vars[vId][k]=anterior[k];
+
+                        if(subcategoria && !(subcategoriasGlobales[categoriaProd]||[]).includes(subcategoria)) {
+                            throw new Error(`La subcategoría de "${detalle}" no pertenece a ${categoriaProd}.`);
+                        }
+
+                        const anterior=productoAnterior?.variantes?.[vId] || null;
+                        const inputImagen=f.querySelector('.v-imagen');
+                        let imagen=String(f.querySelector('.v-imagen-actual')?.value || anterior?.imagen || '').trim();
+                        let imagenPath=String(f.querySelector('.v-imagen-path-actual')?.value || anterior?.imagenPath || '').trim();
+
+                        if(inputImagen?.files?.[0]) {
+                            const subida=await subirImagenStorage({
+                                archivo:inputImagen.files[0],
+                                carpeta:`productos/${normalizarSegmentoStorage(productoId)}`,
+                                nombreBase:vId
+                            });
+                            imagen=subida.url;
+                            imagenPath=subida.path;
+                            nuevasRutas.push(subida.path);
+                        }
+
+                        if(!imagen) {
+                            throw new Error(`Seleccioná una imagen para la variante "${detalle}".`);
+                        }
+
+                        const sInp=f.querySelector('.v-stock');
+                        const stock=anterior
+                            ? (Number(anterior.stock)||0)
+                            : validarNumero(sInp.value,`Stock de ${detalle}`,{min:0,max:999999999});
+
+                        vars[vId]={detalle,precio,subcategoria,imagen,imagenPath,stock};
+
+                        for(const k of ['precioOferta','fechaLimiteOferta','ultimaModificacionStock','motivoUltimaModificacionStock']) {
+                            if(anterior?.[k]!=null) vars[vId][k]=anterior[k];
+                        }
                     }
-                    const pObj=id?{...productos.find(p=>p.id===id)}:{id:genIdDB(),createdAt:serverTimestamp(),createdBy:actorActual()};
-                    Object.assign(pObj,{schemaVersion:SCHEMA_VERSION,nombre,categoria:categoriaProd,variantes:vars,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()}); delete pObj.imagen;
-                    await setDoc(doc(db,'productos',pObj.id),pObj); await auditar(id?'producto_actualizado':'producto_creado','producto',pObj.id,{nombre,categoria:categoriaProd,variantes:Object.keys(vars).length});
+
+                    const pObj=productoAnterior
+                        ? {...productoAnterior}
+                        : {id:productoId,createdAt:serverTimestamp(),createdBy:actorActual()};
+
+                    Object.assign(pObj,{schemaVersion:SCHEMA_VERSION,nombre,categoria:categoriaProd,variantes:vars,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()});
+                    delete pObj.imagen;
+
+                    await setDoc(doc(db,'productos',pObj.id),pObj);
+                    firestoreConfirmado = true;
+
+                    const rutasVigentes=new Set(Object.values(vars).map(v=>String(v.imagenPath||'')).filter(Boolean));
+                    const rutasAnteriores=Object.values(productoAnterior?.variantes||{}).map(v=>String(v.imagenPath||'')).filter(Boolean);
+                    for(const ruta of rutasAnteriores) {
+                        if(!rutasVigentes.has(ruta)) await eliminarImagenStorageSegura(ruta);
+                    }
+
+                    await auditar(idExistente?'producto_actualizado':'producto_creado','producto',pObj.id,{nombre,categoria:categoriaProd,variantes:Object.keys(vars).length,imagenesStorage:Object.values(vars).filter(v=>v.imagenPath).length});
                     window.cerrarModal();
-                } catch(e){ window.mostrarAlertaUI(e.message||'No se pudo guardar el producto.'); throw e; }
+                } catch(e){
+                    if(!firestoreConfirmado) {
+                        for(const ruta of nuevasRutas) await eliminarImagenStorageSegura(ruta);
+                    }
+                    window.mostrarAlertaUI(e.message||'No se pudo guardar el producto.');
+                    throw e;
+                }
             });
         };
 
-        window.borrarProducto = async (id) => { 
-            if(await pedirConfirmacion("¿Seguro que deseas eliminar permanentemente este producto o pack? Esta acción es crítica.")) { 
-                await deleteDoc(doc(db, 'productos', id)); await deleteDoc(doc(db, 'packs', id)); await auditar('producto_eliminado','producto_o_pack',id,{}); 
-                productos = productos.filter(p => p.id !== id); packs = packs.filter(p => p.id !== id); carritoMostrador = carritoMostrador.filter(c => c.idProd !== id); window.renderizarCarritoMostrador(); window.triggerProductos(); 
-            } 
+        window.borrarProducto = async (id) => {
+            if(!(await pedirConfirmacion("¿Seguro que deseas eliminar permanentemente este producto o pack? Esta acción es crítica."))) return;
+
+            const producto=productos.find(p=>p.id===id);
+            const pack=packs.find(p=>p.id===id);
+            const rutas=[];
+
+            if(producto) Object.values(producto.variantes||{}).forEach(v=>{ if(v?.imagenPath) rutas.push(v.imagenPath); });
+            if(pack?.imagenPath) rutas.push(pack.imagenPath);
+
+            if(producto) await deleteDoc(doc(db,'productos',id));
+            if(pack) await deleteDoc(doc(db,'packs',id));
+
+            for(const ruta of rutas) await eliminarImagenStorageSegura(ruta);
+
+            await auditar('producto_eliminado','producto_o_pack',id,{imagenesStorageEliminadas:rutas.length});
+            productos=productos.filter(p=>p.id!==id);
+            packs=packs.filter(p=>p.id!==id);
+            carritoMostrador=carritoMostrador.filter(c=>c.idProd!==id);
+            window.renderizarCarritoMostrador();
+            window.triggerProductos();
         };
         
         window.abrirModalStock = (id) => { const p = productos.find(x => x.id === id); document.getElementById('stock-id-prod').value = p.id; document.getElementById('stock-nombre-prod').textContent = p.nombre; document.getElementById('stock-cantidad').value = 1; document.getElementById('stock-nuevo-costo').value = ""; const sel = document.getElementById('stock-select-var'); sel.innerHTML = ''; Object.entries(p.variantes || {}).forEach(([vId, v]) => sel.innerHTML += `<option value="${vId}">${v.detalle} - Stock actual ${window.formatearNum(v.stock)}</option>`); document.getElementById('modal-stock').classList.remove('hidden'); };
@@ -2851,61 +3116,87 @@ async function obtenerHeadersBackendAdmin() {
         };
 
         window.agregarFilaItemPack = (idProd = '', idVar = '', cantidad = 1) => { const cont = document.getElementById('contenedor-items-pack'); const rowId = 'pack_row_' + Math.random().toString(36).substring(2, 7); const div = document.createElement('div'); div.className = 'variant-row'; div.id = rowId; let optProds = ''; productos.forEach(p => { Object.entries(p.variantes).forEach(([vId, v]) => { let sel = (p.id === idProd && vId === idVar) ? 'selected' : ''; optProds += `<option value="${p.id}|${vId}" ${sel}>${p.nombre} (${v.detalle})</option>`; }); }); div.innerHTML = `<div style="flex:3"><span class="mini-label">Producto Componente</span><select class="pack-item-select">${optProds}</select></div><div style="flex:1; max-width:100px;"><span class="mini-label">Cantidad</span><input type="number" class="pack-item-cant" value="${cantidad}" min="1"></div><button type="button" class="danger" style="margin-top: 15px; padding: 6px 10px;" onclick="document.getElementById('${rowId}').remove()">X</button>`; cont.appendChild(div); };
-        window.abrirModalPack = () => { document.getElementById('pack-nombre').value = ''; document.getElementById('pack-imagen').value = ''; document.getElementById('pack-precio').value = ''; document.getElementById('contenedor-items-pack').innerHTML = ''; window.agregarFilaItemPack(); document.getElementById('modal-pack').classList.remove('hidden'); };
+        window.abrirModalPack = () => {
+            document.getElementById('pack-nombre').value='';
+            document.getElementById('pack-imagen').value='';
+            document.getElementById('pack-precio').value='';
+            document.getElementById('contenedor-items-pack').innerHTML='';
+            limpiarPreviewArchivo('preview-pack-imagen');
+            window.agregarFilaItemPack();
+            document.getElementById('modal-pack').classList.remove('hidden');
+        };
         window.cerrarModalPack = () => document.getElementById('modal-pack').classList.add('hidden');
         window.guardarPack = async () => {
             const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
             return conEstadoBoton(btn,'Guardando pack…',async()=>{
+                let nuevaRuta='';
+                let firestoreConfirmado=false;
+
                 try {
-                    const nombre = validarTexto(document.getElementById('pack-nombre').value, 'Nombre del pack', 120, true);
-                    const imagen = esUrlImagenValida(document.getElementById('pack-imagen').value, false);
-                    const precio = validarNumero(document.getElementById('pack-precio').value, 'Precio del pack', {min:0.01, max:999999999});
-                    const rows = [...document.querySelectorAll('#contenedor-items-pack .variant-row')];
+                    exigirContextoAdmin();
 
-                    if(rows.length === 0) throw new Error('El pack debe tener al menos un componente.');
+                    const nombre=validarTexto(document.getElementById('pack-nombre').value,'Nombre del pack',120,true);
+                    const precio=validarNumero(document.getElementById('pack-precio').value,'Precio del pack',{min:0.01,max:999999999});
+                    const archivoImagen=document.getElementById('pack-imagen')?.files?.[0]||null;
 
-                    const itemsCombo = [];
-                    rows.forEach(r => {
-                        const combined = r.querySelector('.pack-item-select')?.value || '';
-                        const cant = parseInt(r.querySelector('.pack-item-cant')?.value) || 1;
+                    const rows=[...document.querySelectorAll('#contenedor-items-pack .variant-row')];
+                    if(rows.length===0) throw new Error('El pack debe tener al menos un componente.');
+
+                    const itemsCombo=[];
+                    rows.forEach(r=>{
+                        const combined=r.querySelector('.pack-item-select')?.value||'';
+                        const cant=parseInt(r.querySelector('.pack-item-cant')?.value)||1;
                         if(!combined) return;
-                        const [pId, vId] = combined.split('|');
-                        const pRef = productos.find(x => x.id === pId);
-                        if(!pRef || !pRef.variantes || !pRef.variantes[vId]) return;
-                        itemsCombo.push({
-                            idProd: pId,
-                            idVar: vId,
-                            cantidad: Math.max(1, cant),
-                            nombre: pRef.nombre,
-                            detalle: pRef.variantes[vId].detalle || ''
-                        });
+                        const [pId,vId]=combined.split('|');
+                        const pRef=productos.find(x=>x.id===pId);
+                        if(!pRef||!pRef.variantes||!pRef.variantes[vId]) return;
+                        itemsCombo.push({idProd:pId,idVar:vId,cantidad:Math.max(1,cant),nombre:pRef.nombre,detalle:pRef.variantes[vId].detalle||''});
                     });
 
-                    if(itemsCombo.length === 0) throw new Error('Seleccioná componentes válidos para el pack.');
+                    if(itemsCombo.length===0) throw new Error('Seleccioná componentes válidos para el pack.');
 
-                    const pkObj = {
-                        schemaVersion: SCHEMA_VERSION,
-                        id: genIdDB(),
+                    const packId=genIdDB();
+                    let imagen='';
+                    let imagenPath='';
+
+                    if(archivoImagen) {
+                        const subida=await subirImagenStorage({
+                            archivo:archivoImagen,
+                            carpeta:`packs/${normalizarSegmentoStorage(packId)}`,
+                            nombreBase:'imagen'
+                        });
+                        imagen=subida.url;
+                        imagenPath=subida.path;
+                        nuevaRuta=subida.path;
+                    }
+
+                    const pkObj={
+                        schemaVersion:SCHEMA_VERSION,
+                        id:packId,
                         nombre,
                         imagen,
+                        imagenPath,
                         precio,
-                        categoria: 'Packs',
-                        items: itemsCombo,
-                        negocioId: negocioIdActual,
-                        createdAt: serverTimestamp(),
-                        createdBy: actorActual(),
-                        updatedAt: serverTimestamp(),
-                        updatedBy: actorActual()
+                        categoria:'Packs',
+                        items:itemsCombo,
+                        negocioId:negocioIdActual,
+                        createdAt:serverTimestamp(),
+                        createdBy:actorActual(),
+                        updatedAt:serverTimestamp(),
+                        updatedBy:actorActual()
                     };
 
-                    await setDoc(doc(db, 'packs', pkObj.id), pkObj);
-                    await auditar('pack_guardado','pack',pkObj.id,{nombre,items:itemsCombo.length,precio});
+                    await setDoc(doc(db,'packs',pkObj.id),pkObj);
+                    firestoreConfirmado=true;
+                    nuevaRuta='';
 
+                    await auditar('pack_guardado','pack',pkObj.id,{nombre,items:itemsCombo.length,precio,imagenStorage:true});
                     window.mostrarAlertaUI('Pack guardado correctamente.');
                     window.triggerProductos();
                     window.cerrarModalPack();
                 } catch(e) {
-                    window.mostrarAlertaUI(e.message || 'No se pudo guardar el pack.');
+                    if(!firestoreConfirmado&&nuevaRuta) await eliminarImagenStorageSegura(nuevaRuta);
+                    window.mostrarAlertaUI(e.message||'No se pudo guardar el pack.');
                     throw e;
                 }
             });
