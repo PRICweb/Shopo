@@ -316,8 +316,8 @@
 
 
         /* ===== RESPONSIVE FINAL MULTIDISPOSITIVO ===== */
-        html { width: 100%; max-width: 100%; overflow-x: hidden; }
-        body { width: 100%; max-width: 100%; overflow-x: hidden; min-height: 100svh; }
+        html { width: 100%; max-width: 100%; overflow-x: clip; }
+        body { width: 100%; max-width: 100%; overflow-x: clip; min-height: 100svh; }
         img, svg { max-width: 100%; }
         .container { width: min(100%, 1400px); }
         .grid-cards { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: stretch; }
@@ -347,7 +347,7 @@
         @media (max-width: 768px) {
             body { padding: max(12px, env(safe-area-inset-top)) 12px max(18px, env(safe-area-inset-bottom)); }
             .container { width: 100%; }
-            .header-tienda { position: sticky; top: 0; z-index: 50; background: var(--bg-color); padding-top: 8px; }
+            .header-tienda { background: var(--bg-color); padding-top: 8px; }
             .top-controls { display: grid; grid-template-columns: 1fr 44px; width: 100%; }
             .catalogo-toolbar { justify-content: stretch; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
             .btn-vista { justify-content: center; min-height: 42px; }
@@ -496,18 +496,34 @@
     
         /* ===== BARRA COMPACTA DEL CATÁLOGO ===== */
         .store-toolbar {
+            position: -webkit-sticky;
             position: sticky;
-            top: 0;
-            z-index: 500;
+            top: env(safe-area-inset-top, 0px);
+            z-index: 950;
             width: 100%;
             margin: 0 0 16px;
             padding: 8px;
             border: 1px solid var(--border);
             border-radius: 14px;
-            background: var(--bg-color);
             background: color-mix(in srgb, var(--bg-color) 94%, transparent);
             box-shadow: 0 7px 24px rgba(0,0,0,.055);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .store-toolbar.is-stuck {
+            position: fixed !important;
+            top: env(safe-area-inset-top, 0px) !important;
+            margin: 0 !important;
+            z-index: 9990 !important;
+        }
+
+        #barra-catalogo-sentinel {
+            width: 100%;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            pointer-events: none;
         }
         .store-toolbar-main {
             display: grid;
@@ -601,7 +617,7 @@
         @media (max-width: 600px) {
             body { padding-left: 10px; padding-right: 10px; }
             .store-toolbar {
-                top: max(0px, env(safe-area-inset-top)); margin-left: -2px;
+                top: env(safe-area-inset-top, 0px); margin-left: -2px;
                 width: calc(100% + 4px); padding: 7px; border-radius: 12px;
             }
             .store-toolbar-main {
@@ -611,9 +627,6 @@
             }
             .store-toolbar .search-container { height: 36px; padding-left: 9px; }
             .store-toolbar .search-container input { height: 34px; font-size: 16px; }
-            .store-toolbar .btn-carrito-nav {
-                width: 36px; min-width: 36px; height: 36px; min-height: 36px;
-            }
             .store-view-toggle { padding: 2px; }
             .store-toolbar .btn-vista {
                 width: 30px; min-width: 30px; height: 30px; min-height: 30px;
@@ -631,25 +644,9 @@
         }
 
     
-        /* ===== BARRA DEL CATÁLOGO: SE PEGA AL LLEGAR ARRIBA ===== */
         #vista-comprador {
             padding-top: 0;
-        }
-
-        #vista-comprador {
-            overflow: visible !important;
-        }
-
-        .store-toolbar {
-            position: -webkit-sticky !important;
-            position: sticky !important;
-            top: env(safe-area-inset-top, 0px) !important;
-            left: auto;
-            transform: none;
-            width: 100% !important;
-            margin: 0 0 16px !important;
-            z-index: 950 !important;
-            isolation: isolate;
+            overflow: visible;
         }
 
         /* ===== LOCAL CERRADO ===== */
@@ -934,7 +931,6 @@
             justify-content:center;
         }
         .toolbar-menu-btn svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; }
-        .store-toolbar { position:sticky; }
         .menu-categorias-panel {
             position:absolute;
             top:calc(100% + 8px);
@@ -1078,6 +1074,8 @@
             </div>
         </section>
 
+        <div id="barra-catalogo-sentinel" aria-hidden="true"></div>
+
         <div class="store-toolbar" id="barra-catalogo">
             <div class="store-toolbar-main">
                 <button id="btn-menu-categorias" class="toolbar-menu-btn" type="button" title="Categorías" aria-label="Abrir categorías" aria-expanded="false">
@@ -1121,7 +1119,7 @@
         <span id="badge-carrito" class="badge" style="display:none;">0</span>
     </button>
 
-    <div id="modal-carrito" class="modal-overlay hidden">
+    <div id="modal-carrito" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="modal-content">
             <div id="carrito-vista-lista">
                 <h3>Resumen de Pedido</h3>
@@ -1275,14 +1273,6 @@ async function obtenerHeadersBackendPublico() {
                 }
             });
 
-        document.addEventListener('keydown', (event) => {
-            if(
-                event.key === 'Escape' &&
-                !document.getElementById('modal-aviso-tienda')?.classList.contains('hidden')
-            ) {
-                cerrarAvisoTienda();
-            }
-        });
 
 
 
@@ -1383,29 +1373,97 @@ async function obtenerHeadersBackendPublico() {
             );
         };
 
-        const actualizarAlturaBarraCatalogo = () => {
-            const barra = document.getElementById('barra-catalogo');
-            if(!barra) return;
-
-            const altura = Math.ceil(barra.getBoundingClientRect().height);
-            document.documentElement.style.setProperty(
-                '--store-toolbar-height',
-                `${altura}px`
-            );
-        };
+        let barraCatalogoController = null;
 
         const observarBarraCatalogo = () => {
-            const barra = document.getElementById('barra-catalogo');
-            if(!barra) return;
-
-            actualizarAlturaBarraCatalogo();
-
-            if('ResizeObserver' in window) {
-                const observer = new ResizeObserver(actualizarAlturaBarraCatalogo);
-                observer.observe(barra);
+            if(barraCatalogoController) {
+                barraCatalogoController.destroy();
+                barraCatalogoController = null;
             }
 
-            window.addEventListener('resize', actualizarAlturaBarraCatalogo, { passive: true });
+            const barra = document.getElementById('barra-catalogo');
+            const sentinel = document.getElementById('barra-catalogo-sentinel');
+            const contenedor = document.getElementById('vista-comprador');
+
+            if(!barra || !sentinel || !contenedor) return;
+
+            let rafId = 0;
+            let pegada = false;
+
+            const obtenerOffsetSuperior = () => {
+                const estilo = getComputedStyle(barra);
+                const top = Number.parseFloat(estilo.top);
+                return Number.isFinite(top) ? top : 0;
+            };
+
+            const reservarEspacio = () => {
+                if(!pegada) {
+                    sentinel.style.height = '0px';
+                    return;
+                }
+
+                const estilo = getComputedStyle(barra);
+                const margenInferior = Number.parseFloat(estilo.marginBottom) || 0;
+                sentinel.style.height = `${Math.ceil(barra.getBoundingClientRect().height + margenInferior)}px`;
+            };
+
+            const actualizar = () => {
+                rafId = 0;
+
+                // Cuando la barra está fija, el sentinel conserva su posición original.
+                // Cuando no lo está, medimos el punto exacto en el que debe pegarse.
+                const sentinelRect = sentinel.getBoundingClientRect();
+                const offsetSuperior = obtenerOffsetSuperior();
+                const debePegarse = sentinelRect.top <= offsetSuperior;
+
+                if(debePegarse !== pegada) {
+                    pegada = debePegarse;
+                    barra.classList.toggle('is-stuck', pegada);
+                }
+
+                if(pegada) {
+                    const contenedorRect = contenedor.getBoundingClientRect();
+                    barra.style.left = `${Math.round(contenedorRect.left)}px`;
+                    barra.style.width = `${Math.round(contenedorRect.width)}px`;
+                    reservarEspacio();
+                } else {
+                    barra.style.removeProperty('left');
+                    barra.style.removeProperty('width');
+                    reservarEspacio();
+                }
+            };
+
+            const solicitarActualizacion = () => {
+                if(rafId) return;
+                rafId = requestAnimationFrame(actualizar);
+            };
+
+            window.addEventListener('scroll', solicitarActualizacion, { passive: true });
+            window.addEventListener('resize', solicitarActualizacion, { passive: true });
+            window.addEventListener('orientationchange', solicitarActualizacion, { passive: true });
+
+            let resizeObserver = null;
+            if('ResizeObserver' in window) {
+                resizeObserver = new ResizeObserver(solicitarActualizacion);
+                resizeObserver.observe(barra);
+                resizeObserver.observe(contenedor);
+            }
+
+            actualizar();
+
+            barraCatalogoController = {
+                destroy() {
+                    window.removeEventListener('scroll', solicitarActualizacion);
+                    window.removeEventListener('resize', solicitarActualizacion);
+                    window.removeEventListener('orientationchange', solicitarActualizacion);
+                    resizeObserver?.disconnect();
+                    if(rafId) cancelAnimationFrame(rafId);
+                    barra.classList.remove('is-stuck');
+                    barra.style.removeProperty('left');
+                    barra.style.removeProperty('width');
+                    sentinel.style.height = '0px';
+                }
+            };
         };
 
         // ESTADO GLOBAL
@@ -1804,19 +1862,9 @@ async function obtenerHeadersBackendPublico() {
                     const boton=document.getElementById('btn-menu-categorias');
                     if(!panel || panel.classList.contains('hidden')) return;
                     if(panel.contains(event.target) || boton?.contains(event.target)) return;
-                    panel.classList.add('hidden');
-                    boton?.setAttribute('aria-expanded','false');
+                    cerrarMenuCategorias();
                 });
 
-                document.addEventListener('keydown', (event) => {
-                    if(event.key !== 'Escape') return;
-                    const panel=document.getElementById('panel-menu-categorias');
-                    const boton=document.getElementById('btn-menu-categorias');
-                    if(!panel || panel.classList.contains('hidden')) return;
-                    panel.classList.add('hidden');
-                    boton?.setAttribute('aria-expanded','false');
-                    boton?.focus();
-                });
             }
 
             programarFormatoVisible();
@@ -2333,9 +2381,85 @@ async function obtenerHeadersBackendPublico() {
         };
 
 
-        window.abrirCarrito = () => { document.getElementById('modal-carrito').classList.remove('hidden'); document.getElementById('carrito-vista-lista').classList.remove('hidden'); document.getElementById('carrito-vista-exito').classList.add('hidden'); };
-        window.cerrarCarrito = () => document.getElementById('modal-carrito').classList.add('hidden');
-        window.cerrarCarritoExito = () => { window.vaciarCarrito(); window.cerrarCarrito(); }
+        let focoAntesDelCarrito = null;
+
+        window.abrirCarrito = () => {
+            const modal = document.getElementById('modal-carrito');
+            if(!modal) return;
+
+            focoAntesDelCarrito = document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+
+            modal.classList.remove('hidden');
+            modal.setAttribute('aria-hidden', 'false');
+            document.getElementById('carrito-vista-lista')?.classList.remove('hidden');
+            document.getElementById('carrito-vista-exito')?.classList.add('hidden');
+            document.body.style.overflow = 'hidden';
+
+            requestAnimationFrame(() => {
+                modal.querySelector('button, input, select, [tabindex]:not([tabindex="-1"])')?.focus();
+            });
+        };
+
+        window.cerrarCarrito = () => {
+            const modal = document.getElementById('modal-carrito');
+            if(!modal || modal.classList.contains('hidden')) return;
+
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.removeProperty('overflow');
+
+            if(focoAntesDelCarrito && document.contains(focoAntesDelCarrito)) {
+                focoAntesDelCarrito.focus();
+            }
+            focoAntesDelCarrito = null;
+        };
+
+        window.cerrarCarritoExito = () => {
+            window.vaciarCarrito();
+            window.cerrarCarrito();
+        }
+
+        const cerrarMenuCategorias = () => {
+            const panel = document.getElementById('panel-menu-categorias');
+            const boton = document.getElementById('btn-menu-categorias');
+            if(!panel || panel.classList.contains('hidden')) return false;
+            panel.classList.add('hidden');
+            boton?.setAttribute('aria-expanded', 'false');
+            return true;
+        };
+
+        document.getElementById('modal-carrito')?.addEventListener('click', (event) => {
+            // Sólo cierra si el click fue realmente sobre el fondo oscuro.
+            // Un click dentro de .modal-content nunca llega como target del overlay.
+            if(event.target === event.currentTarget) {
+                window.cerrarCarrito();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if(event.key !== 'Escape') return;
+
+            const aviso = document.getElementById('modal-aviso-tienda');
+            if(aviso && !aviso.classList.contains('hidden')) {
+                event.preventDefault();
+                cerrarAvisoTienda();
+                return;
+            }
+
+            const carritoModal = document.getElementById('modal-carrito');
+            if(carritoModal && !carritoModal.classList.contains('hidden')) {
+                event.preventDefault();
+                window.cerrarCarrito();
+                return;
+            }
+
+            if(cerrarMenuCategorias()) {
+                event.preventDefault();
+                document.getElementById('btn-menu-categorias')?.focus();
+            }
+        });
 
         window.agregarAlCarrito = (id) => {
             if(id.startsWith('pack_')) {
