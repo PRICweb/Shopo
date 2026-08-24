@@ -636,6 +636,10 @@
             padding-top: 0;
         }
 
+        #vista-comprador {
+            overflow: visible !important;
+        }
+
         .store-toolbar {
             position: -webkit-sticky !important;
             position: sticky !important;
@@ -644,7 +648,8 @@
             transform: none;
             width: 100% !important;
             margin: 0 0 16px !important;
-            z-index: 800 !important;
+            z-index: 950 !important;
+            isolation: isolate;
         }
 
         /* ===== LOCAL CERRADO ===== */
@@ -826,9 +831,10 @@
         .store-hero { margin-bottom: 20px; }
         .store-hero-grid {
             display: grid;
-            grid-template-columns: minmax(230px, 1fr) minmax(180px, auto) minmax(230px, 1fr);
-            gap: 18px;
-            align-items: center;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: clamp(28px, 5vw, 78px);
+            align-items: start;
+            width: 100%;
         }
         .hero-side-card {
             background: transparent;
@@ -837,15 +843,21 @@
             padding: 0;
             box-shadow: none;
             min-width: 0;
+            width: min(100%, 380px);
+            justify-self: center;
+            align-self: start;
         }
         .hero-side-card h3 {
-            margin: 0 0 12px;
+            margin: 0 0 14px;
+            min-height: 1.2em;
             color: var(--primary);
             font-size: .82rem;
             font-weight: 500;
             letter-spacing: .04em;
+            line-height: 1.2;
+            text-align: left;
         }
-        .hero-horarios-lista { display:flex; flex-direction:column; gap:8px; }
+        .hero-horarios-lista { display:flex; flex-direction:column; gap:9px; }
         .hero-horario-item {
             display:flex;
             justify-content:space-between;
@@ -858,15 +870,19 @@
         .hero-horario-dia { color:var(--text-main); font-weight:500; }
         .hero-horario-rango { color:var(--text-muted); text-align:right; }
         #logo-container.hero-logo-box {
-            margin:0;
-            min-height:150px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
+            margin: 0;
+            width: 100%;
+            min-height: 170px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            align-self: start;
+            justify-self: center;
+            padding-top: 0;
         }
         #logo-container.hero-logo-box.hidden { display:none !important; }
-        #logo-container.hero-logo-box #logo-display { max-height:150px; }
-        .hero-links-lista { display:flex; flex-direction:column; gap:9px; }
+        #logo-container.hero-logo-box #logo-display { max-height:160px; max-width:min(100%, 260px); }
+        .hero-links-lista { display:flex; flex-direction:column; gap:11px; }
         .hero-link-item {
             display:flex;
             align-items:center;
@@ -930,7 +946,8 @@
             border:1px solid var(--border);
             border-radius:14px;
             box-shadow:0 18px 45px rgba(0,0,0,.14);
-            z-index:900;
+            z-index:1100;
+            pointer-events:auto;
         }
         .menu-categoria-bloque { padding:7px 0; border-bottom:1px solid var(--border-light); }
         .menu-categoria-bloque:last-child { border-bottom:0; }
@@ -957,10 +974,18 @@
         }
         .menu-subcategoria-pill.active { color:var(--primary); border-color:var(--primary); }
         @media (max-width: 920px) {
-            .store-hero-grid { grid-template-columns:1fr; }
+            .store-hero-grid {
+                grid-template-columns: 1fr;
+                gap: 22px;
+            }
+            #logo-container.hero-logo-box,
+            .hero-side-card {
+                width: min(100%, 560px);
+                justify-self: center;
+            }
         }
         @media (max-width: 600px) {
-            .hero-side-card { padding:14px; }
+            .hero-side-card { padding:0; }
             .hero-horario-item { flex-direction:column; gap:2px; }
             .hero-horario-rango { text-align:left; }
             .toolbar-menu-btn { width:36px; min-width:36px; height:36px; }
@@ -1041,7 +1066,7 @@
 
         <div class="store-toolbar" id="barra-catalogo">
             <div class="store-toolbar-main">
-                <button id="btn-menu-categorias" class="toolbar-menu-btn" type="button" onclick="window.toggleMenuCategorias()" title="Categorías" aria-label="Abrir categorías">
+                <button id="btn-menu-categorias" class="toolbar-menu-btn" type="button" title="Categorías" aria-label="Abrir categorías" aria-expanded="false">
                     <svg viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg>
                 </button>
 
@@ -1073,7 +1098,7 @@
         <div id="catalogo-productos" class="grid-cards"><p style="color: var(--text-muted);">Conectando a la base de datos...</p></div>
     </div>
 
-    <button id="btn-flotante-carrito" class="btn-flotante-wsp" onclick="window.abrirCarrito()" title="Abrir carrito" aria-label="Abrir carrito">
+    <button id="btn-flotante-carrito" class="btn-flotante-wsp" type="button" title="Abrir carrito" aria-label="Abrir carrito">
         <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="9" cy="20" r="1"></circle>
             <circle cx="18" cy="20" r="1"></circle>
@@ -1721,14 +1746,62 @@ async function obtenerHeadersBackendPublico() {
                 }
             });
 
-            if(!window.__menuCategoriasCierreInstalado) {
-                window.__menuCategoriasCierreInstalado = true;
+            if(!window.__controlesCatalogoInstalados) {
+                window.__controlesCatalogoInstalados = true;
+
+                const botonMenu=document.getElementById('btn-menu-categorias');
+                botonMenu?.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    window.toggleMenuCategorias();
+                });
+
+                const botonCarrito=document.getElementById('btn-flotante-carrito');
+                botonCarrito?.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    window.abrirCarrito();
+                });
+
+                const panelMenu=document.getElementById('panel-menu-categorias');
+                panelMenu?.addEventListener('click', (event) => {
+                    const botonSub=event.target.closest('[data-subcategoria]');
+                    if(botonSub) {
+                        event.preventDefault();
+                        const categoria=botonSub.dataset.categoria || '';
+                        const subcategoria=botonSub.dataset.subcategoria || '';
+                        window.filtrarPorCategoria(categoria);
+                        window.filtrarPorSubcategoria(subcategoria);
+                        panelMenu.classList.add('hidden');
+                        botonMenu?.setAttribute('aria-expanded','false');
+                        return;
+                    }
+
+                    const botonCat=event.target.closest('[data-categoria]');
+                    if(botonCat) {
+                        event.preventDefault();
+                        window.filtrarPorCategoria(botonCat.dataset.categoria || '');
+                        panelMenu.classList.add('hidden');
+                        botonMenu?.setAttribute('aria-expanded','false');
+                    }
+                });
+
                 document.addEventListener('click', (event) => {
-                    const panel = document.getElementById('panel-menu-categorias');
-                    const boton = document.getElementById('btn-menu-categorias');
+                    const panel=document.getElementById('panel-menu-categorias');
+                    const boton=document.getElementById('btn-menu-categorias');
                     if(!panel || panel.classList.contains('hidden')) return;
                     if(panel.contains(event.target) || boton?.contains(event.target)) return;
                     panel.classList.add('hidden');
+                    boton?.setAttribute('aria-expanded','false');
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if(event.key !== 'Escape') return;
+                    const panel=document.getElementById('panel-menu-categorias');
+                    const boton=document.getElementById('btn-menu-categorias');
+                    if(!panel || panel.classList.contains('hidden')) return;
+                    panel.classList.add('hidden');
+                    boton?.setAttribute('aria-expanded','false');
+                    boton?.focus();
                 });
             }
 
@@ -1845,7 +1918,12 @@ async function obtenerHeadersBackendPublico() {
 
         window.toggleMenuCategorias = () => {
             const panel=document.getElementById('panel-menu-categorias');
-            if(panel) panel.classList.toggle('hidden');
+            const boton=document.getElementById('btn-menu-categorias');
+            if(!panel) return;
+
+            const abrir=panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !abrir);
+            boton?.setAttribute('aria-expanded', abrir ? 'true' : 'false');
         };
 
         window.renderizarMenuCategorias = () => {
@@ -1857,22 +1935,22 @@ async function obtenerHeadersBackendPublico() {
             panel.innerHTML=categorias.map(cat => {
                 const nombre=cat || 'Todos';
                 const subs=cat ? obtenerSubcategoriasCategoria(cat) : [];
-                const catEncoded=encodeURIComponent(cat);
 
                 return `<div class="menu-categoria-bloque">
-                    <button type="button" class="menu-categoria-principal ${categoriaActiva===cat?'active':''}"
-                        onclick="window.filtrarPorCategoria(decodeURIComponent('${catEncoded}'))">
+                    <button type="button"
+                        class="menu-categoria-principal ${categoriaActiva===cat?'active':''}"
+                        data-categoria="${escaparHtml(cat)}">
                         ${escaparHtml(window.formatearTextoTitulo(nombre))}
                     </button>
                     ${subs.length ? `<div class="menu-subcategorias-lista">
-                        ${subs.map(sub => {
-                            const subEncoded=encodeURIComponent(sub);
-                            return `<button type="button"
+                        ${subs.map(sub => `
+                            <button type="button"
                                 class="menu-subcategoria-pill ${categoriaActiva===cat&&subcategoriaActiva===sub?'active':''}"
-                                onclick="window.filtrarPorCategoria(decodeURIComponent('${catEncoded}')); window.filtrarPorSubcategoria(decodeURIComponent('${subEncoded}'))">
+                                data-categoria="${escaparHtml(cat)}"
+                                data-subcategoria="${escaparHtml(sub)}">
                                 ${escaparHtml(window.formatearTextoTitulo(sub))}
-                            </button>`;
-                        }).join('')}
+                            </button>
+                        `).join('')}
                     </div>` : ''}
                 </div>`;
             }).join('');
