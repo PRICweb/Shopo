@@ -357,6 +357,10 @@
             box-shadow: 4px 0 18px rgba(0,0,0,0.03);
         }
 
+        .admin-mobile-brand {
+            display: none;
+        }
+
         .admin-sidebar-title {
             padding: 2px 8px 10px 8px;
             border-bottom: 1px solid var(--border-light);
@@ -616,7 +620,7 @@
                 max-width: none !important;
                 min-height: 100dvh;
                 margin: 0 !important;
-                padding: 58px 0 calc(76px + env(safe-area-inset-bottom)) !important;
+                padding: 54px 0 calc(76px + env(safe-area-inset-bottom)) !important;
                 overflow-x: hidden;
                 touch-action: pan-y;
                 background: var(--bg-color);
@@ -709,8 +713,32 @@
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                min-height: 40px;
-                padding: 8px 13px;
+                width: 42px;
+                min-width: 42px;
+                height: 42px;
+                min-height: 42px;
+                padding: 0;
+                border: 1px solid var(--border);
+                border-radius: 11px;
+                background: var(--card-bg);
+                color: var(--primary);
+            }
+
+            .pedidos-mobile-filtros-btn svg {
+                width: 20px;
+                height: 20px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 1.8;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .pedidos-mobile-filtros-btn:hover,
+            .pedidos-mobile-filtros-btn:active {
+                background: var(--card-hover) !important;
+                color: var(--primary) !important;
+                transform: none !important;
             }
 
             #slot-filtros-pedidos-desktop {
@@ -877,6 +905,23 @@
                 display: none !important;
             }
 
+            /* Marca superior móvil */
+            .admin-mobile-brand {
+                position: fixed;
+                top: max(12px, env(safe-area-inset-top));
+                left: 14px;
+                z-index: 1700;
+                display: block;
+                color: var(--primary);
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                font-size: 1.16rem;
+                font-weight: 500;
+                line-height: 1;
+                letter-spacing: .2px;
+                user-select: none;
+                pointer-events: none;
+            }
+
             .admin-sidebar-nav {
                 width: 100% !important;
                 height: 60px !important;
@@ -924,38 +969,44 @@
                 height: 19px !important;
             }
 
-            /* Cerrar sesión arriba a la izquierda */
+            /* Cerrar sesión: texto simple arriba a la derecha */
             .admin-sidebar-logout {
                 position: fixed !important;
-                top: max(10px, env(safe-area-inset-top)) !important;
-                left: 12px !important;
-                right: auto !important;
+                top: max(8px, env(safe-area-inset-top)) !important;
+                right: 14px !important;
+                left: auto !important;
                 bottom: auto !important;
                 width: auto !important;
                 min-width: 0 !important;
-                height: 38px !important;
-                min-height: 38px !important;
+                height: 30px !important;
+                min-height: 30px !important;
                 margin: 0 !important;
-                padding: 7px 11px !important;
+                padding: 0 !important;
                 display: inline-flex !important;
                 flex-direction: row !important;
                 align-items: center !important;
                 justify-content: center !important;
-                gap: 7px !important;
-                border: 1px solid var(--border-light) !important;
-                border-radius: 10px !important;
-                background: rgba(255,255,255,.96) !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
                 color: var(--text-muted) !important;
-                font-size: .70rem !important;
-                box-shadow: 0 4px 16px rgba(0,0,0,.06) !important;
+                font-size: .72rem !important;
+                font-weight: 400 !important;
+                text-transform: none !important;
+                letter-spacing: .1px !important;
+                box-shadow: none !important;
                 z-index: 1700 !important;
+            }
+
+            .admin-sidebar-logout .admin-nav-icon {
+                display: none !important;
             }
 
             .admin-sidebar-logout:hover,
             .admin-sidebar-logout:active {
-                background: var(--card-hover) !important;
+                background: transparent !important;
                 color: var(--primary) !important;
-                border-color: var(--border) !important;
+                transform: none !important;
             }
 
             .save-indicator {
@@ -986,7 +1037,8 @@
             }
 
             .admin-sidebar-logout {
-                left: 10px !important;
+                right: 12px !important;
+                left: auto !important;
                 font-size: .67rem !important;
             }
         }
@@ -1226,6 +1278,8 @@
     <div id="vista-dueno" class="container hidden">
 
         <aside class="admin-sidebar">
+            <div class="admin-mobile-brand" aria-label="ShoPo">ShoPo</div>
+
             <div class="admin-sidebar-title">
                 <strong>Panel<br>Administración</strong>
                 <span id="nombre-negocio-display"></span>
@@ -1336,8 +1390,10 @@
         <div id="panel-pedidos" class="panel-oscuro-container hidden">
             <div class="pedidos-mobile-cabecera">
                 <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem; color: var(--text-main);">Gestión de Operaciones</h3>
-                <button id="btn-abrir-filtros-pedidos" type="button" class="secondary pedidos-mobile-filtros-btn" onclick="window.abrirFiltrosPedidosMobile()">
-                    Filtros
+                <button id="btn-abrir-filtros-pedidos" type="button" class="secondary pedidos-mobile-filtros-btn" onclick="window.abrirFiltrosPedidosMobile()" aria-label="Filtrar pedidos" title="Filtros">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 5h16l-6.4 7.2v5.3l-3.2 1.5v-6.8L4 5Z"></path>
+                    </svg>
                 </button>
             </div>
             <div id="slot-filtros-pedidos-desktop">
