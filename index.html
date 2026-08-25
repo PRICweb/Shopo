@@ -1508,7 +1508,7 @@
         <div class="modal-content" style="max-width: 620px;">
             <h3 id="modal-resumen-titulo">Resumen</h3>
             <div id="modal-resumen-contenido"></div>
-            <div class="modal-actions"><button onclick="cerrarModalDirecto('modal-resumen-notif')">Cerrar</button></div>
+            <div class="modal-actions"><button id="btn-resumen-notif-cerrar" type="button">Cerrar</button></div>
         </div>
     </div>
 
@@ -1536,7 +1536,7 @@
                 <!-- Aquí se inyectará el texto -->
             </p>
             
-            <button onclick="cerrarModalDirecto('modal-alerta')" style="width: 100%; padding: 12px; font-size: 0.9rem;">Entendido</button>
+            <button id="btn-alerta-entendido" type="button" style="width: 100%; padding: 12px; font-size: 0.9rem;">Entendido</button>
         </div>
     </div>
     
@@ -1835,6 +1835,26 @@ async function obtenerHeadersBackendAdmin() {
             modalSnapshots.delete(modalId);
         };
 
+        const instalarControlesModalesEstaticos = () => {
+            const btnAlerta = document.getElementById('btn-alerta-entendido');
+            if(btnAlerta && btnAlerta.dataset.modalHandler !== '1') {
+                btnAlerta.dataset.modalHandler = '1';
+                btnAlerta.addEventListener('click', () => {
+                    cerrarModalDirecto('modal-alerta');
+                });
+            }
+
+            const btnResumen = document.getElementById('btn-resumen-notif-cerrar');
+            if(btnResumen && btnResumen.dataset.modalHandler !== '1') {
+                btnResumen.dataset.modalHandler = '1';
+                btnResumen.addEventListener('click', () => {
+                    cerrarModalDirecto('modal-resumen-notif');
+                });
+            }
+        };
+
+        instalarControlesModalesEstaticos();
+
         const guardarModalPorId = async (modalId) => {
             const mapa = {
                 'modal-producto': () => window.guardarProducto(),
@@ -1941,16 +1961,25 @@ async function obtenerHeadersBackendAdmin() {
                 if (tituloEl) tituloEl.textContent = titulo;
                 if (textoEl) textoEl.textContent = mensaje;
 
+                let confirmacionCerrada = false;
+
                 const cerrar = (valor) => {
+                    if(confirmacionCerrada) return;
+                    confirmacionCerrada = true;
+
                     modal.classList.add('hidden');
                     btnAceptar.onclick = null;
                     btnCancelar.onclick = null;
                     document.removeEventListener('keydown', manejarEscape);
+                    modal.removeEventListener('click', manejarClickFondo);
                     resolve(valor);
                 };
 
                 const manejarEscape = (e) => {
-                    if (e.key === 'Escape') cerrar(false);
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        cerrar(false);
+                    }
                 };
 
                 const manejarClickFondo = (e) => {
@@ -1959,7 +1988,7 @@ async function obtenerHeadersBackendAdmin() {
 
                 btnAceptar.onclick = () => cerrar(true);
                 btnCancelar.onclick = () => cerrar(false);
-                modal.addEventListener('click', manejarClickFondo, { once: true });
+                modal.addEventListener('click', manejarClickFondo);
                 document.addEventListener('keydown', manejarEscape);
                 modal.classList.remove('hidden');
             });
@@ -1998,13 +2027,21 @@ async function obtenerHeadersBackendAdmin() {
             if(btnEf) btnEf.textContent = efPct > 0 ? `Efectivo · ${window.formatearNum(efPct)}% desc.` : 'Efectivo';
             if(btnTr) btnTr.textContent = trPct > 0 ? `Transferencia · ${window.formatearNum(trPct)}% desc.` : 'Transferencia';
 
+            let modalPagoCerrado = false;
+
             const manejarEscapePago = (e) => {
-                if(e.key === 'Escape') cerrar(null);
+                if(e.key === 'Escape') {
+                    e.preventDefault();
+                    cerrar(null);
+                }
             };
             const manejarFondoPago = (e) => {
                 if(e.target === modal) cerrar(null);
             };
             const cerrar = (valor) => {
+                if(modalPagoCerrado) return;
+                modalPagoCerrado = true;
+
                 modal.classList.add('hidden');
                 if(btnEf) btnEf.onclick = null;
                 if(btnTr) btnTr.onclick = null;
