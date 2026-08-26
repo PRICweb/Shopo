@@ -112,7 +112,7 @@ th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.
   <section id="view-negocios" class="panel active">
     <div class="panel-head"><div><h2 class="panel-title">Todos los negocios</h2><p class="panel-desc">Vista global de los negocios registrados en ShoPo.</p></div><div class="toolbar"><input id="buscar-negocio" class="input" placeholder="Buscar negocio..."><select id="filtro-negocio" class="select"><option value="">Todos</option><option value="activo">Activos</option><option value="suspendido">Suspendidos</option></select></div></div>
     <div class="cards"><div class="stat"><b id="stat-negocios">0</b><span>Negocios</span></div><div class="stat"><b id="stat-activos">0</b><span>Activos</span></div><div class="stat"><b id="stat-suspendidos">0</b><span>Suspendidos</span></div><div class="stat"><b id="stat-altas">0</b><span>Altas este mes</span></div></div>
-    <div class="section"><div class="section-head"><h3>Listado de negocios</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Plan</th><th>Usuarios</th><th>Última actividad</th></tr></thead><tbody id="tabla-negocios"></tbody></table></div></div></div>
+    <div class="section"><div class="section-head"><h3>Listado de negocios</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Plan</th><th>Usuarios</th><th>Última actividad</th><th>Acción crítica</th></tr></thead><tbody id="tabla-negocios"></tbody></table></div></div></div>
   </section>
 
   <section id="view-usuarios" class="panel">
@@ -180,7 +180,23 @@ const db=getFirestore(app);
 const storage=getStorage(app);
 
 const VIEWS={negocios:"Todos los negocios",usuarios:"Usuarios",suscripciones:"Suscripciones",cuentas:"Estado de cuentas",storage:"Uso de Storage",actividad:"Actividad",metricas:"Métricas globales",bloqueos:"Bloqueos / suspensiones",auditorias:"Auditorías"};
-const state={configuraciones:[],usuarios:[],pedidos:[],auditoria:[]};
+const state={
+  configuraciones:[],
+  usuarios:[],
+  pedidos:[],
+  auditoria:[],
+  errores:{}
+};
+
+const SHOPO_BACKEND_URL="https://shopo-backend-254059510929.southamerica-east1.run.app";
+const MASTER_API={
+  suspenderNegocio:"/api/v1/master/negocios/suspender",
+  reactivarNegocio:"/api/v1/master/negocios/reactivar",
+  cambiarEstadoCuenta:"/api/v1/master/cuentas/estado",
+  cambiarSuscripcion:"/api/v1/master/suscripciones/actualizar",
+  bloquearUsuario:"/api/v1/master/usuarios/bloquear",
+  desbloquearUsuario:"/api/v1/master/usuarios/desbloquear"
+};
 
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
@@ -197,6 +213,30 @@ const planNegocio=c=>c.plan||c.planActual||c.suscripcion?.plan||"Sin configurar"
 const estadoSuscripcion=c=>String(c.estadoSuscripcion||c.suscripcion?.estado||c.estadoPlan||"sin configurar").toLowerCase();
 const vencimientoSuscripcion=c=>c.fechaVencimientoSuscripcion||c.suscripcion?.fechaVencimiento||c.vencimientoPlan||null;
 const estadoCuenta=c=>c.estadoCuenta||c.cuentaEstado||c.estadoPagoCuenta||"Sin configurar";
+
+async function masterBackendRequest(path,payload={}){
+  const user=auth.currentUser;
+  if(!user) throw new Error("AUTH_REQUIRED");
+
+  const token=await user.getIdToken();
+  const res=await fetch(`${SHOPO_BACKEND_URL}${path}`,{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":`Bearer ${token}`
+    },
+    body:JSON.stringify(payload)
+  });
+
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok){
+    const error=new Error(data?.error||data?.message||`HTTP_${res.status}`);
+    error.status=res.status;
+    error.data=data;
+    throw error;
+  }
+  return data;
+}
 
 function abrirVista(view){
   if(!VIEWS[view]) return;
@@ -236,22 +276,43 @@ async function leerColeccion(nombre){
 
 async function cargarDatosGlobales(){
   document.body.classList.add("loading");
+  state.errores={};
+
+  const objetivos=[
+    ["configuraciones","configuracion"],
+    ["usuarios","usuarios"],
+    ["pedidos","pedidos"],
+    ["auditoria","auditoria"]
+  ];
+
+  const resultados=await Promise.all(objetivos.map(async([clave,coleccionNombre])=>{
+    try{
+      return {clave,datos:await leerColeccion(coleccionNombre),error:null};
+    }catch(error){
+      console.error(`Error leyendo ${coleccionNombre}:`,error);
+      return {clave,datos:[],error};
+    }
+  }));
+
+  resultados.forEach(({clave,datos,error})=>{
+    state[clave]=datos;
+    if(error) state.errores[clave]=error;
+  });
+
+  renderTodo();
+
   try{
-    const [configuraciones,usuarios,pedidos,auditoria]=await Promise.all([
-      leerColeccion("configuracion"),
-      leerColeccion("usuarios"),
-      leerColeccion("pedidos"),
-      leerColeccion("auditoria")
-    ]);
-    state.configuraciones=configuraciones;
-    state.usuarios=usuarios;
-    state.pedidos=pedidos;
-    state.auditoria=auditoria;
-    renderTodo();
     await cargarStorage();
+  }catch(error){
+    console.error("Error cargando Storage:",error);
   }finally{
     document.body.classList.remove("loading");
   }
+}
+
+function mensajeErrorLectura(clave,nombre){
+  if(!state.errores[clave]) return "";
+  return `<div class="empty">No se pudo leer ${esc(nombre)}. Revisá que las reglas Firestore con acceso superadmin estén publicadas.</div>`;
 }
 
 function renderTodo(){
@@ -288,12 +349,44 @@ function renderNegocios(){
     const estado=negocioEstado(c);
     const cls=["suspendido","bloqueado"].includes(estado)?"bad":"ok";
     const audits=state.auditoria.filter(a=>a.negocioId===c.id).sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0));
-    return `<tr><td>${esc(negocioNombre(c))}</td><td>${esc(c.id)}</td><td><span class="status ${cls}">${esc(estado)}</span></td><td>${esc(planNegocio(c))}</td><td>${num(usuariosPorNegocio[c.id]||0)}</td><td>${fecha(audits[0]?.fecha)}</td></tr>`;
+    const restringido=["suspendido","bloqueado"].includes(estado);
+    const accion=restringido
+      ?`<button class="input" type="button" onclick="window.masterReactivarNegocio('${esc(c.id)}')">Reactivar</button>`
+      :`<button class="input" type="button" onclick="window.masterSuspenderNegocio('${esc(c.id)}')">Suspender</button>`;
+    return `<tr><td>${esc(negocioNombre(c))}</td><td>${esc(c.id)}</td><td><span class="status ${cls}">${esc(estado)}</span></td><td>${esc(planNegocio(c))}</td><td>${num(usuariosPorNegocio[c.id]||0)}</td><td>${fecha(audits[0]?.fecha)}</td><td>${accion}</td></tr>`;
   }).join("");
-  $("tabla-negocios").innerHTML=rows||`<tr><td colspan="6" class="empty">No hay negocios que coincidan.</td></tr>`;
+  $("tabla-negocios").innerHTML=rows||`<tr><td colspan="7" class="empty">No hay negocios que coincidan.</td></tr>`;
 }
 $("buscar-negocio").addEventListener("input",renderNegocios);
 $("filtro-negocio").addEventListener("change",renderNegocios);
+
+window.masterSuspenderNegocio=async negocioId=>{
+  const motivo=prompt("Motivo de la suspensión:");
+  if(motivo===null) return;
+  if(!motivo.trim()){alert("Debés indicar un motivo.");return;}
+
+  try{
+    await masterBackendRequest(MASTER_API.suspenderNegocio,{negocioId,motivo:motivo.trim()});
+    await cargarDatosGlobales();
+  }catch(error){
+    alert(error.status===404
+      ?"El endpoint master todavía no está desplegado en el backend."
+      :"No se pudo suspender el negocio.");
+  }
+};
+
+window.masterReactivarNegocio=async negocioId=>{
+  if(!confirm("¿Reactivar este negocio?")) return;
+
+  try{
+    await masterBackendRequest(MASTER_API.reactivarNegocio,{negocioId});
+    await cargarDatosGlobales();
+  }catch(error){
+    alert(error.status===404
+      ?"El endpoint master todavía no está desplegado en el backend."
+      :"No se pudo reactivar el negocio.");
+  }
+};
 
 function renderUsuarios(){
   const q=$("buscar-usuario").value.trim().toLowerCase();
@@ -357,47 +450,88 @@ async function listarStorageRecursivo(ruta){
 }
 
 async function cargarStorage(){
+  const negocios=state.configuraciones.map(c=>c.id).filter(Boolean);
+
+  if(!negocios.length){
+    $("storage-estado").textContent=state.errores.configuraciones?"Sin permiso":"Sin datos";
+    $("storage-detalle").textContent=state.errores.configuraciones
+      ?"No se pudieron listar los negocios desde Firestore."
+      :"No hay negocios configurados.";
+    return;
+  }
+
   try{
-    const archivos=await listarStorageRecursivo("negocios");
-    const metas=await Promise.all(archivos.map(async item=>{
-      const m=await getMetadata(item);
-      return {path:item.fullPath,size:Number(m.size)||0};
+    const resultados=await Promise.all(negocios.map(async negocioId=>{
+      try{
+        const archivos=await listarStorageRecursivo(`negocios/${negocioId}`);
+        const metas=await Promise.all(archivos.map(async item=>{
+          const m=await getMetadata(item);
+          return {path:item.fullPath,size:Number(m.size)||0};
+        }));
+        return {negocioId,metas,error:null};
+      }catch(error){
+        return {negocioId,metas:[],error};
+      }
     }));
+
+    const metas=resultados.flatMap(r=>r.metas.map(m=>({...m,negocioId:r.negocioId})));
+    const fallidos=resultados.filter(r=>r.error);
     const total=metas.reduce((s,m)=>s+m.size,0);
     const porNegocio={};
+
     metas.forEach(m=>{
-      const partes=m.path.split("/");
-      const negocioId=partes[1]||"sin_negocio";
-      porNegocio[negocioId]=(porNegocio[negocioId]||0)+m.size;
+      porNegocio[m.negocioId]=(porNegocio[m.negocioId]||0)+m.size;
     });
-    $("storage-bytes").textContent=total>=1024**3?`${(total/1024**3).toFixed(2)} GB`:`${(total/1024**2).toFixed(2)} MB`;
+
+    $("storage-bytes").textContent=total>=1024**3
+      ?`${(total/1024**3).toFixed(2)} GB`
+      :`${(total/1024**2).toFixed(2)} MB`;
     $("storage-files").textContent=num(metas.length);
     $("storage-negocios").textContent=num(Object.keys(porNegocio).length);
-    $("storage-estado").textContent="OK";
-    $("storage-detalle").innerHTML=Object.entries(porNegocio).sort((a,b)=>b[1]-a[1]).map(([id,bytes])=>`${esc(id)} · ${(bytes/1024**2).toFixed(2)} MB`).join("<br>")||"No hay archivos en negocios/.";
+    $("storage-estado").textContent=fallidos.length?"Parcial":"OK";
+
+    const detalle=Object.entries(porNegocio)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([id,bytes])=>`${esc(id)} · ${(bytes/1024**2).toFixed(2)} MB`)
+      .join("<br>");
+
+    const aviso=fallidos.length
+      ?`<br><br>${fallidos.length} negocio(s) no pudieron leerse por permisos o inexistencia de ruta.`
+      :"";
+
+    $("storage-detalle").innerHTML=(detalle||"No hay archivos guardados.")+aviso;
   }catch(error){
-    console.warn("Storage no disponible para superadmin:",error);
-    $("storage-estado").textContent="Sin permiso";
-    $("storage-detalle").textContent="El código está listo, pero las reglas actuales de Firebase Storage todavía deben permitir lectura/listado al rol superadmin.";
+    console.warn("Storage no disponible:",error);
+    $("storage-estado").textContent="Error";
+    $("storage-detalle").textContent="No fue posible leer Firebase Storage.";
   }
 }
 
 onAuthStateChanged(auth,async user=>{
-  if(!user){mostrarLogin();return;}
+  if(!user){
+    mostrarLogin();
+    return;
+  }
+
   try{
     const snap=await getDoc(doc(db,"usuarios",user.uid));
+
     if(!snap.exists()||snap.data().rol!=="superadmin"){
       await signOut(auth);
       mostrarLogin("Esta cuenta no tiene rol superadmin.");
       return;
     }
+
     $("role-pill").textContent=`superadmin · ${user.email||""}`;
     ocultarLogin();
+
+    // Una vez validado el rol, los fallos de una colección concreta
+    // no expulsan al usuario: cada vista informa su propio problema.
     await cargarDatosGlobales();
   }catch(error){
-    console.error("Error validando/cargando Panel Maestro:",error);
+    console.error("Error validando rol superadmin:",error);
     await signOut(auth).catch(()=>{});
-    mostrarLogin("No fue posible validar el acceso o leer los datos globales.");
+    mostrarLogin("No fue posible validar el rol superadmin. Revisá las reglas de Firestore y el documento usuarios/{uid}.");
   }
 });
 </script>
