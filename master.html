@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShoPo · Panel Maestro</title>
+<style>
+:root{--primary:#6b463a;--primary-hover:#57382f;--bg:#f6f5f3;--card:#fff;--soft:#f1efed;--text:#2d2b2a;--muted:#7f7975;--border:#ded9d5;--border-soft:#ece8e5;--success:#3f7d55;--danger:#a84444;--warning:#a1782f;--sidebar:220px}
+*{box-sizing:border-box} html,body{margin:0;min-height:100%;font-family:"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text)} button,input,select{font:inherit}
+.shell{min-height:100vh;display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}
+.sidebar{position:sticky;top:0;height:100vh;padding:20px 14px;background:var(--card);border-right:1px solid var(--border-soft);display:flex;flex-direction:column;gap:18px}
+.brand{padding:2px 8px 16px;border-bottom:1px solid var(--border-soft)} .brand h1{margin:0;color:var(--primary);font-size:1.45rem;font-weight:500}.brand small{display:block;margin-top:5px;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}
+.nav{display:flex;flex-direction:column;gap:6px}.nav-btn{width:100%;min-height:44px;padding:10px 11px;border:0;border-radius:10px;background:transparent;color:var(--text);display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer}.nav-btn:hover,.nav-btn.active{background:var(--soft);color:var(--primary)}.nav-btn svg{width:19px;height:19px;flex:0 0 19px}
+.main{min-width:0;padding:22px 28px 40px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}.topbar h2{margin:0;font-size:1.08rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em}.role{padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-size:.72rem}
+.panel{display:none}.panel.active{display:block}.panel-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}.panel-title{margin:0;font-size:1rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em}.panel-desc{margin:5px 0 0;color:var(--muted);font-size:.78rem;line-height:1.5}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}.input,.select{height:40px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text);outline:none}.input:focus,.select:focus{border-color:var(--primary)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.stat{min-height:96px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--card)}.stat b{display:block;font-size:1.45rem;font-weight:500;color:var(--primary);margin-bottom:8px}.stat span{color:var(--muted);font-size:.69rem;text-transform:uppercase;letter-spacing:.08em}
+.section{margin-bottom:16px;border:1px solid var(--border);border-radius:12px;background:var(--card);overflow:hidden}.section-head{min-height:52px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-soft)}.section-head h3{margin:0;font-size:.78rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--primary)}.section-body{padding:16px}
+.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:12px 10px;border-bottom:1px solid var(--border-soft);text-align:left;font-size:.75rem}th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;font-weight:500}.empty{padding:28px 18px;text-align:center;color:var(--muted);font-size:.8rem;line-height:1.6}
+.access{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(246,245,243,.96);backdrop-filter:blur(10px)}.access-card{width:min(100%,460px);padding:26px;border:1px solid var(--border);border-radius:14px;background:var(--card);text-align:center}.access-card h2{margin:0 0 8px;color:var(--primary);font-size:1rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em}.access-card p{margin:0;color:var(--muted);font-size:.8rem;line-height:1.6}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){.shell{grid-template-columns:1fr}.sidebar{position:sticky;z-index:1000;top:0;height:auto;padding:10px;border-right:0;border-bottom:1px solid var(--border)}.brand{display:none}.nav{flex-direction:row;overflow-x:auto}.nav-btn{min-width:max-content;width:auto;flex:0 0 auto}.main{padding:18px 12px 30px}.cards{grid-template-columns:1fr 1fr}.panel-head,.topbar{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.cards{grid-template-columns:1fr}.main{padding:16px 10px 28px}}
+</style>
+</head>
+<body>
+<div id="access" class="access"><div class="access-card"><h2>Acceso restringido</h2><p id="access-msg">Este panel requiere el rol superadmin.</p></div></div>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand"><h1>ShoPo</h1><small>Panel Maestro</small></div>
+  <nav class="nav">
+    <button class="nav-btn active" data-view="negocios">🏪 Todos los negocios</button>
+    <button class="nav-btn" data-view="usuarios">👥 Usuarios</button>
+    <button class="nav-btn" data-view="suscripciones">💳 Suscripciones</button>
+    <button class="nav-btn" data-view="cuentas">🧾 Estado de cuentas</button>
+    <button class="nav-btn" data-view="storage">🗄 Uso de Storage</button>
+    <button class="nav-btn" data-view="actividad">↗ Actividad</button>
+    <button class="nav-btn" data-view="metricas">▥ Métricas globales</button>
+    <button class="nav-btn" data-view="bloqueos">🔒 Bloqueos / suspensiones</button>
+    <button class="nav-btn" data-view="auditorias">📄 Auditorías</button>
+  </nav>
+</aside>
+<main class="main">
+  <div class="topbar"><h2 id="view-title">Todos los negocios</h2><div class="role">Rol requerido: superadmin</div></div>
+
+  <section id="view-negocios" class="panel active">
+    <div class="panel-head"><div><h2 class="panel-title">Todos los negocios</h2><p class="panel-desc">Vista general de tenants, estado, actividad y consumo.</p></div><div class="toolbar"><input class="input" placeholder="Buscar negocio..."><select class="select"><option>Todos</option><option>Activos</option><option>Suspendidos</option></select></div></div>
+    <div class="cards"><div class="stat"><b>0</b><span>Negocios</span></div><div class="stat"><b>0</b><span>Activos</span></div><div class="stat"><b>0</b><span>Suspendidos</span></div><div class="stat"><b>0</b><span>Altas este mes</span></div></div>
+    <div class="section"><div class="section-head"><h3>Listado de negocios</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Plan</th><th>Última actividad</th><th>Acción</th></tr></thead><tbody><tr><td colspan="6" class="empty">Todavía no hay datos cargados.</td></tr></tbody></table></div></div></div>
+  </section>
+
+  <section id="view-usuarios" class="panel"><div class="panel-head"><div><h2 class="panel-title">Usuarios</h2><p class="panel-desc">Administradores, responsables y relación con cada negocio.</p></div></div><div class="section"><div class="section-head"><h3>Usuarios registrados</h3></div><div class="section-body"><div class="empty">Sin datos para mostrar.</div></div></div></section>
+  <section id="view-suscripciones" class="panel"><div class="panel-head"><div><h2 class="panel-title">Suscripciones</h2><p class="panel-desc">Planes, renovaciones, vencimientos y cambios de suscripción.</p></div></div><div class="cards"><div class="stat"><b>0</b><span>Activas</span></div><div class="stat"><b>0</b><span>Por vencer</span></div><div class="stat"><b>0</b><span>Vencidas</span></div><div class="stat"><b>$0</b><span>Ingresos recurrentes</span></div></div></section>
+  <section id="view-cuentas" class="panel"><div class="panel-head"><div><h2 class="panel-title">Estado de cuentas</h2><p class="panel-desc">Situación comercial de cada negocio.</p></div></div><div class="section"><div class="section-body"><div class="empty">Sin datos para mostrar.</div></div></div></section>
+  <section id="view-storage" class="panel"><div class="panel-head"><div><h2 class="panel-title">Uso de Storage</h2><p class="panel-desc">Consumo de imágenes y almacenamiento por negocio.</p></div></div><div class="cards"><div class="stat"><b>0 GB</b><span>Uso total</span></div><div class="stat"><b>0</b><span>Archivos</span></div><div class="stat"><b>$0</b><span>Costo estimado</span></div><div class="stat"><b>0%</b><span>Variación mensual</span></div></div></section>
+  <section id="view-actividad" class="panel"><div class="panel-head"><div><h2 class="panel-title">Actividad</h2><p class="panel-desc">Actividad reciente del ecosistema ShoPo.</p></div></div><div class="section"><div class="section-body"><div class="empty">Sin actividad registrada.</div></div></div></section>
+  <section id="view-metricas" class="panel"><div class="panel-head"><div><h2 class="panel-title">Métricas globales</h2><p class="panel-desc">Indicadores consolidados de uso y crecimiento.</p></div></div><div class="cards"><div class="stat"><b>0</b><span>Pedidos</span></div><div class="stat"><b>$0</b><span>GMV</span></div><div class="stat"><b>0</b><span>Negocios activos</span></div><div class="stat"><b>0%</b><span>Retención</span></div></div></section>
+  <section id="view-bloqueos" class="panel"><div class="panel-head"><div><h2 class="panel-title">Bloqueos / suspensiones</h2><p class="panel-desc">Control de acceso y estado operativo de negocios o usuarios.</p></div></div><div class="section"><div class="section-body"><div class="empty">No hay bloqueos ni suspensiones registrados.</div></div></div></section>
+  <section id="view-auditorias" class="panel"><div class="panel-head"><div><h2 class="panel-title">Auditorías</h2><p class="panel-desc">Registro de acciones sensibles realizadas desde el panel maestro.</p></div></div><div class="section"><div class="section-body"><div class="empty">Sin eventos de auditoría.</div></div></div></section>
+</main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig={apiKey:"AIzaSyBwjx4CSqjgDj9GN4apNQoXbfNtrMjSZjk",authDomain:"shopo-bed8a.firebaseapp.com",projectId:"shopo-bed8a",storageBucket:"shopo-bed8a.firebasestorage.app",messagingSenderId:"254059510929",appId:"1:254059510929:web:a9dd69f5353c6fb06f1330"};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+const VIEWS={negocios:"Todos los negocios",usuarios:"Usuarios",suscripciones:"Suscripciones",cuentas:"Estado de cuentas",storage:"Uso de Storage",actividad:"Actividad",metricas:"Métricas globales",bloqueos:"Bloqueos / suspensiones",auditorias:"Auditorías"};
+
+function abrirVista(view){
+  if(!VIEWS[view]) return;
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===`view-${view}`));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+  document.getElementById("view-title").textContent=VIEWS[view];
+}
+document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>abrirVista(btn.dataset.view)));
+
+function bloquear(msg){
+  document.getElementById("access-msg").textContent=msg;
+  document.getElementById("access").style.display="flex";
+}
+function desbloquear(){document.getElementById("access").style.display="none";}
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){bloquear("No hay una sesión autenticada. El Panel Maestro requiere una sesión con rol superadmin.");return;}
+  try{
+    const snap=await getDoc(doc(db,"usuarios",user.uid));
+    if(!snap.exists()){bloquear("El usuario autenticado no tiene un perfil autorizado.");return;}
+    if(snap.data().rol!=="superadmin"){bloquear("Tu usuario no tiene permisos para acceder al Panel Maestro.");return;}
+    desbloquear();
+  }catch(error){
+    console.error("Error validando acceso al Panel Maestro:",error);
+    bloquear("No fue posible verificar los permisos del Panel Maestro.");
+  }
+});
+</script>
+</body>
+</html>
