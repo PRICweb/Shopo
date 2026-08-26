@@ -117,18 +117,18 @@ th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.
 
   <section id="view-usuarios" class="panel">
     <div class="panel-head"><div><h2 class="panel-title">Usuarios</h2><p class="panel-desc">Usuarios registrados y negocio asociado.</p></div><div class="toolbar"><input id="buscar-usuario" class="input" placeholder="Buscar usuario..."></div></div>
-    <div class="section"><div class="section-head"><h3>Usuarios registrados</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Correo</th><th>Rol</th><th>Negocio</th><th>Negocio ID</th></tr></thead><tbody id="tabla-usuarios"></tbody></table></div></div></div>
+    <div class="section"><div class="section-head"><h3>Usuarios registrados</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Correo</th><th>Rol</th><th>Negocio</th><th>Negocio ID</th><th>Estado</th><th>Acción crítica</th></tr></thead><tbody id="tabla-usuarios"></tbody></table></div></div></div>
   </section>
 
   <section id="view-suscripciones" class="panel">
     <div class="panel-head"><div><h2 class="panel-title">Suscripciones</h2><p class="panel-desc">Estado de plan y suscripción según la configuración disponible de cada negocio.</p></div></div>
     <div class="cards"><div class="stat"><b id="sub-activas">0</b><span>Activas</span></div><div class="stat"><b id="sub-pendientes">0</b><span>Pendientes</span></div><div class="stat"><b id="sub-vencidas">0</b><span>Vencidas</span></div><div class="stat"><b id="sub-sin-config">0</b><span>Sin configurar</span></div></div>
-    <div class="section"><div class="section-head"><h3>Suscripciones por negocio</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Plan</th><th>Estado</th><th>Vencimiento</th></tr></thead><tbody id="tabla-suscripciones"></tbody></table></div></div></div>
+    <div class="section"><div class="section-head"><h3>Suscripciones por negocio</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Plan</th><th>Estado</th><th>Vencimiento</th><th>Acción crítica</th></tr></thead><tbody id="tabla-suscripciones"></tbody></table></div></div></div>
   </section>
 
   <section id="view-cuentas" class="panel">
     <div class="panel-head"><div><h2 class="panel-title">Estado de cuentas</h2><p class="panel-desc">Situación comercial registrada en la configuración de cada negocio.</p></div></div>
-    <div class="section"><div class="section-head"><h3>Cuentas</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Estado de cuenta</th><th>Plan</th><th>Observación</th></tr></thead><tbody id="tabla-cuentas"></tbody></table></div></div></div>
+    <div class="section"><div class="section-head"><h3>Cuentas</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Estado de cuenta</th><th>Plan</th><th>Observación</th><th>Acción crítica</th></tr></thead><tbody id="tabla-cuentas"></tbody></table></div></div></div>
   </section>
 
   <section id="view-storage" class="panel">
@@ -390,10 +390,19 @@ window.masterReactivarNegocio=async negocioId=>{
 
 function renderUsuarios(){
   const q=$("buscar-usuario").value.trim().toLowerCase();
-  const rows=state.usuarios.filter(u=>!q||String(u.email||"").toLowerCase().includes(q)||String(u.nombreNegocio||"").toLowerCase().includes(q)||String(u.negocioId||"").toLowerCase().includes(q)).map(u=>
-    `<tr><td>${esc(u.email||"—")}</td><td>${esc(u.rol||"—")}</td><td>${esc(u.nombreNegocio||"—")}</td><td>${esc(u.negocioId||"—")}</td></tr>`
-  ).join("");
-  $("tabla-usuarios").innerHTML=rows||`<tr><td colspan="4" class="empty">Sin usuarios para mostrar.</td></tr>`;
+  const rows=state.usuarios
+    .filter(u=>!q||String(u.email||"").toLowerCase().includes(q)||String(u.nombreNegocio||"").toLowerCase().includes(q)||String(u.negocioId||"").toLowerCase().includes(q))
+    .map(u=>{
+      const bloqueado=u.bloqueado===true||u.estado==="bloqueado";
+      const esSuperadmin=u.rol==="superadmin";
+      const accion=esSuperadmin
+        ? "Protegido"
+        : bloqueado
+          ? `<button class="input" type="button" onclick="window.masterDesbloquearUsuario('${esc(u.id)}')">Desbloquear</button>`
+          : `<button class="input" type="button" onclick="window.masterBloquearUsuario('${esc(u.id)}')">Bloquear</button>`;
+      return `<tr><td>${esc(u.email||"—")}</td><td>${esc(u.rol||"—")}</td><td>${esc(u.nombreNegocio||"—")}</td><td>${esc(u.negocioId||"—")}</td><td>${bloqueado?'<span class="status bad">bloqueado</span>':'<span class="status ok">activo</span>'}</td><td>${accion}</td></tr>`;
+    }).join("");
+  $("tabla-usuarios").innerHTML=rows||`<tr><td colspan="6" class="empty">Sin usuarios para mostrar.</td></tr>`;
 }
 $("buscar-usuario").addEventListener("input",renderUsuarios);
 
@@ -404,14 +413,75 @@ function renderSuscripciones(){
   $("sub-pendientes").textContent=num(estados.pendiente||0);
   $("sub-vencidas").textContent=num((estados.vencida||0)+(estados.vencido||0));
   $("sub-sin-config").textContent=num(estados["sin configurar"]||0);
-  const rows=state.configuraciones.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(planNegocio(c))}</td><td>${esc(estadoSuscripcion(c))}</td><td>${fecha(vencimientoSuscripcion(c))}</td></tr>`).join("");
-  $("tabla-suscripciones").innerHTML=rows||`<tr><td colspan="4" class="empty">Sin suscripciones configuradas.</td></tr>`;
+  const rows=state.configuraciones.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(planNegocio(c))}</td><td>${esc(estadoSuscripcion(c))}</td><td>${fecha(vencimientoSuscripcion(c))}</td><td><button class="input" type="button" onclick="window.masterEditarSuscripcion('${esc(c.id)}')">Editar</button></td></tr>`).join("");
+  $("tabla-suscripciones").innerHTML=rows||`<tr><td colspan="5" class="empty">Sin suscripciones configuradas.</td></tr>`;
 }
 
 function renderCuentas(){
-  const rows=state.configuraciones.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(estadoCuenta(c))}</td><td>${esc(planNegocio(c))}</td><td>${esc(c.observacionCuenta||c.notaCuenta||"—")}</td></tr>`).join("");
-  $("tabla-cuentas").innerHTML=rows||`<tr><td colspan="4" class="empty">Sin estados de cuenta configurados.</td></tr>`;
+  const rows=state.configuraciones.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(estadoCuenta(c))}</td><td>${esc(planNegocio(c))}</td><td>${esc(c.observacionCuenta||c.notaCuenta||"—")}</td><td><button class="input" type="button" onclick="window.masterEditarEstadoCuenta('${esc(c.id)}')">Editar</button></td></tr>`).join("");
+  $("tabla-cuentas").innerHTML=rows||`<tr><td colspan="5" class="empty">Sin estados de cuenta configurados.</td></tr>`;
 }
+
+window.masterBloquearUsuario=async uid=>{
+  const motivo=prompt("Motivo del bloqueo:");
+  if(motivo===null) return;
+  if(!motivo.trim()){alert("Debés indicar un motivo.");return;}
+  try{
+    await masterBackendRequest(MASTER_API.bloquearUsuario,{uid,motivo:motivo.trim()});
+    await cargarDatosGlobales();
+  }catch(error){
+    alert(error?.data?.mensaje||error.message||"No se pudo bloquear el usuario.");
+  }
+};
+
+window.masterDesbloquearUsuario=async uid=>{
+  if(!confirm("¿Desbloquear este usuario?")) return;
+  try{
+    await masterBackendRequest(MASTER_API.desbloquearUsuario,{uid});
+    await cargarDatosGlobales();
+  }catch(error){
+    alert(error?.data?.mensaje||error.message||"No se pudo desbloquear el usuario.");
+  }
+};
+
+window.masterEditarEstadoCuenta=async negocioId=>{
+  const actual=state.configuraciones.find(c=>c.id===negocioId);
+  const estado=prompt("Estado: al_dia, pendiente, vencida o suspendida",String(actual?.estadoCuenta||"al_dia"));
+  if(estado===null) return;
+  const observacion=prompt("Observación (opcional):",String(actual?.observacionCuenta||""));
+  if(observacion===null) return;
+  try{
+    await masterBackendRequest(MASTER_API.cambiarEstadoCuenta,{negocioId,estado:estado.trim(),observacion:observacion.trim()});
+    await cargarDatosGlobales();
+  }catch(error){
+    alert(error?.data?.mensaje||error.message||"No se pudo actualizar el estado de cuenta.");
+  }
+};
+
+window.masterEditarSuscripcion=async negocioId=>{
+  const actual=state.configuraciones.find(c=>c.id===negocioId);
+  const plan=prompt("Plan:",String(planNegocio(actual||{})==="Sin configurar"?"":planNegocio(actual||{})));
+  if(plan===null) return;
+  const estado=prompt("Estado: activa, pendiente, vencida o cancelada",String(estadoSuscripcion(actual||{})==="sin configurar"?"activa":estadoSuscripcion(actual||{})));
+  if(estado===null) return;
+  const fechaActual=vencimientoSuscripcion(actual||{});
+  const fechaTexto=fechaActual?.toDate?.()
+    ? fechaActual.toDate().toISOString().slice(0,10)
+    : "";
+  const fechaVencimiento=prompt("Vencimiento YYYY-MM-DD (vacío = sin vencimiento):",fechaTexto);
+  if(fechaVencimiento===null) return;
+  try{
+    await masterBackendRequest(MASTER_API.cambiarSuscripcion,{
+      negocioId,
+      plan:plan.trim(),
+      estado:estado.trim(),
+      fechaVencimiento:fechaVencimiento.trim()
+    });
+    await cargarDatosGlobales();
+  }catch(error){
+    alert(error?.data?.mensaje||error.message||"No se pudo actualizar la suscripción.");
+  }
+};
 
 function renderActividad(){
   const lista=[...state.auditoria].sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0)).slice(0,50);
