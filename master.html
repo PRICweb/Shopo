@@ -161,6 +161,7 @@ th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { getStorage, ref, listAll, getMetadata } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
@@ -175,6 +176,14 @@ const firebaseConfig={
 };
 
 const app=initializeApp(firebaseConfig);
+
+// Mismo App Check que usa el panel administrador actual.
+// Es necesario porque Firestore/App Check puede estar en modo enforcement.
+const appCheck=initializeAppCheck(app,{
+  provider:new ReCaptchaEnterpriseProvider("6LcuHYktAAAAAKpzKswobl5x0uGUVdbC0WiPp0ip"),
+  isTokenAutoRefreshEnabled:true
+});
+
 const auth=getAuth(app);
 const db=getFirestore(app);
 const storage=getStorage(app);
@@ -218,12 +227,20 @@ async function masterBackendRequest(path,payload={}){
   const user=auth.currentUser;
   if(!user) throw new Error("AUTH_REQUIRED");
 
-  const token=await user.getIdToken();
+  const [appCheckResult,token]=await Promise.all([
+    getToken(appCheck,false),
+    user.getIdToken()
+  ]);
+
+  if(!appCheckResult?.token) throw new Error("APP_CHECK_TOKEN_REQUIRED");
+  if(!token) throw new Error("AUTH_TOKEN_REQUIRED");
+
   const res=await fetch(`${SHOPO_BACKEND_URL}${path}`,{
     method:"POST",
     headers:{
       "Content-Type":"application/json",
-      "Authorization":`Bearer ${token}`
+      "Authorization":`Bearer ${token}`,
+      "X-Firebase-AppCheck":appCheckResult.token
     },
     body:JSON.stringify(payload)
   });
@@ -601,7 +618,25 @@ onAuthStateChanged(auth,async user=>{
   }catch(error){
     console.error("Error validando rol superadmin:",error);
     await signOut(auth).catch(()=>{});
-    mostrarLogin("No fue posible validar el rol superadmin. Revisá las reglas de Firestore y el documento usuarios/{uid}.");
+
+    const codigo=String(error?.code||"");
+    const mensaje=String(error?.message||"");
+
+    if(
+      codigo.includes("app-check") ||
+      mensaje.toLowerCase().includes("app check") ||
+      mensaje.toLowerCase().includes("appcheck")
+    ){
+      mostrarLogin("App Check rechazó la solicitud. Verificá que pricweb.github.io esté permitido en reCAPTCHA Enterprise/App Check.");
+      return;
+    }
+
+    if(codigo.includes("permission-denied")){
+      mostrarLogin("Firestore rechazó la lectura del perfil superadmin. Verificá que las reglas nuevas estén publicadas.");
+      return;
+    }
+
+    mostrarLogin("No fue posible validar el rol superadmin. Revisá la consola del navegador para ver el código exacto.");
   }
 });
 </script>
