@@ -5,97 +5,399 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ShoPo · Panel Maestro</title>
 <style>
-:root{--primary:#6b463a;--primary-hover:#57382f;--bg:#f6f5f3;--card:#fff;--soft:#f1efed;--text:#2d2b2a;--muted:#7f7975;--border:#ded9d5;--border-soft:#ece8e5;--success:#3f7d55;--danger:#a84444;--warning:#a1782f;--sidebar:220px}
-*{box-sizing:border-box} html,body{margin:0;min-height:100%;font-family:"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text)} button,input,select{font:inherit}
+:root{
+  --primary:#6b463a;--primary-hover:#57382f;--bg:#f6f5f3;--card:#fff;--soft:#f1efed;
+  --text:#2d2b2a;--muted:#7f7975;--border:#ded9d5;--border-soft:#ece8e5;
+  --success:#3f7d55;--danger:#a84444;--warning:#a1782f;--sidebar:220px
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}
+.hidden{display:none!important}
 .shell{min-height:100vh;display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}
 .sidebar{position:sticky;top:0;height:100vh;padding:20px 14px;background:var(--card);border-right:1px solid var(--border-soft);display:flex;flex-direction:column;gap:18px}
-.brand{padding:2px 8px 16px;border-bottom:1px solid var(--border-soft)} .brand h1{margin:0;color:var(--primary);font-size:1.45rem;font-weight:500}.brand small{display:block;margin-top:5px;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}
-.nav{display:flex;flex-direction:column;gap:6px}.nav-btn{width:100%;min-height:44px;padding:10px 11px;border:0;border-radius:10px;background:transparent;color:var(--text);display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer}.nav-btn:hover,.nav-btn.active{background:var(--soft);color:var(--primary)}.nav-btn svg{width:19px;height:19px;flex:0 0 19px}
-.main{min-width:0;padding:22px 28px 40px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}.topbar h2{margin:0;font-size:1.08rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em}.role{padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-size:.72rem}
-.panel{display:none}.panel.active{display:block}.panel-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}.panel-title{margin:0;font-size:1rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em}.panel-desc{margin:5px 0 0;color:var(--muted);font-size:.78rem;line-height:1.5}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap}.input,.select{height:40px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text);outline:none}.input:focus,.select:focus{border-color:var(--primary)}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.stat{min-height:96px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--card)}.stat b{display:block;font-size:1.45rem;font-weight:500;color:var(--primary);margin-bottom:8px}.stat span{color:var(--muted);font-size:.69rem;text-transform:uppercase;letter-spacing:.08em}
-.section{margin-bottom:16px;border:1px solid var(--border);border-radius:12px;background:var(--card);overflow:hidden}.section-head{min-height:52px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-soft)}.section-head h3{margin:0;font-size:.78rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--primary)}.section-body{padding:16px}
-.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:12px 10px;border-bottom:1px solid var(--border-soft);text-align:left;font-size:.75rem}th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;font-weight:500}.empty{padding:28px 18px;text-align:center;color:var(--muted);font-size:.8rem;line-height:1.6}
-.access{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(246,245,243,.96);backdrop-filter:blur(10px)}.access-card{width:min(100%,460px);padding:26px;border:1px solid var(--border);border-radius:14px;background:var(--card);text-align:center}.access-card h2{margin:0 0 8px;color:var(--primary);font-size:1rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em}.access-card p{margin:0;color:var(--muted);font-size:.8rem;line-height:1.6}
+.brand{padding:2px 8px 16px;border-bottom:1px solid var(--border-soft)}
+.brand h1{margin:0;color:var(--primary);font-size:1.45rem;font-weight:500}
+.brand small{display:block;margin-top:5px;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em}
+.nav{display:flex;flex-direction:column;gap:6px;overflow:auto}
+.nav-btn{width:100%;min-height:44px;padding:10px 11px;border:0;border-radius:10px;background:transparent;color:var(--text);display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer}
+.nav-btn:hover,.nav-btn.active{background:var(--soft);color:var(--primary)}
+.nav-btn span:first-child{width:20px;min-width:20px;text-align:center}
+.sidebar-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--border-soft)}
+.logout-btn{width:100%;min-height:40px;border:0;background:transparent;color:var(--muted);text-align:left;padding:8px 10px;border-radius:9px;cursor:pointer}
+.logout-btn:hover{background:var(--soft);color:var(--primary)}
+.main{min-width:0;padding:22px 28px 40px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.topbar h2{margin:0;font-size:1.08rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em}
+.role{padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--muted);font-size:.72rem}
+.panel{display:none}.panel.active{display:block}
+.panel-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
+.panel-title{margin:0;font-size:1rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em}
+.panel-desc{margin:5px 0 0;color:var(--muted);font-size:.78rem;line-height:1.5}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.input,.select{height:40px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text);outline:none}
+.input:focus,.select:focus{border-color:var(--primary)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.stat{min-height:96px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+.stat b{display:block;font-size:1.45rem;font-weight:500;color:var(--primary);margin-bottom:8px}
+.stat span{color:var(--muted);font-size:.69rem;text-transform:uppercase;letter-spacing:.08em}
+.section{margin-bottom:16px;border:1px solid var(--border);border-radius:12px;background:var(--card);overflow:hidden}
+.section-head{min-height:52px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-soft)}
+.section-head h3{margin:0;font-size:.78rem;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--primary)}
+.section-body{padding:16px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:12px 10px;border-bottom:1px solid var(--border-soft);text-align:left;font-size:.75rem;vertical-align:middle}
+th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;font-weight:500}
+.empty{padding:28px 18px;text-align:center;color:var(--muted);font-size:.8rem;line-height:1.6}
+.status{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid var(--border);font-size:.66rem;background:#fff}
+.status.ok{color:var(--success);border-color:#bdd7c5;background:#f7fcf8}
+.status.warn{color:var(--warning);border-color:#dccca9;background:#fffdf8}
+.status.bad{color:var(--danger);border-color:#e0bebe;background:#fff9f9}
+.login-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.login-card{width:min(100%,420px);padding:30px;border:1px solid var(--border);border-radius:15px;background:var(--card);box-shadow:0 18px 50px rgba(0,0,0,.08)}
+.login-card h1{margin:0;color:var(--primary);font-size:1.55rem;font-weight:500}
+.login-card h2{margin:8px 0 22px;font-size:.82rem;font-weight:400;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.login-field{margin-bottom:12px}.login-field label{display:block;margin-bottom:6px;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.login-field input{width:100%;height:44px;border:1px solid var(--border);border-radius:9px;padding:0 12px;outline:none}
+.login-field input:focus{border-color:var(--primary)}
+.login-submit{width:100%;height:44px;margin-top:6px;border:0;border-radius:9px;background:var(--primary);color:#fff;cursor:pointer}
+.login-submit:hover{background:var(--primary-hover)}
+.login-error{min-height:20px;margin-top:12px;color:var(--danger);font-size:.74rem;line-height:1.45}
+.loading{opacity:.6;pointer-events:none}
 @media(max-width:1100px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:800px){.shell{grid-template-columns:1fr}.sidebar{position:sticky;z-index:1000;top:0;height:auto;padding:10px;border-right:0;border-bottom:1px solid var(--border)}.brand{display:none}.nav{flex-direction:row;overflow-x:auto}.nav-btn{min-width:max-content;width:auto;flex:0 0 auto}.main{padding:18px 12px 30px}.cards{grid-template-columns:1fr 1fr}.panel-head,.topbar{align-items:flex-start;flex-direction:column}}
+@media(max-width:800px){.shell{grid-template-columns:1fr}.sidebar{position:sticky;z-index:1000;top:0;height:auto;padding:10px;border-right:0;border-bottom:1px solid var(--border)}.brand,.sidebar-bottom{display:none}.nav{flex-direction:row;overflow-x:auto}.nav-btn{min-width:max-content;width:auto;flex:0 0 auto}.main{padding:18px 12px 30px}.cards{grid-template-columns:1fr 1fr}.panel-head,.topbar{align-items:flex-start;flex-direction:column}}
 @media(max-width:520px){.cards{grid-template-columns:1fr}.main{padding:16px 10px 28px}}
 </style>
 </head>
 <body>
-<div id="access" class="access"><div class="access-card"><h2>Acceso restringido</h2><p id="access-msg">Este panel requiere el rol superadmin.</p></div></div>
+
+<div id="login-overlay" class="login-overlay">
+  <form id="login-form" class="login-card" novalidate>
+    <h1>ShoPo</h1>
+    <h2>Panel Maestro</h2>
+    <div class="login-field">
+      <label for="login-email">Correo</label>
+      <input id="login-email" type="email" autocomplete="username" required>
+    </div>
+    <div class="login-field">
+      <label for="login-password">Contraseña</label>
+      <input id="login-password" type="password" autocomplete="current-password" required>
+    </div>
+    <button id="login-submit" class="login-submit" type="submit">Iniciar sesión</button>
+    <div id="login-error" class="login-error" aria-live="polite"></div>
+  </form>
+</div>
+
 <div class="shell">
 <aside class="sidebar">
   <div class="brand"><h1>ShoPo</h1><small>Panel Maestro</small></div>
   <nav class="nav">
-    <button class="nav-btn active" data-view="negocios">🏪 Todos los negocios</button>
-    <button class="nav-btn" data-view="usuarios">👥 Usuarios</button>
-    <button class="nav-btn" data-view="suscripciones">💳 Suscripciones</button>
-    <button class="nav-btn" data-view="cuentas">🧾 Estado de cuentas</button>
-    <button class="nav-btn" data-view="storage">🗄 Uso de Storage</button>
-    <button class="nav-btn" data-view="actividad">↗ Actividad</button>
-    <button class="nav-btn" data-view="metricas">▥ Métricas globales</button>
-    <button class="nav-btn" data-view="bloqueos">🔒 Bloqueos / suspensiones</button>
-    <button class="nav-btn" data-view="auditorias">📄 Auditorías</button>
+    <button class="nav-btn active" data-view="negocios"><span>⌂</span>Todos los negocios</button>
+    <button class="nav-btn" data-view="usuarios"><span>◎</span>Usuarios</button>
+    <button class="nav-btn" data-view="suscripciones"><span>▣</span>Suscripciones</button>
+    <button class="nav-btn" data-view="cuentas"><span>◫</span>Estado de cuentas</button>
+    <button class="nav-btn" data-view="storage"><span>▤</span>Uso de Storage</button>
+    <button class="nav-btn" data-view="actividad"><span>↗</span>Actividad</button>
+    <button class="nav-btn" data-view="metricas"><span>▥</span>Métricas globales</button>
+    <button class="nav-btn" data-view="bloqueos"><span>⊘</span>Bloqueos / suspensiones</button>
+    <button class="nav-btn" data-view="auditorias"><span>≡</span>Auditorías</button>
   </nav>
+  <div class="sidebar-bottom"><button id="logout-btn" class="logout-btn" type="button">Cerrar sesión</button></div>
 </aside>
+
 <main class="main">
-  <div class="topbar"><h2 id="view-title">Todos los negocios</h2><div class="role">Rol requerido: superadmin</div></div>
+  <div class="topbar"><h2 id="view-title">Todos los negocios</h2><div id="role-pill" class="role">superadmin</div></div>
 
   <section id="view-negocios" class="panel active">
-    <div class="panel-head"><div><h2 class="panel-title">Todos los negocios</h2><p class="panel-desc">Vista general de tenants, estado, actividad y consumo.</p></div><div class="toolbar"><input class="input" placeholder="Buscar negocio..."><select class="select"><option>Todos</option><option>Activos</option><option>Suspendidos</option></select></div></div>
-    <div class="cards"><div class="stat"><b>0</b><span>Negocios</span></div><div class="stat"><b>0</b><span>Activos</span></div><div class="stat"><b>0</b><span>Suspendidos</span></div><div class="stat"><b>0</b><span>Altas este mes</span></div></div>
-    <div class="section"><div class="section-head"><h3>Listado de negocios</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Plan</th><th>Última actividad</th><th>Acción</th></tr></thead><tbody><tr><td colspan="6" class="empty">Todavía no hay datos cargados.</td></tr></tbody></table></div></div></div>
+    <div class="panel-head"><div><h2 class="panel-title">Todos los negocios</h2><p class="panel-desc">Vista global de los negocios registrados en ShoPo.</p></div><div class="toolbar"><input id="buscar-negocio" class="input" placeholder="Buscar negocio..."><select id="filtro-negocio" class="select"><option value="">Todos</option><option value="activo">Activos</option><option value="suspendido">Suspendidos</option></select></div></div>
+    <div class="cards"><div class="stat"><b id="stat-negocios">0</b><span>Negocios</span></div><div class="stat"><b id="stat-activos">0</b><span>Activos</span></div><div class="stat"><b id="stat-suspendidos">0</b><span>Suspendidos</span></div><div class="stat"><b id="stat-altas">0</b><span>Altas este mes</span></div></div>
+    <div class="section"><div class="section-head"><h3>Listado de negocios</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Plan</th><th>Usuarios</th><th>Última actividad</th></tr></thead><tbody id="tabla-negocios"></tbody></table></div></div></div>
   </section>
 
-  <section id="view-usuarios" class="panel"><div class="panel-head"><div><h2 class="panel-title">Usuarios</h2><p class="panel-desc">Administradores, responsables y relación con cada negocio.</p></div></div><div class="section"><div class="section-head"><h3>Usuarios registrados</h3></div><div class="section-body"><div class="empty">Sin datos para mostrar.</div></div></div></section>
-  <section id="view-suscripciones" class="panel"><div class="panel-head"><div><h2 class="panel-title">Suscripciones</h2><p class="panel-desc">Planes, renovaciones, vencimientos y cambios de suscripción.</p></div></div><div class="cards"><div class="stat"><b>0</b><span>Activas</span></div><div class="stat"><b>0</b><span>Por vencer</span></div><div class="stat"><b>0</b><span>Vencidas</span></div><div class="stat"><b>$0</b><span>Ingresos recurrentes</span></div></div></section>
-  <section id="view-cuentas" class="panel"><div class="panel-head"><div><h2 class="panel-title">Estado de cuentas</h2><p class="panel-desc">Situación comercial de cada negocio.</p></div></div><div class="section"><div class="section-body"><div class="empty">Sin datos para mostrar.</div></div></div></section>
-  <section id="view-storage" class="panel"><div class="panel-head"><div><h2 class="panel-title">Uso de Storage</h2><p class="panel-desc">Consumo de imágenes y almacenamiento por negocio.</p></div></div><div class="cards"><div class="stat"><b>0 GB</b><span>Uso total</span></div><div class="stat"><b>0</b><span>Archivos</span></div><div class="stat"><b>$0</b><span>Costo estimado</span></div><div class="stat"><b>0%</b><span>Variación mensual</span></div></div></section>
-  <section id="view-actividad" class="panel"><div class="panel-head"><div><h2 class="panel-title">Actividad</h2><p class="panel-desc">Actividad reciente del ecosistema ShoPo.</p></div></div><div class="section"><div class="section-body"><div class="empty">Sin actividad registrada.</div></div></div></section>
-  <section id="view-metricas" class="panel"><div class="panel-head"><div><h2 class="panel-title">Métricas globales</h2><p class="panel-desc">Indicadores consolidados de uso y crecimiento.</p></div></div><div class="cards"><div class="stat"><b>0</b><span>Pedidos</span></div><div class="stat"><b>$0</b><span>GMV</span></div><div class="stat"><b>0</b><span>Negocios activos</span></div><div class="stat"><b>0%</b><span>Retención</span></div></div></section>
-  <section id="view-bloqueos" class="panel"><div class="panel-head"><div><h2 class="panel-title">Bloqueos / suspensiones</h2><p class="panel-desc">Control de acceso y estado operativo de negocios o usuarios.</p></div></div><div class="section"><div class="section-body"><div class="empty">No hay bloqueos ni suspensiones registrados.</div></div></div></section>
-  <section id="view-auditorias" class="panel"><div class="panel-head"><div><h2 class="panel-title">Auditorías</h2><p class="panel-desc">Registro de acciones sensibles realizadas desde el panel maestro.</p></div></div><div class="section"><div class="section-body"><div class="empty">Sin eventos de auditoría.</div></div></div></section>
+  <section id="view-usuarios" class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Usuarios</h2><p class="panel-desc">Usuarios registrados y negocio asociado.</p></div><div class="toolbar"><input id="buscar-usuario" class="input" placeholder="Buscar usuario..."></div></div>
+    <div class="section"><div class="section-head"><h3>Usuarios registrados</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Correo</th><th>Rol</th><th>Negocio</th><th>Negocio ID</th></tr></thead><tbody id="tabla-usuarios"></tbody></table></div></div></div>
+  </section>
+
+  <section id="view-suscripciones" class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Suscripciones</h2><p class="panel-desc">Estado de plan y suscripción según la configuración disponible de cada negocio.</p></div></div>
+    <div class="cards"><div class="stat"><b id="sub-activas">0</b><span>Activas</span></div><div class="stat"><b id="sub-pendientes">0</b><span>Pendientes</span></div><div class="stat"><b id="sub-vencidas">0</b><span>Vencidas</span></div><div class="stat"><b id="sub-sin-config">0</b><span>Sin configurar</span></div></div>
+    <div class="section"><div class="section-head"><h3>Suscripciones por negocio</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Plan</th><th>Estado</th><th>Vencimiento</th></tr></thead><tbody id="tabla-suscripciones"></tbody></table></div></div></div>
+  </section>
+
+  <section id="view-cuentas" class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Estado de cuentas</h2><p class="panel-desc">Situación comercial registrada en la configuración de cada negocio.</p></div></div>
+    <div class="section"><div class="section-head"><h3>Cuentas</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Estado de cuenta</th><th>Plan</th><th>Observación</th></tr></thead><tbody id="tabla-cuentas"></tbody></table></div></div></div>
+  </section>
+
+  <section id="view-storage" class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Uso de Storage</h2><p class="panel-desc">Archivos y tamaño real del bucket, agrupados por negocio cuando Storage autoriza la lectura global.</p></div></div>
+    <div class="cards"><div class="stat"><b id="storage-bytes">0 MB</b><span>Uso total</span></div><div class="stat"><b id="storage-files">0</b><span>Archivos</span></div><div class="stat"><b id="storage-negocios">0</b><span>Negocios con archivos</span></div><div class="stat"><b id="storage-estado">—</b><span>Estado</span></div></div>
+    <div class="section"><div class="section-head"><h3>Consumo por negocio</h3></div><div class="section-body"><div id="storage-detalle" class="empty">Cargando Storage...</div></div></div>
+  </section>
+
+  <section id="view-actividad" class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Actividad</h2><p class="panel-desc">Actividad reciente obtenida desde auditoría.</p></div></div>
+    <div class="section"><div class="section-head"><h3>Actividad reciente</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Negocio</th><th>Acción</th><th>Actor</th></tr></thead><tbody id="tabla-actividad"></tbody></table></div></div></div>
+  </section>
+
+  <section id="view-metricas" class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Métricas globales</h2><p class="panel-desc">Indicadores consolidados de todos los negocios.</p></div></div>
+    <div class="cards"><div class="stat"><b id="met-pedidos">0</b><span>Pedidos</span></div><div class="stat"><b id="met-gmv">$0</b><span>GMV</span></div><div class="stat"><b id="met-negocios">0</b><span>Negocios activos</span></div><div class="stat"><b id="met-ticket">$0</b><span>Ticket promedio</span></div></div>
+  </section>
+
+  <section id="view-bloqueos" class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Bloqueos / suspensiones</h2><p class="panel-desc">Negocios que tengan un estado de suspensión o bloqueo configurado.</p></div></div>
+    <div class="section"><div class="section-head"><h3>Estados restringidos</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Motivo</th></tr></thead><tbody id="tabla-bloqueos"></tbody></table></div></div></div>
+  </section>
+
+  <section id="view-auditorias" class="panel">
+    <div class="panel-head"><div><h2 class="panel-title">Auditorías</h2><p class="panel-desc">Registro global de acciones sensibles.</p></div><div class="toolbar"><input id="buscar-auditoria" class="input" placeholder="Buscar evento..."></div></div>
+    <div class="section"><div class="section-head"><h3>Auditoría</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Negocio</th><th>Acción</th><th>Entidad</th><th>Actor</th></tr></thead><tbody id="tabla-auditorias"></tbody></table></div></div></div>
+  </section>
 </main>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getStorage, ref, listAll, getMetadata } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 
-const firebaseConfig={apiKey:"AIzaSyBwjx4CSqjgDj9GN4apNQoXbfNtrMjSZjk",authDomain:"shopo-bed8a.firebaseapp.com",projectId:"shopo-bed8a",storageBucket:"shopo-bed8a.firebasestorage.app",messagingSenderId:"254059510929",appId:"1:254059510929:web:a9dd69f5353c6fb06f1330"};
+const firebaseConfig={
+  apiKey:"AIzaSyBwjx4CSqjgDj9GN4apNQoXbfNtrMjSZjk",
+  authDomain:"shopo-bed8a.firebaseapp.com",
+  projectId:"shopo-bed8a",
+  storageBucket:"shopo-bed8a.firebasestorage.app",
+  messagingSenderId:"254059510929",
+  appId:"1:254059510929:web:a9dd69f5353c6fb06f1330"
+};
+
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
+const storage=getStorage(app);
 
 const VIEWS={negocios:"Todos los negocios",usuarios:"Usuarios",suscripciones:"Suscripciones",cuentas:"Estado de cuentas",storage:"Uso de Storage",actividad:"Actividad",metricas:"Métricas globales",bloqueos:"Bloqueos / suspensiones",auditorias:"Auditorías"};
+const state={configuraciones:[],usuarios:[],pedidos:[],auditoria:[]};
+
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
+const num=v=>new Intl.NumberFormat("es-AR").format(Number(v)||0);
+const money=v=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(v)||0);
+const fecha=v=>{
+  if(!v) return "—";
+  const d=v?.toDate?.()||new Date(v);
+  return Number.isNaN(d.getTime())?"—":d.toLocaleString("es-AR");
+};
+const negocioNombre=c=>c.nombreNegocio||c.nombre||c.tiendaNombre||c.negocio||c.id||"Sin nombre";
+const negocioEstado=c=>String(c.estadoNegocio||c.estado||c.estadoCuenta||((c.suspendido||c.bloqueado)?"suspendido":"activo")).toLowerCase();
+const planNegocio=c=>c.plan||c.planActual||c.suscripcion?.plan||"Sin configurar";
+const estadoSuscripcion=c=>String(c.estadoSuscripcion||c.suscripcion?.estado||c.estadoPlan||"sin configurar").toLowerCase();
+const vencimientoSuscripcion=c=>c.fechaVencimientoSuscripcion||c.suscripcion?.fechaVencimiento||c.vencimientoPlan||null;
+const estadoCuenta=c=>c.estadoCuenta||c.cuentaEstado||c.estadoPagoCuenta||"Sin configurar";
 
 function abrirVista(view){
   if(!VIEWS[view]) return;
   document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===`view-${view}`));
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
-  document.getElementById("view-title").textContent=VIEWS[view];
+  $("view-title").textContent=VIEWS[view];
 }
 document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>abrirVista(btn.dataset.view)));
 
-function bloquear(msg){
-  document.getElementById("access-msg").textContent=msg;
-  document.getElementById("access").style.display="flex";
+function mostrarLogin(error=""){
+  $("login-overlay").classList.remove("hidden");
+  $("login-error").textContent=error;
 }
-function desbloquear(){document.getElementById("access").style.display="none";}
+function ocultarLogin(){ $("login-overlay").classList.add("hidden"); $("login-error").textContent=""; }
+
+$("login-form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const email=$("login-email").value.trim();
+  const password=$("login-password").value;
+  const btn=$("login-submit");
+  $("login-error").textContent="";
+  btn.disabled=true; btn.textContent="Ingresando...";
+  try{
+    await signInWithEmailAndPassword(auth,email,password);
+  }catch(err){
+    $("login-error").textContent="Correo, contraseña o permisos incorrectos.";
+  }finally{
+    btn.disabled=false; btn.textContent="Iniciar sesión";
+  }
+});
+$("logout-btn").addEventListener("click",()=>signOut(auth));
+
+async function leerColeccion(nombre){
+  const snap=await getDocs(collection(db,nombre));
+  return snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+
+async function cargarDatosGlobales(){
+  document.body.classList.add("loading");
+  try{
+    const [configuraciones,usuarios,pedidos,auditoria]=await Promise.all([
+      leerColeccion("configuracion"),
+      leerColeccion("usuarios"),
+      leerColeccion("pedidos"),
+      leerColeccion("auditoria")
+    ]);
+    state.configuraciones=configuraciones;
+    state.usuarios=usuarios;
+    state.pedidos=pedidos;
+    state.auditoria=auditoria;
+    renderTodo();
+    await cargarStorage();
+  }finally{
+    document.body.classList.remove("loading");
+  }
+}
+
+function renderTodo(){
+  renderNegocios();
+  renderUsuarios();
+  renderSuscripciones();
+  renderCuentas();
+  renderActividad();
+  renderMetricas();
+  renderBloqueos();
+  renderAuditorias();
+}
+
+function renderNegocios(){
+  const usuariosPorNegocio={};
+  state.usuarios.forEach(u=>{if(u.negocioId) usuariosPorNegocio[u.negocioId]=(usuariosPorNegocio[u.negocioId]||0)+1;});
+  const activos=state.configuraciones.filter(c=>!["suspendido","bloqueado"].includes(negocioEstado(c)));
+  const suspendidos=state.configuraciones.length-activos.length;
+  const ahora=new Date(), mes=ahora.getMonth(), anio=ahora.getFullYear();
+  const altas=state.configuraciones.filter(c=>{const d=c.createdAt?.toDate?.()||null;return d&&d.getMonth()===mes&&d.getFullYear()===anio;}).length;
+  $("stat-negocios").textContent=num(state.configuraciones.length);
+  $("stat-activos").textContent=num(activos.length);
+  $("stat-suspendidos").textContent=num(suspendidos);
+  $("stat-altas").textContent=num(altas);
+
+  const q=$("buscar-negocio").value.trim().toLowerCase();
+  const f=$("filtro-negocio").value;
+  const rows=state.configuraciones.filter(c=>{
+    const estado=negocioEstado(c);
+    const matchQ=!q||negocioNombre(c).toLowerCase().includes(q)||String(c.id).toLowerCase().includes(q);
+    const matchF=!f||(f==="activo"?!["suspendido","bloqueado"].includes(estado):["suspendido","bloqueado"].includes(estado));
+    return matchQ&&matchF;
+  }).map(c=>{
+    const estado=negocioEstado(c);
+    const cls=["suspendido","bloqueado"].includes(estado)?"bad":"ok";
+    const audits=state.auditoria.filter(a=>a.negocioId===c.id).sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0));
+    return `<tr><td>${esc(negocioNombre(c))}</td><td>${esc(c.id)}</td><td><span class="status ${cls}">${esc(estado)}</span></td><td>${esc(planNegocio(c))}</td><td>${num(usuariosPorNegocio[c.id]||0)}</td><td>${fecha(audits[0]?.fecha)}</td></tr>`;
+  }).join("");
+  $("tabla-negocios").innerHTML=rows||`<tr><td colspan="6" class="empty">No hay negocios que coincidan.</td></tr>`;
+}
+$("buscar-negocio").addEventListener("input",renderNegocios);
+$("filtro-negocio").addEventListener("change",renderNegocios);
+
+function renderUsuarios(){
+  const q=$("buscar-usuario").value.trim().toLowerCase();
+  const rows=state.usuarios.filter(u=>!q||String(u.email||"").toLowerCase().includes(q)||String(u.nombreNegocio||"").toLowerCase().includes(q)||String(u.negocioId||"").toLowerCase().includes(q)).map(u=>
+    `<tr><td>${esc(u.email||"—")}</td><td>${esc(u.rol||"—")}</td><td>${esc(u.nombreNegocio||"—")}</td><td>${esc(u.negocioId||"—")}</td></tr>`
+  ).join("");
+  $("tabla-usuarios").innerHTML=rows||`<tr><td colspan="4" class="empty">Sin usuarios para mostrar.</td></tr>`;
+}
+$("buscar-usuario").addEventListener("input",renderUsuarios);
+
+function renderSuscripciones(){
+  const estados={activa:0,activo:0,pendiente:0,vencida:0,vencido:0,"sin configurar":0};
+  state.configuraciones.forEach(c=>{const e=estadoSuscripcion(c);estados[e]=(estados[e]||0)+1;});
+  $("sub-activas").textContent=num((estados.activa||0)+(estados.activo||0));
+  $("sub-pendientes").textContent=num(estados.pendiente||0);
+  $("sub-vencidas").textContent=num((estados.vencida||0)+(estados.vencido||0));
+  $("sub-sin-config").textContent=num(estados["sin configurar"]||0);
+  const rows=state.configuraciones.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(planNegocio(c))}</td><td>${esc(estadoSuscripcion(c))}</td><td>${fecha(vencimientoSuscripcion(c))}</td></tr>`).join("");
+  $("tabla-suscripciones").innerHTML=rows||`<tr><td colspan="4" class="empty">Sin suscripciones configuradas.</td></tr>`;
+}
+
+function renderCuentas(){
+  const rows=state.configuraciones.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(estadoCuenta(c))}</td><td>${esc(planNegocio(c))}</td><td>${esc(c.observacionCuenta||c.notaCuenta||"—")}</td></tr>`).join("");
+  $("tabla-cuentas").innerHTML=rows||`<tr><td colspan="4" class="empty">Sin estados de cuenta configurados.</td></tr>`;
+}
+
+function renderActividad(){
+  const lista=[...state.auditoria].sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0)).slice(0,50);
+  $("tabla-actividad").innerHTML=lista.map(a=>`<tr><td>${fecha(a.fecha)}</td><td>${esc(a.negocioId||"—")}</td><td>${esc(a.accion||"—")}</td><td>${esc(a.actor?.email||a.actor?.uid||"—")}</td></tr>`).join("")||`<tr><td colspan="4" class="empty">Sin actividad registrada.</td></tr>`;
+}
+
+function renderMetricas(){
+  const pedidosValidos=state.pedidos.filter(p=>p.estadoPedido!=="cancelado"&&p.estadoGeneral!=="cancelado");
+  const gmv=pedidosValidos.reduce((s,p)=>s+(Number(p.total)||Number(p.totalFinal)||0),0);
+  const negociosActivos=state.configuraciones.filter(c=>!["suspendido","bloqueado"].includes(negocioEstado(c))).length;
+  $("met-pedidos").textContent=num(pedidosValidos.length);
+  $("met-gmv").textContent=money(gmv);
+  $("met-negocios").textContent=num(negociosActivos);
+  $("met-ticket").textContent=money(pedidosValidos.length?gmv/pedidosValidos.length:0);
+}
+
+function renderBloqueos(){
+  const bloqueados=state.configuraciones.filter(c=>["suspendido","bloqueado"].includes(negocioEstado(c))||c.suspendido===true||c.bloqueado===true);
+  $("tabla-bloqueos").innerHTML=bloqueados.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(c.id)}</td><td><span class="status bad">${esc(negocioEstado(c))}</span></td><td>${esc(c.motivoSuspension||c.motivoBloqueo||"—")}</td></tr>`).join("")||`<tr><td colspan="4" class="empty">No hay bloqueos ni suspensiones registrados.</td></tr>`;
+}
+
+function renderAuditorias(){
+  const q=$("buscar-auditoria").value.trim().toLowerCase();
+  const lista=[...state.auditoria].sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0)).filter(a=>!q||JSON.stringify(a).toLowerCase().includes(q));
+  $("tabla-auditorias").innerHTML=lista.map(a=>`<tr><td>${fecha(a.fecha)}</td><td>${esc(a.negocioId||"—")}</td><td>${esc(a.accion||"—")}</td><td>${esc(a.entidad||"—")}</td><td>${esc(a.actor?.email||a.actor?.uid||"—")}</td></tr>`).join("")||`<tr><td colspan="5" class="empty">Sin eventos de auditoría.</td></tr>`;
+}
+$("buscar-auditoria").addEventListener("input",renderAuditorias);
+
+async function listarStorageRecursivo(ruta){
+  const resultado=await listAll(ref(storage,ruta));
+  let archivos=[...resultado.items];
+  for(const carpeta of resultado.prefixes){
+    archivos=archivos.concat(await listarStorageRecursivo(carpeta.fullPath));
+  }
+  return archivos;
+}
+
+async function cargarStorage(){
+  try{
+    const archivos=await listarStorageRecursivo("negocios");
+    const metas=await Promise.all(archivos.map(async item=>{
+      const m=await getMetadata(item);
+      return {path:item.fullPath,size:Number(m.size)||0};
+    }));
+    const total=metas.reduce((s,m)=>s+m.size,0);
+    const porNegocio={};
+    metas.forEach(m=>{
+      const partes=m.path.split("/");
+      const negocioId=partes[1]||"sin_negocio";
+      porNegocio[negocioId]=(porNegocio[negocioId]||0)+m.size;
+    });
+    $("storage-bytes").textContent=total>=1024**3?`${(total/1024**3).toFixed(2)} GB`:`${(total/1024**2).toFixed(2)} MB`;
+    $("storage-files").textContent=num(metas.length);
+    $("storage-negocios").textContent=num(Object.keys(porNegocio).length);
+    $("storage-estado").textContent="OK";
+    $("storage-detalle").innerHTML=Object.entries(porNegocio).sort((a,b)=>b[1]-a[1]).map(([id,bytes])=>`${esc(id)} · ${(bytes/1024**2).toFixed(2)} MB`).join("<br>")||"No hay archivos en negocios/.";
+  }catch(error){
+    console.warn("Storage no disponible para superadmin:",error);
+    $("storage-estado").textContent="Sin permiso";
+    $("storage-detalle").textContent="El código está listo, pero las reglas actuales de Firebase Storage todavía deben permitir lectura/listado al rol superadmin.";
+  }
+}
 
 onAuthStateChanged(auth,async user=>{
-  if(!user){bloquear("No hay una sesión autenticada. El Panel Maestro requiere una sesión con rol superadmin.");return;}
+  if(!user){mostrarLogin();return;}
   try{
     const snap=await getDoc(doc(db,"usuarios",user.uid));
-    if(!snap.exists()){bloquear("El usuario autenticado no tiene un perfil autorizado.");return;}
-    if(snap.data().rol!=="superadmin"){bloquear("Tu usuario no tiene permisos para acceder al Panel Maestro.");return;}
-    desbloquear();
+    if(!snap.exists()||snap.data().rol!=="superadmin"){
+      await signOut(auth);
+      mostrarLogin("Esta cuenta no tiene rol superadmin.");
+      return;
+    }
+    $("role-pill").textContent=`superadmin · ${user.email||""}`;
+    ocultarLogin();
+    await cargarDatosGlobales();
   }catch(error){
-    console.error("Error validando acceso al Panel Maestro:",error);
-    bloquear("No fue posible verificar los permisos del Panel Maestro.");
+    console.error("Error validando/cargando Panel Maestro:",error);
+    await signOut(auth).catch(()=>{});
+    mostrarLogin("No fue posible validar el acceso o leer los datos globales.");
   }
 });
 </script>
