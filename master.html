@@ -65,6 +65,18 @@ th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.
 .login-submit:hover{background:var(--primary-hover)}
 .login-error{min-height:20px;margin-top:12px;color:var(--danger);font-size:.74rem;line-height:1.45}
 .loading{opacity:.6;pointer-events:none}
+.data-diagnostic{
+  margin:0 0 14px;
+  padding:11px 13px;
+  border:1px solid #e3c4c4;
+  border-radius:10px;
+  background:#fff9f9;
+  color:var(--danger);
+  font-size:.75rem;
+  line-height:1.5;
+}
+.data-diagnostic strong{font-weight:600}
+
 @media(max-width:1100px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:800px){.shell{grid-template-columns:1fr}.sidebar{position:sticky;z-index:1000;top:0;height:auto;padding:10px;border-right:0;border-bottom:1px solid var(--border)}.brand,.sidebar-bottom{display:none}.nav{flex-direction:row;overflow-x:auto}.nav-btn{min-width:max-content;width:auto;flex:0 0 auto}.main{padding:18px 12px 30px}.cards{grid-template-columns:1fr 1fr}.panel-head,.topbar{align-items:flex-start;flex-direction:column}}
 @media(max-width:520px){.cards{grid-template-columns:1fr}.main{padding:16px 10px 28px}}
@@ -110,49 +122,69 @@ th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.
   <div class="topbar"><h2 id="view-title">Todos los negocios</h2><div id="role-pill" class="role">superadmin</div></div>
 
   <section id="view-negocios" class="panel active">
+    <div id="diag-negocios"></div>
     <div class="panel-head"><div><h2 class="panel-title">Todos los negocios</h2><p class="panel-desc">Vista global de los negocios registrados en ShoPo.</p></div><div class="toolbar"><input id="buscar-negocio" class="input" placeholder="Buscar negocio..."><select id="filtro-negocio" class="select"><option value="">Todos</option><option value="activo">Activos</option><option value="suspendido">Suspendidos</option></select></div></div>
     <div class="cards"><div class="stat"><b id="stat-negocios">0</b><span>Negocios</span></div><div class="stat"><b id="stat-activos">0</b><span>Activos</span></div><div class="stat"><b id="stat-suspendidos">0</b><span>Suspendidos</span></div><div class="stat"><b id="stat-altas">0</b><span>Altas este mes</span></div></div>
     <div class="section"><div class="section-head"><h3>Listado de negocios</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Plan</th><th>Usuarios</th><th>Última actividad</th><th>Acción crítica</th></tr></thead><tbody id="tabla-negocios"></tbody></table></div></div></div>
   </section>
 
   <section id="view-usuarios" class="panel">
+    <div id="diag-usuarios"></div>
     <div class="panel-head"><div><h2 class="panel-title">Usuarios</h2><p class="panel-desc">Usuarios registrados y negocio asociado.</p></div><div class="toolbar"><input id="buscar-usuario" class="input" placeholder="Buscar usuario..."></div></div>
     <div class="section"><div class="section-head"><h3>Usuarios registrados</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Correo</th><th>Rol</th><th>Negocio</th><th>Negocio ID</th><th>Estado</th><th>Acción crítica</th></tr></thead><tbody id="tabla-usuarios"></tbody></table></div></div></div>
   </section>
 
   <section id="view-suscripciones" class="panel">
-    <div class="panel-head"><div><h2 class="panel-title">Suscripciones</h2><p class="panel-desc">Estado de plan y suscripción según la configuración disponible de cada negocio.</p></div></div>
-    <div class="cards"><div class="stat"><b id="sub-activas">0</b><span>Activas</span></div><div class="stat"><b id="sub-pendientes">0</b><span>Pendientes</span></div><div class="stat"><b id="sub-vencidas">0</b><span>Vencidas</span></div><div class="stat"><b id="sub-sin-config">0</b><span>Sin configurar</span></div></div>
-    <div class="section"><div class="section-head"><h3>Suscripciones por negocio</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Plan</th><th>Estado</th><th>Vencimiento</th><th>Acción crítica</th></tr></thead><tbody id="tabla-suscripciones"></tbody></table></div></div></div>
+    <div class="panel-head">
+      <div>
+        <h2 class="panel-title">Suscripciones</h2>
+        <p class="panel-desc">Esta sección queda reservada para el paso de Suscripciones.</p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-body"><div class="empty">Sin implementar todavía.</div></div>
+    </div>
   </section>
 
   <section id="view-cuentas" class="panel">
-    <div class="panel-head"><div><h2 class="panel-title">Estado de cuentas</h2><p class="panel-desc">Situación comercial registrada en la configuración de cada negocio.</p></div></div>
-    <div class="section"><div class="section-head"><h3>Cuentas</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Estado de cuenta</th><th>Plan</th><th>Observación</th><th>Acción crítica</th></tr></thead><tbody id="tabla-cuentas"></tbody></table></div></div></div>
+    <div class="panel-head">
+      <div>
+        <h2 class="panel-title">Estado de cuentas</h2>
+        <p class="panel-desc">Esta sección queda reservada para el paso de Suscripciones.</p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-body"><div class="empty">Sin implementar todavía.</div></div>
+    </div>
   </section>
 
   <section id="view-storage" class="panel">
+    <div id="diag-storage"></div>
     <div class="panel-head"><div><h2 class="panel-title">Uso de Storage</h2><p class="panel-desc">Archivos y tamaño real del bucket, agrupados por negocio cuando Storage autoriza la lectura global.</p></div></div>
     <div class="cards"><div class="stat"><b id="storage-bytes">0 MB</b><span>Uso total</span></div><div class="stat"><b id="storage-files">0</b><span>Archivos</span></div><div class="stat"><b id="storage-negocios">0</b><span>Negocios con archivos</span></div><div class="stat"><b id="storage-estado">—</b><span>Estado</span></div></div>
     <div class="section"><div class="section-head"><h3>Consumo por negocio</h3></div><div class="section-body"><div id="storage-detalle" class="empty">Cargando Storage...</div></div></div>
   </section>
 
   <section id="view-actividad" class="panel">
+    <div id="diag-actividad"></div>
     <div class="panel-head"><div><h2 class="panel-title">Actividad</h2><p class="panel-desc">Actividad reciente obtenida desde auditoría.</p></div></div>
     <div class="section"><div class="section-head"><h3>Actividad reciente</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Negocio</th><th>Acción</th><th>Actor</th></tr></thead><tbody id="tabla-actividad"></tbody></table></div></div></div>
   </section>
 
   <section id="view-metricas" class="panel">
+    <div id="diag-metricas"></div>
     <div class="panel-head"><div><h2 class="panel-title">Métricas globales</h2><p class="panel-desc">Indicadores consolidados de todos los negocios.</p></div></div>
     <div class="cards"><div class="stat"><b id="met-pedidos">0</b><span>Pedidos</span></div><div class="stat"><b id="met-gmv">$0</b><span>GMV</span></div><div class="stat"><b id="met-negocios">0</b><span>Negocios activos</span></div><div class="stat"><b id="met-ticket">$0</b><span>Ticket promedio</span></div></div>
   </section>
 
   <section id="view-bloqueos" class="panel">
+    <div id="diag-bloqueos"></div>
     <div class="panel-head"><div><h2 class="panel-title">Bloqueos / suspensiones</h2><p class="panel-desc">Negocios que tengan un estado de suspensión o bloqueo configurado.</p></div></div>
     <div class="section"><div class="section-head"><h3>Estados restringidos</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>ID</th><th>Estado</th><th>Motivo</th></tr></thead><tbody id="tabla-bloqueos"></tbody></table></div></div></div>
   </section>
 
   <section id="view-auditorias" class="panel">
+    <div id="diag-auditorias"></div>
     <div class="panel-head"><div><h2 class="panel-title">Auditorías</h2><p class="panel-desc">Registro global de acciones sensibles.</p></div><div class="toolbar"><input id="buscar-auditoria" class="input" placeholder="Buscar evento..."></div></div>
     <div class="section"><div class="section-head"><h3>Auditoría</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Negocio</th><th>Acción</th><th>Entidad</th><th>Actor</th></tr></thead><tbody id="tabla-auditorias"></tbody></table></div></div></div>
   </section>
@@ -194,6 +226,7 @@ const state={
   usuarios:[],
   pedidos:[],
   auditoria:[],
+  negocios:[],
   errores:{}
 };
 
@@ -217,11 +250,89 @@ const fecha=v=>{
   return Number.isNaN(d.getTime())?"—":d.toLocaleString("es-AR");
 };
 const negocioNombre=c=>c.nombreNegocio||c.nombre||c.tiendaNombre||c.negocio||c.id||"Sin nombre";
-const negocioEstado=c=>String(c.estadoNegocio||c.estado||c.estadoCuenta||((c.suspendido||c.bloqueado)?"suspendido":"activo")).toLowerCase();
-const planNegocio=c=>c.plan||c.planActual||c.suscripcion?.plan||"Sin configurar";
-const estadoSuscripcion=c=>String(c.estadoSuscripcion||c.suscripcion?.estado||c.estadoPlan||"sin configurar").toLowerCase();
-const vencimientoSuscripcion=c=>c.fechaVencimientoSuscripcion||c.suscripcion?.fechaVencimiento||c.vencimientoPlan||null;
-const estadoCuenta=c=>c.estadoCuenta||c.cuentaEstado||c.estadoPagoCuenta||"Sin configurar";
+const negocioEstado=c=>String(c.estadoNegocio||c.estado||((c.suspendido||c.bloqueado)?"suspendido":"activo")).toLowerCase();
+
+function describirError(error){
+  if(!error) return "";
+  const codigo=String(error.code||error.codigo||"").trim();
+  const mensaje=String(error.message||error.mensaje||error||"").trim();
+  return [codigo,mensaje].filter(Boolean).join(" · ");
+}
+
+function mostrarDiagnostico(id,errores=[]){
+  const el=$(id);
+  if(!el) return;
+
+  const activos=errores.filter(x=>x?.error);
+  if(!activos.length){
+    el.innerHTML="";
+    return;
+  }
+
+  el.innerHTML=`<div class="data-diagnostic"><strong>No se pudieron cargar todos los datos.</strong><br>${activos.map(x=>`${esc(x.nombre)}: ${esc(describirError(x.error))}`).join("<br>")}</div>`;
+}
+
+function reconstruirNegocios(){
+  const mapa=new Map();
+
+  // En el admin actual NO existe una colección "negocios".
+  // Cada negocio nace en usuarios/{uid} con nombreNegocio + negocioId.
+  for(const usuario of state.usuarios){
+    const negocioId=String(usuario.negocioId||"").trim();
+    if(!negocioId) continue;
+
+    if(!mapa.has(negocioId)){
+      mapa.set(negocioId,{
+        id:negocioId,
+        negocioId,
+        nombreNegocio:usuario.nombreNegocio||negocioId,
+        usuarios:[],
+        creadoEl:usuario.creadoEl||null,
+        createdAt:usuario.createdAt||null
+      });
+    }
+
+    const negocio=mapa.get(negocioId);
+    negocio.usuarios.push(usuario);
+
+    if(
+      negocio.nombreNegocio===negocioId &&
+      usuario.nombreNegocio
+    ){
+      negocio.nombreNegocio=usuario.nombreNegocio;
+    }
+
+    const fechaUsuario=usuario.createdAt||usuario.creadoEl||null;
+    if(!negocio.createdAt && fechaUsuario) negocio.createdAt=fechaUsuario;
+  }
+
+  // La configuración complementa al negocio, pero no es su fuente primaria.
+  for(const config of state.configuraciones){
+    const negocioId=String(config.negocioId||config.id||"").trim();
+    if(!negocioId) continue;
+
+    const existente=mapa.get(negocioId)||{
+      id:negocioId,
+      negocioId,
+      nombreNegocio:config.nombreNegocio||config.nombre||negocioId,
+      usuarios:[]
+    };
+
+    mapa.set(negocioId,{
+      ...existente,
+      ...config,
+      id:negocioId,
+      negocioId,
+      nombreNegocio:
+        existente.nombreNegocio && existente.nombreNegocio!==negocioId
+          ? existente.nombreNegocio
+          : (config.nombreNegocio||config.nombre||negocioId),
+      usuarios:existente.usuarios||[]
+    });
+  }
+
+  state.negocios=[...mapa.values()];
+}
 
 async function masterBackendRequest(path,payload={}){
   const user=auth.currentUser;
@@ -316,6 +427,7 @@ async function cargarDatosGlobales(){
     if(error) state.errores[clave]=error;
   });
 
+  reconstruirNegocios();
   renderTodo();
 
   try{
@@ -327,16 +439,10 @@ async function cargarDatosGlobales(){
   }
 }
 
-function mensajeErrorLectura(clave,nombre){
-  if(!state.errores[clave]) return "";
-  return `<div class="empty">No se pudo leer ${esc(nombre)}. Revisá que las reglas Firestore con acceso superadmin estén publicadas.</div>`;
-}
 
 function renderTodo(){
   renderNegocios();
   renderUsuarios();
-  renderSuscripciones();
-  renderCuentas();
   renderActividad();
   renderMetricas();
   renderBloqueos();
@@ -344,20 +450,30 @@ function renderTodo(){
 }
 
 function renderNegocios(){
-  const usuariosPorNegocio={};
-  state.usuarios.forEach(u=>{if(u.negocioId) usuariosPorNegocio[u.negocioId]=(usuariosPorNegocio[u.negocioId]||0)+1;});
-  const activos=state.configuraciones.filter(c=>!["suspendido","bloqueado"].includes(negocioEstado(c)));
-  const suspendidos=state.configuraciones.length-activos.length;
+  mostrarDiagnostico("diag-negocios",[
+    {nombre:"usuarios",error:state.errores.usuarios},
+    {nombre:"configuracion",error:state.errores.configuraciones}
+  ]);
+
+  const activos=state.negocios.filter(c=>!["suspendido","bloqueado"].includes(negocioEstado(c)));
+  const suspendidos=state.negocios.length-activos.length;
   const ahora=new Date(), mes=ahora.getMonth(), anio=ahora.getFullYear();
-  const altas=state.configuraciones.filter(c=>{const d=c.createdAt?.toDate?.()||null;return d&&d.getMonth()===mes&&d.getFullYear()===anio;}).length;
-  $("stat-negocios").textContent=num(state.configuraciones.length);
+
+  const altas=state.negocios.filter(c=>{
+    const raw=c.createdAt||c.creadoEl;
+    const d=raw?.toDate?.()||(raw?new Date(raw):null);
+    return d&&!Number.isNaN(d.getTime())&&d.getMonth()===mes&&d.getFullYear()===anio;
+  }).length;
+
+  $("stat-negocios").textContent=num(state.negocios.length);
   $("stat-activos").textContent=num(activos.length);
   $("stat-suspendidos").textContent=num(suspendidos);
   $("stat-altas").textContent=num(altas);
 
   const q=$("buscar-negocio").value.trim().toLowerCase();
   const f=$("filtro-negocio").value;
-  const rows=state.configuraciones.filter(c=>{
+
+  const rows=state.negocios.filter(c=>{
     const estado=negocioEstado(c);
     const matchQ=!q||negocioNombre(c).toLowerCase().includes(q)||String(c.id).toLowerCase().includes(q);
     const matchF=!f||(f==="activo"?!["suspendido","bloqueado"].includes(estado):["suspendido","bloqueado"].includes(estado));
@@ -365,14 +481,19 @@ function renderNegocios(){
   }).map(c=>{
     const estado=negocioEstado(c);
     const cls=["suspendido","bloqueado"].includes(estado)?"bad":"ok";
-    const audits=state.auditoria.filter(a=>a.negocioId===c.id).sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0));
+    const audits=state.auditoria
+      .filter(a=>a.negocioId===c.id)
+      .sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0));
+
     const restringido=["suspendido","bloqueado"].includes(estado);
     const accion=restringido
       ?`<button class="input" type="button" onclick="window.masterReactivarNegocio('${esc(c.id)}')">Reactivar</button>`
       :`<button class="input" type="button" onclick="window.masterSuspenderNegocio('${esc(c.id)}')">Suspender</button>`;
-    return `<tr><td>${esc(negocioNombre(c))}</td><td>${esc(c.id)}</td><td><span class="status ${cls}">${esc(estado)}</span></td><td>${esc(planNegocio(c))}</td><td>${num(usuariosPorNegocio[c.id]||0)}</td><td>${fecha(audits[0]?.fecha)}</td><td>${accion}</td></tr>`;
+
+    return `<tr><td>${esc(negocioNombre(c))}</td><td>${esc(c.id)}</td><td><span class="status ${cls}">${esc(estado)}</span></td><td>—</td><td>${num(c.usuarios?.length||0)}</td><td>${fecha(audits[0]?.fecha)}</td><td>${accion}</td></tr>`;
   }).join("");
-  $("tabla-negocios").innerHTML=rows||`<tr><td colspan="7" class="empty">No hay negocios que coincidan.</td></tr>`;
+
+  $("tabla-negocios").innerHTML=rows||`<tr><td colspan="7" class="empty">${state.errores.usuarios?"No se pudieron leer los negocios porque falló la colección usuarios.":"No hay negocios registrados."}</td></tr>`;
 }
 $("buscar-negocio").addEventListener("input",renderNegocios);
 $("filtro-negocio").addEventListener("change",renderNegocios);
@@ -406,38 +527,32 @@ window.masterReactivarNegocio=async negocioId=>{
 };
 
 function renderUsuarios(){
+  mostrarDiagnostico("diag-usuarios",[
+    {nombre:"usuarios",error:state.errores.usuarios}
+  ]);
+
   const q=$("buscar-usuario").value.trim().toLowerCase();
+
   const rows=state.usuarios
     .filter(u=>!q||String(u.email||"").toLowerCase().includes(q)||String(u.nombreNegocio||"").toLowerCase().includes(q)||String(u.negocioId||"").toLowerCase().includes(q))
     .map(u=>{
       const bloqueado=u.bloqueado===true||u.estado==="bloqueado";
       const esSuperadmin=u.rol==="superadmin";
+
       const accion=esSuperadmin
         ? "Protegido"
         : bloqueado
           ? `<button class="input" type="button" onclick="window.masterDesbloquearUsuario('${esc(u.id)}')">Desbloquear</button>`
           : `<button class="input" type="button" onclick="window.masterBloquearUsuario('${esc(u.id)}')">Bloquear</button>`;
+
       return `<tr><td>${esc(u.email||"—")}</td><td>${esc(u.rol||"—")}</td><td>${esc(u.nombreNegocio||"—")}</td><td>${esc(u.negocioId||"—")}</td><td>${bloqueado?'<span class="status bad">bloqueado</span>':'<span class="status ok">activo</span>'}</td><td>${accion}</td></tr>`;
     }).join("");
-  $("tabla-usuarios").innerHTML=rows||`<tr><td colspan="6" class="empty">Sin usuarios para mostrar.</td></tr>`;
+
+  $("tabla-usuarios").innerHTML=rows||`<tr><td colspan="6" class="empty">${state.errores.usuarios?"No se pudo leer la colección usuarios.":"No hay usuarios registrados."}</td></tr>`;
 }
 $("buscar-usuario").addEventListener("input",renderUsuarios);
 
-function renderSuscripciones(){
-  const estados={activa:0,activo:0,pendiente:0,vencida:0,vencido:0,"sin configurar":0};
-  state.configuraciones.forEach(c=>{const e=estadoSuscripcion(c);estados[e]=(estados[e]||0)+1;});
-  $("sub-activas").textContent=num((estados.activa||0)+(estados.activo||0));
-  $("sub-pendientes").textContent=num(estados.pendiente||0);
-  $("sub-vencidas").textContent=num((estados.vencida||0)+(estados.vencido||0));
-  $("sub-sin-config").textContent=num(estados["sin configurar"]||0);
-  const rows=state.configuraciones.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(planNegocio(c))}</td><td>${esc(estadoSuscripcion(c))}</td><td>${fecha(vencimientoSuscripcion(c))}</td><td><button class="input" type="button" onclick="window.masterEditarSuscripcion('${esc(c.id)}')">Editar</button></td></tr>`).join("");
-  $("tabla-suscripciones").innerHTML=rows||`<tr><td colspan="5" class="empty">Sin suscripciones configuradas.</td></tr>`;
-}
 
-function renderCuentas(){
-  const rows=state.configuraciones.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(estadoCuenta(c))}</td><td>${esc(planNegocio(c))}</td><td>${esc(c.observacionCuenta||c.notaCuenta||"—")}</td><td><button class="input" type="button" onclick="window.masterEditarEstadoCuenta('${esc(c.id)}')">Editar</button></td></tr>`).join("");
-  $("tabla-cuentas").innerHTML=rows||`<tr><td colspan="5" class="empty">Sin estados de cuenta configurados.</td></tr>`;
-}
 
 window.masterBloquearUsuario=async uid=>{
   const motivo=prompt("Motivo del bloqueo:");
@@ -501,14 +616,33 @@ window.masterEditarSuscripcion=async negocioId=>{
 };
 
 function renderActividad(){
-  const lista=[...state.auditoria].sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0)).slice(0,50);
-  $("tabla-actividad").innerHTML=lista.map(a=>`<tr><td>${fecha(a.fecha)}</td><td>${esc(a.negocioId||"—")}</td><td>${esc(a.accion||"—")}</td><td>${esc(a.actor?.email||a.actor?.uid||"—")}</td></tr>`).join("")||`<tr><td colspan="4" class="empty">Sin actividad registrada.</td></tr>`;
+  mostrarDiagnostico("diag-actividad",[
+    {nombre:"auditoria",error:state.errores.auditoria}
+  ]);
+
+  const lista=[...state.auditoria]
+    .sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0))
+    .slice(0,50);
+
+  $("tabla-actividad").innerHTML=lista.map(a=>
+    `<tr><td>${fecha(a.fecha)}</td><td>${esc(a.negocioId||"—")}</td><td>${esc(a.accion||"—")}</td><td>${esc(a.actor?.email||a.actor?.uid||"—")}</td></tr>`
+  ).join("")||`<tr><td colspan="4" class="empty">${state.errores.auditoria?"No se pudo leer auditoría.":"Sin actividad registrada."}</td></tr>`;
 }
 
 function renderMetricas(){
-  const pedidosValidos=state.pedidos.filter(p=>p.estadoPedido!=="cancelado"&&p.estadoGeneral!=="cancelado");
-  const gmv=pedidosValidos.reduce((s,p)=>s+(Number(p.total)||Number(p.totalFinal)||0),0);
-  const negociosActivos=state.configuraciones.filter(c=>!["suspendido","bloqueado"].includes(negocioEstado(c))).length;
+  mostrarDiagnostico("diag-metricas",[
+    {nombre:"pedidos",error:state.errores.pedidos},
+    {nombre:"usuarios",error:state.errores.usuarios}
+  ]);
+
+  const pedidosValidos=state.pedidos.filter(p=>{
+    const estado=String(p.estadoPedido||p.estadoGeneral||"").toLowerCase();
+    return estado!=="cancelado";
+  });
+
+  const gmv=pedidosValidos.reduce((s,p)=>s+(Number(p.total)||0),0);
+  const negociosActivos=state.negocios.filter(c=>!["suspendido","bloqueado"].includes(negocioEstado(c))).length;
+
   $("met-pedidos").textContent=num(pedidosValidos.length);
   $("met-gmv").textContent=money(gmv);
   $("met-negocios").textContent=num(negociosActivos);
@@ -516,14 +650,53 @@ function renderMetricas(){
 }
 
 function renderBloqueos(){
-  const bloqueados=state.configuraciones.filter(c=>["suspendido","bloqueado"].includes(negocioEstado(c))||c.suspendido===true||c.bloqueado===true);
-  $("tabla-bloqueos").innerHTML=bloqueados.map(c=>`<tr><td>${esc(negocioNombre(c))}</td><td>${esc(c.id)}</td><td><span class="status bad">${esc(negocioEstado(c))}</span></td><td>${esc(c.motivoSuspension||c.motivoBloqueo||"—")}</td></tr>`).join("")||`<tr><td colspan="4" class="empty">No hay bloqueos ni suspensiones registrados.</td></tr>`;
+  mostrarDiagnostico("diag-bloqueos",[
+    {nombre:"usuarios",error:state.errores.usuarios},
+    {nombre:"configuracion",error:state.errores.configuraciones}
+  ]);
+
+  const filas=[];
+
+  for(const c of state.negocios){
+    if(["suspendido","bloqueado"].includes(negocioEstado(c))||c.suspendido===true||c.bloqueado===true){
+      filas.push({
+        nombre:negocioNombre(c),
+        id:c.id,
+        estado:negocioEstado(c),
+        motivo:c.motivoSuspension||c.motivoBloqueo||"—"
+      });
+    }
+  }
+
+  for(const u of state.usuarios){
+    if(u.bloqueado===true||u.estado==="bloqueado"){
+      filas.push({
+        nombre:u.email||u.nombreNegocio||"Usuario",
+        id:u.id,
+        estado:"usuario bloqueado",
+        motivo:u.motivoBloqueo||"—"
+      });
+    }
+  }
+
+  $("tabla-bloqueos").innerHTML=filas.map(x=>
+    `<tr><td>${esc(x.nombre)}</td><td>${esc(x.id)}</td><td><span class="status bad">${esc(x.estado)}</span></td><td>${esc(x.motivo)}</td></tr>`
+  ).join("")||`<tr><td colspan="4" class="empty">No hay bloqueos ni suspensiones registrados.</td></tr>`;
 }
 
 function renderAuditorias(){
+  mostrarDiagnostico("diag-auditorias",[
+    {nombre:"auditoria",error:state.errores.auditoria}
+  ]);
+
   const q=$("buscar-auditoria").value.trim().toLowerCase();
-  const lista=[...state.auditoria].sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0)).filter(a=>!q||JSON.stringify(a).toLowerCase().includes(q));
-  $("tabla-auditorias").innerHTML=lista.map(a=>`<tr><td>${fecha(a.fecha)}</td><td>${esc(a.negocioId||"—")}</td><td>${esc(a.accion||"—")}</td><td>${esc(a.entidad||"—")}</td><td>${esc(a.actor?.email||a.actor?.uid||"—")}</td></tr>`).join("")||`<tr><td colspan="5" class="empty">Sin eventos de auditoría.</td></tr>`;
+  const lista=[...state.auditoria]
+    .sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0))
+    .filter(a=>!q||JSON.stringify(a).toLowerCase().includes(q));
+
+  $("tabla-auditorias").innerHTML=lista.map(a=>
+    `<tr><td>${fecha(a.fecha)}</td><td>${esc(a.negocioId||"—")}</td><td>${esc(a.accion||"—")}</td><td>${esc(a.entidad||"—")}</td><td>${esc(a.actor?.email||a.actor?.uid||"—")}</td></tr>`
+  ).join("")||`<tr><td colspan="5" class="empty">${state.errores.auditoria?"No se pudo leer auditoría.":"Sin eventos de auditoría."}</td></tr>`;
 }
 $("buscar-auditoria").addEventListener("input",renderAuditorias);
 
@@ -537,13 +710,20 @@ async function listarStorageRecursivo(ruta){
 }
 
 async function cargarStorage(){
-  const negocios=state.configuraciones.map(c=>c.id).filter(Boolean);
+  mostrarDiagnostico("diag-storage",[
+    {nombre:"usuarios",error:state.errores.usuarios}
+  ]);
+
+  const negocios=state.negocios.map(c=>c.id).filter(Boolean);
 
   if(!negocios.length){
-    $("storage-estado").textContent=state.errores.configuraciones?"Sin permiso":"Sin datos";
-    $("storage-detalle").textContent=state.errores.configuraciones
-      ?"No se pudieron listar los negocios desde Firestore."
-      :"No hay negocios configurados.";
+    mostrarDiagnostico("diag-storage",[
+      {nombre:"usuarios",error:state.errores.usuarios}
+    ]);
+    $("storage-estado").textContent=state.errores.usuarios?"Sin permiso":"Sin datos";
+    $("storage-detalle").textContent=state.errores.usuarios
+      ?"No se pudieron obtener los negocioId desde usuarios."
+      :"No hay negocios registrados.";
     return;
   }
 
