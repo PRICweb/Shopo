@@ -1104,6 +1104,27 @@
         }
 
 
+
+        /* ===== SUSCRIPCIONES ===== */
+        .suscripcion-card { border:1px solid var(--border); border-radius:10px; padding:16px; background:var(--card-bg); }
+        .suscripcion-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:14px 0; }
+        .suscripcion-dato { padding:13px; border:1px solid var(--border-light); border-radius:9px; background:var(--bg-color); }
+        .suscripcion-dato span { display:block; color:var(--text-muted); font-size:.68rem; text-transform:uppercase; letter-spacing:.7px; margin-bottom:6px; }
+        .suscripcion-dato strong { display:block; color:var(--primary); font-size:.94rem; }
+        .suscripcion-aviso { margin-top:12px; padding:11px 12px; border:1px solid var(--border); border-radius:8px; color:var(--text-muted); font-size:.78rem; line-height:1.45; }
+        .suscripcion-aviso.vencida { border-color:#e0bebe; background:#fff9f9; color:#8c3b3b; }
+        .suscripcion-aviso.gracia { border-color:#dccca9; background:#fffdf8; color:#8b692b; }
+        .suscripcion-bloqueado { position:relative !important; overflow:hidden !important; }
+        .suscripcion-bloqueado::after { content:"Función inhabilitada por suscripción vencida. Renová tu plan para volver a utilizarla."; position:absolute; inset:0; z-index:60; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center; background:rgba(65,65,65,.72); color:#fff; font-size:.9rem; line-height:1.5; backdrop-filter:grayscale(1) blur(1px); }
+        .suscripcion-solo-lectura { position:relative; }
+        .suscripcion-solo-lectura .pedido-actions { display:none !important; }
+        .suscripcion-solo-lectura #body-pedidos-pendientes { display:none !important; }
+        .suscripcion-finanzas-vencida > .modulo-oscuro:not(.suscripcion-permitido) { position:relative; overflow:hidden; }
+        .suscripcion-finanzas-vencida > .modulo-oscuro:not(.suscripcion-permitido)::after { content:"Inhabilitado por suscripción"; position:absolute; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(65,65,65,.68); color:#fff; text-align:center; padding:18px; }
+        .config-bloque-vencido { position:relative; overflow:hidden; }
+        .config-bloque-vencido::after { content:"Inhabilitado por suscripción vencida"; position:absolute; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(65,65,65,.70); color:#fff; text-align:center; padding:18px; }
+        @media(max-width:768px){ .suscripcion-grid{grid-template-columns:1fr;} }
+
         /* ===== RESPONSIVE FINAL + ESTADOS DE ACCIÓN ===== */
         .btn-accion-procesando { pointer-events: none !important; opacity: .78; }
         .btn-accion-procesando::before {
@@ -1436,7 +1457,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modulo-oscuro">
+            <div class="modulo-oscuro suscripcion-permitido">
                 <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-transacciones')"><span>Libro Diario</span></div>
                 <div id="body-transacciones" class="modulo-body table-responsive hidden">
                     <table>
@@ -1515,6 +1536,27 @@
             <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem;">Parámetros del Sistema</h3>
 
             <div class="config-acordeones">
+                <div class="modulo-oscuro" id="modulo-plan-pagos">
+                    <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-suscripcion')">
+                        <span>Plan y pagos</span><span>⌄</span>
+                    </div>
+                    <div id="body-config-suscripcion" class="modulo-body hidden">
+                        <div class="suscripcion-card">
+                            <div class="store-settings-heading"><div><h4>Suscripción ShoPo</h4><p>Consultá la vigencia de tu cuenta y renová el plan desde Mercado Pago.</p></div></div>
+                            <div class="suscripcion-grid">
+                                <div class="suscripcion-dato"><span>Estado</span><strong id="suscripcion-estado">Cargando…</strong></div>
+                                <div class="suscripcion-dato"><span>Vencimiento</span><strong id="suscripcion-vencimiento">—</strong></div>
+                                <div class="suscripcion-dato"><span>Tiempo restante</span><strong id="suscripcion-restante">—</strong></div>
+                            </div>
+                            <div id="suscripcion-aviso" class="suscripcion-aviso">Consultando suscripción…</div>
+                            <div style="margin-top:16px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end;">
+                                <div><label class="mini-label">Plan para renovar</label><select id="suscripcion-plan-select"><option value="mensual">Mensual · $30.000</option></select></div>
+                                <button id="btn-renovar-suscripcion" type="button" onclick="window.renovarSuscripcionMercadoPago()">Renovar con Mercado Pago</button>
+                            </div>
+                            <div style="margin-top:18px;"><span class="mini-label">Últimos pagos</span><div id="suscripcion-historial" style="font-size:.78rem; color:var(--text-muted);">El historial aparecerá aquí cuando existan pagos.</div></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="modulo-oscuro">
                     <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-tienda')">
                         <span>Tienda</span><span>⌄</span>
@@ -1873,6 +1915,106 @@
         });
 
 const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1.run.app";
+
+        let estadoSuscripcionActual = null;
+        let planesSuscripcionActuales = [];
+
+        const textoTiempoSuscripcion = ms => {
+            const totalMin = Math.max(0, Math.floor(Number(ms || 0) / 60000));
+            const dias = Math.floor(totalMin / 1440);
+            const horas = Math.floor((totalMin % 1440) / 60);
+            const minutos = totalMin % 60;
+            if(dias > 0) return `${dias} d ${horas} h`;
+            if(horas > 0) return `${horas} h ${minutos} min`;
+            return `${minutos} min`;
+        };
+
+        const fechaSuscripcionTexto = valor => {
+            if(!valor) return '—';
+            const d = new Date(valor);
+            return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('es-AR');
+        };
+
+        async function requestSuscripcionBackend(path, opciones={}) {
+            const headers = await obtenerHeadersBackendAdmin();
+            const response = await fetch(`${SHOPO_BACKEND_URL}${path}`, {
+                ...opciones,
+                headers:{...headers,...(opciones.body?{'Content-Type':'application/json'}:{}),...(opciones.headers||{})},
+                cache:'no-store'
+            });
+            const data = await response.json().catch(()=>({}));
+            if(!response.ok) {
+                const error = new Error(data?.mensaje || data?.error || `Error ${response.status}`);
+                error.status = response.status; error.codigo = data?.error || ''; throw error;
+            }
+            return data;
+        }
+
+        function aplicarRestriccionesSuscripcion() {
+            const bloqueada = estadoSuscripcionActual && estadoSuscripcionActual.puedeOperar === false;
+            const panelesBloqueados = ['panel-movimientos','panel-inventario','panel-metricas'];
+            panelesBloqueados.forEach(id=>document.getElementById(id)?.classList.toggle('suscripcion-bloqueado',!!bloqueada));
+            document.getElementById('panel-pedidos')?.classList.toggle('suscripcion-solo-lectura',!!bloqueada);
+            document.getElementById('panel-finanzas')?.classList.toggle('suscripcion-finanzas-vencida',!!bloqueada);
+
+            document.querySelectorAll('#panel-config .config-acordeones > .modulo-oscuro').forEach(mod=>{
+                if(mod.id === 'modulo-plan-pagos') return;
+                mod.classList.toggle('config-bloque-vencido',!!bloqueada);
+            });
+        }
+
+        function renderSuscripcionAdmin() {
+            const e = estadoSuscripcionActual;
+            const estadoEl=document.getElementById('suscripcion-estado');
+            const vencEl=document.getElementById('suscripcion-vencimiento');
+            const restEl=document.getElementById('suscripcion-restante');
+            const aviso=document.getElementById('suscripcion-aviso');
+            if(!estadoEl || !e) return;
+            estadoEl.textContent = e.estado === 'activa' ? 'Activa' : e.estado === 'gracia' ? 'Período de gracia' : 'Vencida';
+            vencEl.textContent = fechaSuscripcionTexto(e.fechaVencimiento);
+            restEl.textContent = textoTiempoSuscripcion(e.milisegundosRestantes);
+            aviso.className='suscripcion-aviso'+(e.estado==='vencida'?' vencida':e.estado==='gracia'?' gracia':'');
+            aviso.textContent = e.estado==='activa'
+                ? 'La cuenta está habilitada. Podés renovar antes del vencimiento y el nuevo mes se sumará al tiempo actual.'
+                : e.estado==='gracia'
+                    ? `La suscripción venció y está dentro de las 24 horas de gracia. La cuenta seguirá operativa hasta ${fechaSuscripcionTexto(e.graciaHasta)}.`
+                    : 'La suscripción está vencida. El catálogo, operaciones y herramientas de gestión quedan inhabilitados hasta renovar.';
+            aplicarRestriccionesSuscripcion();
+        }
+
+        async function cargarSuscripcionAdmin() {
+            const [estado,planes,historial] = await Promise.all([
+                requestSuscripcionBackend('/api/v1/suscripciones/estado'),
+                requestSuscripcionBackend('/api/v1/suscripciones/planes'),
+                requestSuscripcionBackend('/api/v1/suscripciones/historial')
+            ]);
+            estadoSuscripcionActual=estado;
+            planesSuscripcionActuales=Array.isArray(planes.planes)?planes.planes:[];
+            const sel=document.getElementById('suscripcion-plan-select');
+            if(sel) sel.innerHTML=planesSuscripcionActuales.map(p=>`<option value="${String(p.id).replace(/"/g,'')}">${p.nombre} · ${new Intl.NumberFormat('es-AR',{style:'currency',currency:p.moneda||'ARS',maximumFractionDigits:0}).format(Number(p.precio)||0)}</option>`).join('') || '<option value="mensual">Mensual · $30.000</option>';
+            const hist=document.getElementById('suscripcion-historial');
+            if(hist){
+                const pagos=Array.isArray(historial.pagos)?historial.pagos:[];
+                hist.innerHTML=pagos.length?pagos.map(p=>`<div style="padding:8px 0;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;"><span>${fechaSuscripcionTexto(p.fechaAprobacion||p.createdAt)} · ${p.planId||'Plan'}</span><span>${new Intl.NumberFormat('es-AR',{style:'currency',currency:p.moneda||'ARS',maximumFractionDigits:0}).format(Number(p.importe)||0)} · ${p.estado||'—'}</span></div>`).join(''):'Todavía no hay pagos registrados.';
+            }
+            renderSuscripcionAdmin();
+            return estado;
+        }
+
+        window.renovarSuscripcionMercadoPago = async () => {
+            const btn=document.getElementById('btn-renovar-suscripcion');
+            if(btn) { btn.disabled=true; btn.textContent='Abriendo Mercado Pago…'; }
+            try {
+                const planId=document.getElementById('suscripcion-plan-select')?.value || 'mensual';
+                const data=await requestSuscripcionBackend('/api/v1/suscripciones/checkout',{method:'POST',body:JSON.stringify({planId})});
+                if(!data.initPoint) throw new Error('Mercado Pago no devolvió un enlace de pago.');
+                window.location.href=data.initPoint;
+            } catch(e) {
+                window.mostrarAlertaUI(e.message || 'No se pudo iniciar el pago.');
+                if(btn) { btn.disabled=false; btn.textContent='Renovar con Mercado Pago'; }
+            }
+        };
+
 
 async function obtenerHeadersBackendAdmin() {
     if (!auth?.currentUser) throw new Error("No hay una sesión de administrador activa.");
@@ -2882,6 +3024,11 @@ async function obtenerHeadersBackendAdmin() {
                             
                             // Cargamos la base de datos de su negocio cuando todas las funciones del panel ya existen
                             await esperarPanelListo();
+                            try { await cargarSuscripcionAdmin(); } catch(e) {
+                                console.error('No se pudo consultar la suscripción:',e);
+                                estadoSuscripcionActual={estado:'vencida',puedeOperar:false,milisegundosRestantes:0};
+                                renderSuscripcionAdmin();
+                            }
                             cargarDatosBD();
                         } else {
                             // Mostrar el cartel estético con el texto solicitado
