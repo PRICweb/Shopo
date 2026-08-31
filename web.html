@@ -1365,6 +1365,28 @@
 
 const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1.run.app";
 
+        const mostrarTiendaSinSuscripcion = () => {
+            document.body.innerHTML = `
+                <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;background:var(--bg-color);font-family:'Helvetica Neue',Arial,sans-serif;text-align:center;padding:24px;">
+                    <div style="max-width:520px;padding:34px;border:1px solid var(--border);border-radius:14px;background:var(--card-bg);">
+                        <h2 style="color:var(--primary);font-size:1.45rem;margin:0 0 12px;">Tienda temporalmente no disponible</h2>
+                        <p style="color:var(--text-muted);line-height:1.6;margin:0;">La suscripción de este comercio no se encuentra activa en este momento.</p>
+                    </div>
+                </div>`;
+        };
+
+        async function validarSuscripcionTienda() {
+            const appCheckResult=await getToken(appCheck,false);
+            if(!appCheckResult?.token) throw new Error('App Check no disponible.');
+            const response=await fetch(`${SHOPO_BACKEND_URL}/api/v1/suscripciones/publica/${encodeURIComponent(negocioIdURL)}`,{
+                headers:{'X-Firebase-AppCheck':appCheckResult.token},cache:'no-store'
+            });
+            const data=await response.json().catch(()=>({}));
+            if(!response.ok) throw new Error(data?.mensaje||data?.error||'No se pudo validar la tienda.');
+            return data;
+        }
+
+
 async function obtenerHeadersBackendPublico() {
     const appCheckResult = await getToken(appCheck, false);
     if (!appCheckResult?.token) throw new Error("No se pudo obtener el token de App Check.");
@@ -1828,6 +1850,9 @@ async function obtenerHeadersBackendPublico() {
             }
 
             try {
+                const suscripcion = await validarSuscripcionTienda();
+                if(!suscripcion.puedeOperar) { mostrarTiendaSinSuscripcion(); return; }
+
                 // Configuración propia de la tienda
                 const confDoc = await getDoc(doc(db, "configuracion", negocioIdURL));
                 if(confDoc.exists()) {
