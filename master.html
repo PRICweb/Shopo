@@ -135,15 +135,10 @@ th{color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.
   </section>
 
   <section id="view-suscripciones" class="panel">
-    <div class="panel-head">
-      <div>
-        <h2 class="panel-title">Suscripciones</h2>
-        <p class="panel-desc">Esta sección queda reservada para el paso de Suscripciones.</p>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-body"><div class="empty">Sin implementar todavía.</div></div>
-    </div>
+    <div class="panel-head"><div><h2 class="panel-title">Suscripciones</h2><p class="panel-desc">Vigencia de cada negocio y acreditaciones manuales.</p></div></div>
+    <div class="cards"><div class="stat"><b id="sub-activas">0</b><span>Activas</span></div><div class="stat"><b id="sub-gracia">0</b><span>En gracia</span></div><div class="stat"><b id="sub-vencidas">0</b><span>Vencidas</span></div><div class="stat"><b id="sub-sin-config">0</b><span>Sin suscripción</span></div></div>
+    <div class="section"><div class="section-head"><h3>Suscripciones por negocio</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Negocio</th><th>Plan</th><th>Estado</th><th>Vencimiento</th><th>Gracia hasta</th><th>Acción</th></tr></thead><tbody id="tabla-suscripciones"></tbody></table></div></div></div>
+    <div class="section"><div class="section-head"><h3>Últimos ajustes</h3></div><div class="section-body"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Negocio</th><th>Tipo</th><th>Tiempo</th><th>Motivo</th><th>Actor</th></tr></thead><tbody id="tabla-ajustes-suscripcion"></tbody></table></div></div></div>
   </section>
 
   <section id="view-cuentas" class="panel">
@@ -226,6 +221,8 @@ const state={
   usuarios:[],
   pedidos:[],
   auditoria:[],
+  suscripciones:[],
+  ajustesSuscripcion:[],
   negocios:[],
   errores:{}
 };
@@ -235,7 +232,7 @@ const MASTER_API={
   suspenderNegocio:"/api/v1/master/negocios/suspender",
   reactivarNegocio:"/api/v1/master/negocios/reactivar",
   cambiarEstadoCuenta:"/api/v1/master/cuentas/estado",
-  cambiarSuscripcion:"/api/v1/master/suscripciones/actualizar",
+  agregarTiempoSuscripcion:"/api/v1/master/suscripciones/agregar-tiempo",
   bloquearUsuario:"/api/v1/master/usuarios/bloquear",
   desbloquearUsuario:"/api/v1/master/usuarios/desbloquear"
 };
@@ -410,7 +407,9 @@ async function cargarDatosGlobales(){
     ["configuraciones","configuracion"],
     ["usuarios","usuarios"],
     ["pedidos","pedidos"],
-    ["auditoria","auditoria"]
+    ["auditoria","auditoria"],
+    ["suscripciones","suscripciones"],
+    ["ajustesSuscripcion","ajustesSuscripcion"]
   ];
 
   const resultados=await Promise.all(objetivos.map(async([clave,coleccionNombre])=>{
@@ -443,6 +442,7 @@ async function cargarDatosGlobales(){
 function renderTodo(){
   renderNegocios();
   renderUsuarios();
+  renderSuscripciones();
   renderActividad();
   renderMetricas();
   renderBloqueos();
@@ -590,29 +590,44 @@ window.masterEditarEstadoCuenta=async negocioId=>{
   }
 };
 
-window.masterEditarSuscripcion=async negocioId=>{
-  const actual=state.configuraciones.find(c=>c.id===negocioId);
-  const plan=prompt("Plan:",String(planNegocio(actual||{})==="Sin configurar"?"":planNegocio(actual||{})));
-  if(plan===null) return;
-  const estado=prompt("Estado: activa, pendiente, vencida o cancelada",String(estadoSuscripcion(actual||{})==="sin configurar"?"activa":estadoSuscripcion(actual||{})));
-  if(estado===null) return;
-  const fechaActual=vencimientoSuscripcion(actual||{});
-  const fechaTexto=fechaActual?.toDate?.()
-    ? fechaActual.toDate().toISOString().slice(0,10)
-    : "";
-  const fechaVencimiento=prompt("Vencimiento YYYY-MM-DD (vacío = sin vencimiento):",fechaTexto);
-  if(fechaVencimiento===null) return;
+
+
+function estadoSuscripcionMaster(sub){
+  if(!sub?.fechaVencimiento) return {estado:'sin suscripción',clase:'warn',graciaHasta:null};
+  const venc=sub.fechaVencimiento?.toDate?.()||new Date(sub.fechaVencimiento);
+  if(Number.isNaN(venc.getTime())) return {estado:'sin suscripción',clase:'warn',graciaHasta:null};
+  const ahora=Date.now(), fin=venc.getTime(), gracia=fin+24*60*60*1000;
+  if(ahora<fin) return {estado:'activa',clase:'ok',graciaHasta:new Date(gracia)};
+  if(ahora<gracia) return {estado:'gracia',clase:'warn',graciaHasta:new Date(gracia)};
+  return {estado:'vencida',clase:'bad',graciaHasta:new Date(gracia)};
+}
+
+function renderSuscripciones(){
+  const porNegocio=new Map(state.suscripciones.map(s=>[String(s.negocioId||s.id),s]));
+  let activas=0,gracia=0,vencidas=0,sin=0;
+  const rows=state.negocios.map(n=>{
+    const s=porNegocio.get(String(n.id));
+    const est=estadoSuscripcionMaster(s);
+    if(est.estado==='activa') activas++; else if(est.estado==='gracia') gracia++; else if(est.estado==='vencida') vencidas++; else sin++;
+    return `<tr><td>${esc(negocioNombre(n))}</td><td>${esc(s?.planId||'—')}</td><td><span class="status ${est.clase}">${esc(est.estado)}</span></td><td>${fecha(s?.fechaVencimiento)}</td><td>${est.graciaHasta?fecha(est.graciaHasta):'—'}</td><td><button class="input" type="button" onclick="window.masterAgregarTiempoSuscripcion('${esc(n.id)}')">Agregar tiempo</button></td></tr>`;
+  }).join('');
+  $('sub-activas').textContent=num(activas); $('sub-gracia').textContent=num(gracia); $('sub-vencidas').textContent=num(vencidas); $('sub-sin-config').textContent=num(sin);
+  $('tabla-suscripciones').innerHTML=rows||'<tr><td colspan="6" class="empty">No hay negocios registrados.</td></tr>';
+  const ajustes=[...state.ajustesSuscripcion].sort((a,b)=>(b.fecha?.seconds||0)-(a.fecha?.seconds||0)).slice(0,50);
+  $('tabla-ajustes-suscripcion').innerHTML=ajustes.map(a=>`<tr><td>${fecha(a.fecha)}</td><td>${esc(a.negocioId||'—')}</td><td>${esc(a.tipo||'—')}</td><td>${num(a.meses||0)} mes(es) ${num(a.dias||0)} día(s)</td><td>${esc(a.motivo||'—')}</td><td>${esc(a.actor?.email||a.actor?.uid||a.actor?.tipo||'—')}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Sin ajustes registrados.</td></tr>';
+}
+
+window.masterAgregarTiempoSuscripcion=async negocioId=>{
+  const mesesTexto=prompt('Meses a agregar (0 si querés usar días):','1');
+  if(mesesTexto===null) return;
+  const diasTexto=prompt('Días adicionales:','0');
+  if(diasTexto===null) return;
+  const motivo=prompt('Motivo del ajuste:','Acreditación manual desde Panel Maestro');
+  if(motivo===null) return;
   try{
-    await masterBackendRequest(MASTER_API.cambiarSuscripcion,{
-      negocioId,
-      plan:plan.trim(),
-      estado:estado.trim(),
-      fechaVencimiento:fechaVencimiento.trim()
-    });
+    await masterBackendRequest(MASTER_API.agregarTiempoSuscripcion,{negocioId,meses:Number(mesesTexto),dias:Number(diasTexto),motivo:motivo.trim()});
     await cargarDatosGlobales();
-  }catch(error){
-    alert(error?.data?.mensaje||error.message||"No se pudo actualizar la suscripción.");
-  }
+  }catch(error){ alert(error?.data?.mensaje||error.message||'No se pudo agregar tiempo.'); }
 };
 
 function renderActividad(){
