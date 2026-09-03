@@ -1152,10 +1152,33 @@
             #panel-inventario .catalogo-acciones .catalogo-eliminar .catalogo-eliminar-texto { display:none; }
             #panel-inventario .catalogo-acciones .catalogo-eliminar svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 
-            .metricas-periodo-grid { grid-template-columns:1fr 1fr; }
-            .metrica-item { gap:10px; }
-            .metrica-label { font-size:.79rem; }
+            /* Métricas también disponibles en la vista móvil de Finanzas. */
+            #panel-finanzas #modulo-metricas-finanzas {
+                display:block !important;
+                width:100% !important;
+                max-width:100% !important;
+                margin-bottom:12px !important;
+                overflow:visible !important;
+            }
+            #panel-finanzas #modulo-metricas-finanzas > .modulo-header {
+                display:flex !important;
+                width:100% !important;
+            }
+            #panel-finanzas #body-metricas-finanzas {
+                width:100% !important;
+                max-width:100% !important;
+                overflow:visible !important;
+            }
+            #panel-finanzas #body-metricas-finanzas.hidden { display:none !important; }
+            #panel-finanzas #body-metricas-finanzas:not(.hidden) { display:block !important; }
+            .metricas-periodo-grid { grid-template-columns:1fr 1fr; width:100%; }
+            .metricas-grupo { width:100%; max-width:100%; }
+            .metrica-item { gap:10px; width:100%; max-width:100%; }
+            .metrica-label { font-size:.79rem; min-width:0; overflow-wrap:anywhere; }
             .metrica-valor { font-size:.84rem; }
+            .metrica-detalle-lista { width:100%; max-width:100%; overflow:hidden; }
+            .metrica-detalle-fila { grid-template-columns:minmax(0,1fr) auto; width:100%; }
+            .metrica-detalle-fila span:first-child { min-width:0; overflow-wrap:anywhere; }
             .config-tienda-nombre-publico { grid-template-columns:1fr; }
             .config-tienda-nombre-publico button { width:100%; }
         }
@@ -1499,7 +1522,7 @@
             </div>
 
 
-            <div class="modulo-oscuro">
+            <div class="modulo-oscuro" id="modulo-metricas-finanzas">
                 <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-metricas-finanzas')"><span>Métricas</span></div>
                 <div id="body-metricas-finanzas" class="modulo-body hidden">
                     <div class="metricas-periodo-grid">
