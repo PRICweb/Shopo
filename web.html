@@ -1793,14 +1793,16 @@ async function obtenerHeadersBackendPublico() {
             `;
         };
 
-        // 1. OBTENER EL ID DEL NEGOCIO DESDE LA URL
+        // 1. OBTENER EL NOMBRE PÚBLICO DESDE LA URL Y RESOLVERLO AL ID INTERNO.
         const urlParams = new URLSearchParams(window.location.search);
-        const negocioIdURL = String(urlParams.get('n') || '').trim();
+        const nombrePublicoURL = String(urlParams.get('n') || '').trim().toLowerCase();
+        const NOMBRE_PUBLICO_RE = /^[a-z0-9](?:[a-z0-9-]{1,62}[a-z0-9])?$/;
         const NEGOCIO_ID_RE = /^[A-Za-z0-9_-]{4,128}$/;
+        let negocioIdURL = '';
         const SCHEMA_VERSION = 2;
         const CATALOG_PAGE_SIZE = 40;
         let catalogoPagina = 1;
-        const carritoStorageKey = () => negocioIdURL ? `carrito_negocio_${negocioIdURL}` : 'carrito_negocio_sin_id';
+        const carritoStorageKey = () => nombrePublicoURL ? `carrito_tienda_${nombrePublicoURL}` : 'carrito_tienda_sin_nombre';
 
         const guardarCarritoLocal = () => {
             try {
@@ -1837,19 +1839,39 @@ async function obtenerHeadersBackendPublico() {
         };
 
 
+
+        async function resolverNegocioDesdeNombrePublico() {
+            if(!NOMBRE_PUBLICO_RE.test(nombrePublicoURL)) throw new Error('NOMBRE_PUBLICO_INVALIDO');
+            const headers = await obtenerHeadersBackendPublico();
+            const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/admin/tienda/publica/${encodeURIComponent(nombrePublicoURL)}`, {
+                method:'GET',
+                headers,
+                cache:'no-store'
+            });
+            const data = await response.json().catch(()=>({}));
+            if(!response.ok || !data?.ok || !NEGOCIO_ID_RE.test(String(data.negocioId || ''))) {
+                const error = new Error(data?.mensaje || 'La tienda no existe.');
+                error.codigo = data?.error || 'TIENDA_NO_ENCONTRADA';
+                throw error;
+            }
+            negocioIdURL = String(data.negocioId).trim();
+            return negocioIdURL;
+        }
+
         // CARGA DE DATOS DESDE FIREBASE (FILTRADA)
         const cargarDatosBD = async () => {
-            if (!NEGOCIO_ID_RE.test(negocioIdURL)) {
+            if (!NOMBRE_PUBLICO_RE.test(nombrePublicoURL)) {
                 document.body.innerHTML = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:var(--bg-color); font-family:sans-serif; text-align: center; padding: 20px;">
-                        <h2 style="color:var(--primary); font-size:2rem; margin-bottom:10px;">Enlace Inválido</h2>
-                        <p style="color:var(--text-muted);">No se especificó ningún negocio en la URL.</p>
+                        <h2 style="color:var(--primary); font-size:2rem; margin-bottom:10px;">Enlace inválido</h2>
+                        <p style="color:var(--text-muted);">La dirección pública de esta tienda no es válida.</p>
                     </div>
                 `;
                 return;
             }
 
             try {
+                if(!negocioIdURL) await resolverNegocioDesdeNombrePublico();
                 const suscripcion = await validarSuscripcionTienda();
                 if(!suscripcion.puedeOperar) { mostrarTiendaSinSuscripcion(); return; }
 
@@ -1890,7 +1912,7 @@ async function obtenerHeadersBackendPublico() {
                 iniciarTiendaUI();
             } catch (e) {
                 console.error("Error conectando a Firebase:", e);
-                document.getElementById('catalogo-productos').innerHTML = "<p style='color:red;'>Error de conexión. Verifica las reglas de Firestore.</p>";
+                document.getElementById('catalogo-productos').innerHTML = "<p style='color:var(--text-muted);'>No se pudo cargar la tienda. Verificá el enlace e intentá nuevamente.</p>";
             } finally {
                 setTimeout(() => {
                     const loader = document.getElementById('pantalla-carga');
