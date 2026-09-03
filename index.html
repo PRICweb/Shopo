@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
@@ -579,7 +578,6 @@
         button { min-height: 40px; }
         .modal-content { width: min(100%, 760px); }
         .preview-img-admin { max-width: 100%; }
-        #graficoMetricas { width: 100% !important; }
 
         @media (min-width: 1400px) {
             #vista-dueno { padding-left: 300px !important; }
@@ -1000,10 +998,6 @@
                 color: var(--primary) !important;
             }
 
-            .admin-nav-btn[data-panel="panel-metricas"] {
-                display: none !important;
-            }
-
             .admin-nav-icon,
             .admin-nav-icon svg {
                 width: 19px !important;
@@ -1104,6 +1098,67 @@
         }
 
 
+
+
+        /* ===== MÉTRICAS FINANCIERAS MENSUALES ===== */
+        .metricas-periodo-grid { display:grid; grid-template-columns:repeat(2,minmax(0,180px)); gap:10px; margin-bottom:18px; }
+        .metricas-grupo { padding:0; }
+        .metricas-grupo + .metricas-grupo { margin-top:22px; padding-top:22px; border-top:1px solid var(--border-light); }
+        .metricas-grupo-titulo { margin:0 0 12px; color:var(--primary); font-size:.9rem; font-weight:500 !important; text-transform:uppercase; letter-spacing:.8px; }
+        .metrica-item { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:13px 0; border-bottom:1px solid var(--border-light); }
+        .metrica-item:last-child { border-bottom:0; }
+        .metrica-label { min-width:0; display:flex; align-items:center; gap:7px; color:var(--text-main); font-size:.82rem; }
+        .metrica-valor { flex:0 0 auto; color:var(--primary); font-size:.9rem; text-align:right; font-variant-numeric:tabular-nums; }
+        .metrica-info { position:relative; display:inline-flex; align-items:center; justify-content:center; width:17px; min-width:17px; height:17px; border:1px solid var(--border); border-radius:50%; color:var(--text-muted); font-size:.62rem; cursor:help; user-select:none; }
+        .metrica-info::after { content:attr(data-tooltip); position:absolute; left:50%; bottom:calc(100% + 9px); transform:translateX(-50%); width:min(280px,72vw); padding:9px 10px; border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--text-main); box-shadow:0 8px 24px rgba(0,0,0,.10); font-size:.72rem; line-height:1.45; text-align:left; text-transform:none; letter-spacing:0; opacity:0; visibility:hidden; pointer-events:none; z-index:3000; transition:opacity .15s ease; }
+        .metrica-info:hover::after, .metrica-info:focus::after { opacity:1; visibility:visible; }
+        .metrica-detalle-lista { margin-top:8px; border:1px solid var(--border-light); border-radius:9px; padding:6px 12px; background:var(--bg-color); }
+        .metrica-detalle-fila { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; padding:8px 0; border-bottom:1px solid var(--border-light); font-size:.76rem; }
+        .metrica-detalle-fila:last-child { border-bottom:0; }
+        .metrica-detalle-fila span:last-child { text-align:right; color:var(--primary); font-variant-numeric:tabular-nums; }
+        .metrica-subtitulo { margin:13px 0 6px; color:var(--text-muted); font-size:.68rem; text-transform:uppercase; letter-spacing:.8px; }
+        .metrica-estado { color:var(--text-muted); font-size:.76rem; line-height:1.45; }
+        .metrica-variacion.positiva { color:#166534; }
+        .metrica-variacion.negativa { color:#b91c1c; }
+        .metrica-variacion.neutra { color:var(--text-muted); }
+
+        .config-tienda-nombre-publico { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:end; margin-bottom:10px; }
+        .config-tienda-nombre-publico button { min-height:42px; }
+        .config-tienda-nombre-ayuda { display:block; margin-top:6px; color:var(--text-muted); font-size:.7rem; line-height:1.45; }
+
+        @media (max-width:768px) {
+            #login-container {
+                position:fixed !important; inset:0 !important; z-index:1200 !important;
+                width:100vw !important; max-width:none !important; min-height:100dvh !important;
+                margin:0 !important; padding:max(28px,env(safe-area-inset-top)) 22px max(28px,env(safe-area-inset-bottom)) !important;
+                border:0 !important; border-radius:0 !important; box-shadow:none !important;
+                background:#fff !important; overflow-y:auto !important;
+                display:flex; flex-direction:column; justify-content:center;
+            }
+            #login-container.hidden { display:none !important; }
+            #login-container > * { width:100%; max-width:420px; margin-left:auto; margin-right:auto; }
+            #login-container #auth-titulo { margin-bottom:28px !important; }
+
+            #panel-inventario .catalogo-acciones {
+                display:grid !important; grid-template-columns:minmax(0,3fr) minmax(56px,1fr) !important;
+                gap:8px !important; width:100%;
+            }
+            #panel-inventario .catalogo-acciones .secondary,
+            #panel-inventario .catalogo-acciones .danger,
+            #panel-inventario .catalogo-acciones .outline { display:flex !important; align-items:center; justify-content:center; width:100%; min-height:44px; }
+            #panel-inventario .catalogo-acciones .catalogo-configurar { grid-column:1; grid-row:1; }
+            #panel-inventario .catalogo-acciones .catalogo-eliminar { grid-column:2; grid-row:1; padding:0 !important; }
+            #panel-inventario .catalogo-acciones .catalogo-reponer { grid-column:1 / -1; grid-row:2; }
+            #panel-inventario .catalogo-acciones .catalogo-eliminar .catalogo-eliminar-texto { display:none; }
+            #panel-inventario .catalogo-acciones .catalogo-eliminar svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+            .metricas-periodo-grid { grid-template-columns:1fr 1fr; }
+            .metrica-item { gap:10px; }
+            .metrica-label { font-size:.79rem; }
+            .metrica-valor { font-size:.84rem; }
+            .config-tienda-nombre-publico { grid-template-columns:1fr; }
+            .config-tienda-nombre-publico button { width:100%; }
+        }
 
         /* ===== SUSCRIPCIONES ===== */
         .suscripcion-card { border:1px solid var(--border); border-radius:10px; padding:16px; background:var(--card-bg); }
@@ -1365,17 +1420,6 @@
                     Finanzas
                 </button>
 
-                <button class="admin-nav-btn" data-panel="panel-metricas" onclick="window.togglePanel('panel-metricas')">
-                    <span class="admin-nav-icon">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M4 19V5"/>
-                            <path d="M4 19h16"/>
-                            <path d="M8 15l3-3 3 2 4-6"/>
-                        </svg>
-                    </span>
-                    Métricas
-                </button>
-
                 <button class="admin-nav-btn" data-panel="panel-config" onclick="window.togglePanel('panel-config')">
                     <span class="admin-nav-icon">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1444,19 +1488,6 @@
 
         <div id="panel-finanzas" class="panel-oscuro-container hidden">
             <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem;">Módulo Financiero</h3>
-            <div class="modulo-oscuro">
-                <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-balances')"><span>Estado de Resultados</span></div>
-                <div id="body-balances" class="modulo-body hidden">
-                    <div class="dark-input-group" style="max-width: 300px;">
-                        <div><label>Periodo</label><select id="filtro-periodo" onchange="window.calcularBalanceEnVivo()"><option value="hoy">Hoy</option><option value="semana">Última Semana</option><option value="mes">Último Mes</option><option value="siempre">Histórico Completo</option></select></div>
-                    </div>
-                    <div style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
-                        <div class="widget-balance"><h4>Ingresos</h4><p id="bal-ingresos" style="color: var(--text-main);">$0</p></div>
-                        <div class="widget-balance"><h4>Egresos</h4><p id="bal-gastos" style="color: var(--text-muted);">$0</p></div>
-                        <div class="widget-balance"><h4>Ganancia Neta</h4><p id="bal-neta" style="color: var(--primary);">$0</p></div>
-                    </div>
-                </div>
-            </div>
             <div class="modulo-oscuro suscripcion-permitido">
                 <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-transacciones')"><span>Libro Diario</span></div>
                 <div id="body-transacciones" class="modulo-body table-responsive hidden">
@@ -1464,6 +1495,61 @@
                         <thead><tr><th>Fecha</th><th>Concepto</th><th>Detalle</th><th>Efectivo</th><th>Transferencia</th><th>Monto</th></tr></thead>
                         <tbody id="tabla-transacciones"></tbody>
                     </table><div class="pagination-actions"><button type="button" class="secondary" onclick="window.cargarMasLibroDiario(this)">Más</button></div>
+                </div>
+            </div>
+
+
+            <div class="modulo-oscuro">
+                <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-metricas-finanzas')"><span>Métricas</span></div>
+                <div id="body-metricas-finanzas" class="modulo-body hidden">
+                    <div class="metricas-periodo-grid">
+                        <div><label class="mini-label">Mes</label><select id="metricas-mes" onchange="window.actualizarMetricasFinancieras()"></select></div>
+                        <div><label class="mini-label">Año</label><select id="metricas-anio" onchange="window.actualizarMetricasFinancieras()"></select></div>
+                    </div>
+                    <div id="metricas-estado-carga" class="metrica-estado">Seleccioná un período para consultar los indicadores.</div>
+
+                    <div class="metricas-grupo">
+                        <h4 class="metricas-grupo-titulo">Indicadores de nivel</h4>
+                        <div class="metrica-item">
+                            <div class="metrica-label">Ventas consolidadas <span class="metrica-info" tabindex="0" data-tooltip="Volumen vendido durante el período. Se calcula como la cantidad total de unidades compradas en las operaciones de venta del mes.">i</span></div>
+                            <div id="metrica-ventas-consolidadas" class="metrica-valor">—</div>
+                        </div>
+                        <div class="metrica-item">
+                            <div class="metrica-label">Ticket promedio <span class="metrica-info" tabindex="0" data-tooltip="Valor promedio de cada operación de venta del período. Se calcula como ventas totales dividido la cantidad de operaciones.">i</span></div>
+                            <div id="metrica-ticket-promedio" class="metrica-valor">—</div>
+                        </div>
+                    </div>
+
+                    <div class="metricas-grupo">
+                        <h4 class="metricas-grupo-titulo">Indicadores de evolución</h4>
+                        <div class="metrica-item">
+                            <div class="metrica-label">Variación intermensual <span class="metrica-info" tabindex="0" data-tooltip="Aumento o disminución de ventas respecto del mes anterior. Un valor positivo representa aumento y uno negativo disminución.">i</span></div>
+                            <div id="metrica-variacion-intermensual" class="metrica-valor metrica-variacion">—</div>
+                        </div>
+                        <div class="metrica-item">
+                            <div class="metrica-label">Variación interanual <span class="metrica-info" tabindex="0" data-tooltip="Compara las ventas del mes seleccionado con las ventas del mismo mes del año anterior.">i</span></div>
+                            <div id="metrica-variacion-interanual" class="metrica-valor metrica-variacion">—</div>
+                        </div>
+                    </div>
+
+                    <div class="metricas-grupo">
+                        <h4 class="metricas-grupo-titulo">Indicadores de composición</h4>
+                        <div class="metrica-item" style="display:block;">
+                            <div class="metrica-label">Participación por rubro y producto <span class="metrica-info" tabindex="0" data-tooltip="Porcentaje de las ventas atribuible a cada rubro y a cada producto sobre el total vendido en productos durante el período.">i</span></div>
+                            <div class="metrica-subtitulo">Por rubro</div>
+                            <div id="metrica-participacion-rubros" class="metrica-detalle-lista"></div>
+                            <div class="metrica-subtitulo">Por producto</div>
+                            <div id="metrica-participacion-productos" class="metrica-detalle-lista"></div>
+                        </div>
+                        <div class="metrica-item" style="display:block;">
+                            <div class="metrica-label">Participación por día de la semana <span class="metrica-info" tabindex="0" data-tooltip="Porcentaje de las ventas del período generado en cada día de la semana. Se calcula como ventas del día dividido las ventas totales por 100.">i</span></div>
+                            <div id="metrica-participacion-dias" class="metrica-detalle-lista"></div>
+                        </div>
+                        <div class="metrica-item" style="display:block;">
+                            <div class="metrica-label">Acumulado mensual <span class="metrica-info" tabindex="0" data-tooltip="Ventas acumuladas dentro del mes seleccionado: muestra cuánto se lleva vendido hasta cada fecha del período.">i</span></div>
+                            <div id="metrica-acumulado-mensual" class="metrica-detalle-lista"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1520,18 +1606,6 @@
             </div>
         </div>
 
-
-        <div id="panel-metricas" class="panel-oscuro-container hidden">
-            <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem;">📊 Métricas e Informes</h3>
-            <div class="dark-input-group">
-                <div style="flex: 1;"><label>Período:</label><select id="select-periodo-metricas" onchange="window.actualizarGraficos()"><option value="1y">1 Año (Mes a Mes)</option><option value="6m" selected>6 Meses (Mes a Mes)</option><option value="3m">3 Meses (Mes a Mes)</option><option value="1m">1 Mes (Semanas)</option><option value="7d">1 Semana (Días)</option></select></div>
-                <div style="flex: 1;"><label>Categoría Analizada:</label><select id="select-categoria-metricas" onchange="window.actualizarGraficos()"><option value="efectivo">Pagos en Efectivo</option><option value="transferencia">Pagos Transferencia</option><option value="ventas_web">Ventas Web</option><option value="ventas_fisicas">Ventas Físicas</option><option value="neto">Ganancias Netas</option><option value="gastos">Gastos</option></select></div>
-                <div style="flex:0 0 auto; align-self:flex-end;"><button type="button" class="secondary" onclick="window.exportarGraficoPNG()">Exportar PNG</button></div>
-            </div>
-            <div style="height: 350px; margin-top: 20px; margin-bottom: 25px; background: var(--bg-color); padding: 15px; border: 1px solid var(--border); border-radius: 8px;"><canvas id="graficoMetricas"></canvas></div>
-            <div id="metricas-data-list" style="font-size:0.85rem; color:var(--text-muted); border: 1px solid var(--border-light); padding: 15px; border-radius: 6px;"></div>
-        </div>
-
         <div id="panel-config" class="panel-oscuro-container hidden">
             <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem;">Parámetros del Sistema</h3>
 
@@ -1565,12 +1639,20 @@
                         <div class="store-settings-section">
                             <div class="store-settings-heading">
                                 <div>
-                                    <h4>Enlace público</h4>
-                                    <p>Dirección directa de la tienda asociada a este negocio.</p>
+                                    <h4>Nombre público y enlace</h4>
+                                    <p>Elegí el nombre que aparecerá en el enlace de tu tienda. El ID interno del negocio no cambia.</p>
                                 </div>
                             </div>
+                            <div class="config-tienda-nombre-publico">
+                                <div>
+                                    <label class="mini-label" for="conf-tienda-nombre-publico">Nombre público</label>
+                                    <input type="text" id="conf-tienda-nombre-publico" maxlength="50" placeholder="Ej: El Hornito" autocomplete="off">
+                                    <span class="config-tienda-nombre-ayuda">Debe ser único. Mayúsculas y minúsculas no generan nombres diferentes. El enlace usa una versión segura del nombre, por ejemplo: el-hornito.</span>
+                                </div>
+                                <button id="btn-guardar-nombre-publico" type="button" onclick="window.guardarNombrePublicoTienda()">Guardar nombre</button>
+                            </div>
                             <div class="config-tienda-link">
-                                <input type="text" id="conf-tienda-link" readonly aria-label="Enlace público de la tienda">
+                                <input type="text" id="conf-tienda-link" readonly aria-label="Enlace público de la tienda" placeholder="Definí un nombre público para generar el enlace">
                                 <button type="button" class="secondary" onclick="window.copiarLinkTienda()">Copiar</button>
                                 <button type="button" onclick="window.abrirTiendaPublica()">Abrir tienda</button>
                             </div>
@@ -1952,7 +2034,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
 
         function aplicarRestriccionesSuscripcion() {
             const bloqueada = estadoSuscripcionActual && estadoSuscripcionActual.puedeOperar === false;
-            const panelesBloqueados = ['panel-movimientos','panel-inventario','panel-metricas'];
+            const panelesBloqueados = ['panel-movimientos','panel-inventario'];
             panelesBloqueados.forEach(id=>document.getElementById(id)?.classList.toggle('suscripcion-bloqueado',!!bloqueada));
             document.getElementById('panel-pedidos')?.classList.toggle('suscripcion-solo-lectura',!!bloqueada);
             document.getElementById('panel-finanzas')?.classList.toggle('suscripcion-finanzas-vencida',!!bloqueada);
@@ -2116,8 +2198,7 @@ async function obtenerHeadersBackendAdmin() {
         // La tienda pública actual usa ?n=NEGOCIO_ID. Si el archivo público cambia de nombre,
         // sólo hay que modificar esta constante.
         const RUTA_TIENDA_PUBLICA = 'web.html';
-        let configTienda = { logo: '', logoPath: '', telefono: '', instagramUrl: '', mapsUrl: '', ubicacionTexto: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, horariosDetallados: {}, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
-        let metricasChart = null;
+        let configTienda = { nombrePublico: '', nombrePublicoSlug: '', logo: '', logoPath: '', telefono: '', instagramUrl: '', mapsUrl: '', ubicacionTexto: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, horariosDetallados: {}, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
         const PAGE_SIZE = 100;
         const PEDIDOS_HISTORIAL_INCREMENTO = 10;
         let pedidosHistorialVisibles = PEDIDOS_HISTORIAL_INCREMENTO;
@@ -3377,7 +3458,6 @@ async function obtenerHeadersBackendAdmin() {
             'panel-pedidos',
             'panel-inventario',
             'panel-finanzas',
-            'panel-metricas',
             'panel-config'
         ];
 
@@ -3408,7 +3488,7 @@ async function obtenerHeadersBackendAdmin() {
                 btn.classList.toggle('active', btn.dataset.panel === id);
             });
 
-            if(id === 'panel-metricas') window.actualizarGraficos();
+            if(id === 'panel-finanzas') window.prepararMetricasFinancieras?.();
         };
 
         const sincronizarFiltrosPedidosResponsive = () => {
@@ -3977,23 +4057,65 @@ async function obtenerHeadersBackendAdmin() {
             cargarTemaEnFormulario(TEMA_TIENDA_PREDETERMINADO);
         };
 
+        const normalizarSlugPublicoCliente = (valor) => String(valor || '')
+            .trim()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .replace(/-{2,}/g, '-');
+
         const obtenerURLTiendaPublica = () => {
-            if(!negocioIdActual) return '';
+            const slug = String(configTienda.nombrePublicoSlug || '').trim();
+            if(!slug) return '';
             const url = new URL(RUTA_TIENDA_PUBLICA, window.location.href);
             url.search = '';
             url.hash = '';
-            url.searchParams.set('n', negocioIdActual);
+            url.searchParams.set('n', slug);
             return url.href;
         };
 
         const actualizarLinkTienda = () => {
             const campo = document.getElementById('conf-tienda-link');
             if(campo) campo.value = obtenerURLTiendaPublica();
+            const nombre = document.getElementById('conf-tienda-nombre-publico');
+            if(nombre && document.activeElement !== nombre) nombre.value = configTienda.nombrePublico || '';
+        };
+
+        window.guardarNombrePublicoTienda = async () => {
+            exigirContextoAdmin();
+            const input = document.getElementById('conf-tienda-nombre-publico');
+            const btn = document.getElementById('btn-guardar-nombre-publico');
+            const nombrePublico = String(input?.value || '').trim();
+            const slugPrevio = normalizarSlugPublicoCliente(nombrePublico);
+            if(nombrePublico.length < 3 || nombrePublico.length > 50) throw new Error('El nombre público debe tener entre 3 y 50 caracteres.');
+            if(slugPrevio.length < 3) throw new Error('El nombre público debe contener al menos 3 letras o números.');
+
+            return conEstadoBoton(btn, 'Guardando…', async () => {
+                const headers = await obtenerHeadersBackendAdmin();
+                const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/admin/tienda/nombre-publico`, {
+                    method: 'POST',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    cache: 'no-store',
+                    body: JSON.stringify({ nombrePublico })
+                });
+                const data = await response.json().catch(() => ({}));
+                if(!response.ok || !data?.ok) throw new Error(data?.mensaje || data?.error || `Error ${response.status}`);
+
+                configTienda = {
+                    ...configTienda,
+                    nombrePublico: data.nombrePublico,
+                    nombrePublicoSlug: data.slug
+                };
+                actualizarLinkTienda();
+                window.mostrarAlertaUI('Nombre público guardado correctamente.');
+            });
         };
 
         window.copiarLinkTienda = async () => {
             const link = obtenerURLTiendaPublica();
-            if(!link) return window.mostrarAlertaUI('No hay un negocio activo.');
+            if(!link) return window.mostrarAlertaUI('Primero elegí y guardá un nombre público para la tienda.');
             try {
                 await navigator.clipboard.writeText(link);
                 window.mostrarAlertaUI('Enlace de la tienda copiado.');
@@ -4006,7 +4128,8 @@ async function obtenerHeadersBackendAdmin() {
 
         window.abrirTiendaPublica = () => {
             const link = obtenerURLTiendaPublica();
-            if(link) window.open(link, '_blank', 'noopener,noreferrer');
+            if(!link) return window.mostrarAlertaUI('Primero elegí y guardá un nombre público para la tienda.');
+            window.open(link, '_blank', 'noopener,noreferrer');
         };
 
         window.guardarAparienciaTienda = async () => {
@@ -4050,6 +4173,8 @@ async function obtenerHeadersBackendAdmin() {
 
             const confUbicacion=document.getElementById('conf-ubicacion-texto');
             if(confUbicacion) confUbicacion.value=configTienda.ubicacionTexto || '';
+
+            const nombrePublicoInput=document.getElementById('conf-tienda-nombre-publico'); if(nombrePublicoInput) nombrePublicoInput.value=configTienda.nombrePublico || '';
 
             const dp=configTienda.descuentosPago||{}, dpe=dp.efectivo||{}, dpt=dp.transferencia||{};
             const ea=document.getElementById('desc-pago-efectivo-activo'); if(ea) ea.checked=!!dpe.activo;
@@ -4551,9 +4676,9 @@ async function obtenerHeadersBackendAdmin() {
                                     <div style="font-size:1.05rem;">${window.formatearNum(sT)}</div>
                                 </div>
                                 <div class="catalogo-acciones">
-                                    <button class="secondary" onclick="window.abrirModal('${p.id}')">Configurar</button>
-                                    <button class="outline" onclick="window.abrirModalStock('${p.id}')">Reponer</button>
-                                    <button class="danger" onclick="window.ejecutarAccionBoton(this, 'Eliminando...', () => window.borrarProducto('${p.id}'))">Borrar</button>
+                                    <button class="secondary catalogo-configurar" onclick="window.abrirModal('${p.id}')">Configurar</button>
+                                    <button class="outline catalogo-reponer" onclick="window.abrirModalStock('${p.id}')">Reponer stock</button>
+                                    <button class="danger catalogo-eliminar" aria-label="Eliminar producto" title="Eliminar producto" onclick="window.ejecutarAccionBoton(this, 'Eliminando...', () => window.borrarProducto('${p.id}'))"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg><span class="catalogo-eliminar-texto">Eliminar</span></button>
                                 </div>
                             </div>
                         </td>
@@ -4696,14 +4821,6 @@ async function obtenerHeadersBackendAdmin() {
         window.actualizarOpcionDevolverStock=()=>{const t=document.getElementById('borrar-registro-tipo')?.value||'',id=document.getElementById('borrar-registro-id')?.value||'',box=document.getElementById('borrar-registro-stock-box'),nota=document.getElementById('borrar-registro-stock-nota'),sel=document.getElementById('borrar-registro-devolver-stock'),afecta=t==='venta_mostrador'||t==='pedido';box?.classList.toggle('hidden',!afecta);if(!afecta||!id)return;const r=registrosBorrablesPorTipo(t).find(x=>x.__id===id),tiene=Array.isArray(r?.items)&&r.items.length>0;if(sel){sel.disabled=!tiene;sel.value=tiene?'si':'no';}if(nota)nota.textContent=tiene?'Este registro contiene el detalle necesario para devolver stock.':'Este registro antiguo no contiene el detalle de productos necesario para reconstruir el stock. Solo podrá eliminarse sin devolver stock.';};
         async function ejecutarEliminacionRegistroBackend(tipo,id,devolverStock){const headers=await obtenerHeadersBackendAdmin();const response=await fetch(`${SHOPO_BACKEND_URL}/api/v1/admin/registros/eliminar`,{method:'POST',headers:{...headers,'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify({negocioId:negocioIdActual,tipo,id,devolverStock:devolverStock===true})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data?.mensaje||data?.error||`Error ${response.status}`);return data;}
         window.eliminarRegistroGestionado=async()=>{exigirContextoAdmin();const t=document.getElementById('borrar-registro-tipo')?.value||'',id=document.getElementById('borrar-registro-id')?.value||'';if(!t||!id)throw new Error('Seleccioná el tipo y el registro que querés eliminar.');const afecta=t==='venta_mostrador'||t==='pedido',devolver=afecta&&document.getElementById('borrar-registro-devolver-stock')?.value==='si',txt=afecta?(devolver?' Se devolverá el stock asociado.':' No se devolverá stock.'):'';if(!(await pedirConfirmacion(`¿Eliminar definitivamente este registro?${txt}`)))return;await ejecutarEliminacionRegistroBackend(t,id,devolver);window.mostrarAlertaUI('Registro eliminado correctamente.');window.actualizarSelectorRegistrosBorrables();};
-
-        window.calcularBalanceEnVivo = () => {
-            const p = document.getElementById('filtro-periodo').value; const hoy = new Date(); let dias = p==='hoy'?1:p==='semana'?7:p==='mes'?30:99999; let tIng = 0; let tGas = 0;
-            ingresosGlobales.forEach(i => { if((hoy - i.fecha)/86400000 <= dias) tIng += (i.efectivo + i.transferencia); });
-            gastosGlobales.forEach(g => { if((hoy - g.fecha)/86400000 <= dias) tGas += g.importe; });
-            const net = tIng - tGas;
-            document.getElementById('bal-ingresos').textContent = `$${window.formatearNum(tIng)}`; document.getElementById('bal-gastos').textContent = `$${window.formatearNum(tGas)}`; document.getElementById('bal-neta').textContent = `${net>=0?'':'-'}$${window.formatearNum(Math.abs(net))}`; document.getElementById('bal-neta').style.color = net>=0?'var(--primary)':'var(--text-muted)';
-        };
         window.renderizarTransacciones = () => {
             const tr=[];
             ingresosGlobales.forEach(i=>tr.push({f:i.fecha,t:'Ingreso',d:i.detalle,efectivo:Number(i.efectivo)||0,transferencia:Number(i.transferencia)||0,m:totalIngreso(i)}));
@@ -4746,10 +4863,10 @@ async function obtenerHeadersBackendAdmin() {
             XLSX.writeFile(wb, `reporte_completo_${inicioVal}_a_${finVal}.xlsx`);
         };
 
-        window.triggerGastos = () => { window.actualizarNotificaciones(); gastosGlobales.sort((a,b)=>b.fecha-a.fecha); window.calcularBalanceEnVivo(); window.renderizarTransacciones(); window.actualizarSelectorRegistrosBorrables?.(); if(!document.getElementById('panel-metricas').classList.contains('hidden')) window.actualizarGraficos(); };
-        window.triggerIngresos = () => { window.actualizarNotificaciones(); ingresosGlobales.sort((a,b)=>b.fecha-a.fecha); window.calcularBalanceEnVivo(); window.renderizarTransacciones(); window.actualizarSelectorRegistrosBorrables?.(); if(!document.getElementById('panel-metricas').classList.contains('hidden')) window.actualizarGraficos(); };
+        window.triggerGastos = () => { window.actualizarNotificaciones(); gastosGlobales.sort((a,b)=>b.fecha-a.fecha); window.renderizarTransacciones(); window.actualizarSelectorRegistrosBorrables?.(); };
+        window.triggerIngresos = () => { window.actualizarNotificaciones(); ingresosGlobales.sort((a,b)=>b.fecha-a.fecha); window.renderizarTransacciones(); window.actualizarSelectorRegistrosBorrables?.(); };
 
-        // PEDIDOS Y MÉTRICAS
+        // PEDIDOS
         window.aplicarFiltrosPedidos = () => { pedidosHistorialVisibles=PEDIDOS_HISTORIAL_INCREMENTO; window.renderizarPedidos(); };
         window.cargarMasPedidosUI = async btn => { pedidosHistorialVisibles+=PEDIDOS_HISTORIAL_INCREMENTO; window.renderizarPedidos(); const filtrados=window.__pedidosHistoricosFiltrados||[]; if(pedidosHistorialVisibles>=filtrados.length&&hayMasHistoricos.pedidos&&cursoresHistoricos.pedidos){ await window.cargarMasHistorico('pedidos',btn); window.renderizarPedidos(); } };
         window.renderizarPedidos = () => {
@@ -4964,55 +5081,243 @@ async function obtenerHeadersBackendAdmin() {
             }
         };
 
-        window.triggerPedidos = () => { window.renderizarPedidos(); limpiarControlesEstadoPedido(); window.actualizarNotificaciones(); if(!document.getElementById('panel-metricas').classList.contains('hidden')) window.actualizarGraficos(); };
+        window.triggerPedidos = () => { window.renderizarPedidos(); limpiarControlesEstadoPedido(); window.actualizarNotificaciones(); };
 
-        function obtenerCestasPeriodo(periodo) {
-            let cestas = []; let hoy = new Date(); hoy.setHours(0,0,0,0);
-            if(periodo === '7d') { for(let i=6; i>=0; i--) { let d = new Date(hoy); d.setDate(d.getDate() - i); cestas.push({ label: `${d.getDate()}/${d.getMonth()+1}`, start: d.getTime(), end: d.getTime() + 86400000 }); } } 
-            else if(periodo === '1m') { for(let i=3; i>=0; i--) { let end = new Date(hoy); end.setDate(end.getDate() - (i*7)); let start = new Date(end); start.setDate(start.getDate() - 6); cestas.push({ label: `Sem ${start.getDate()}/${start.getMonth()+1}`, start: start.getTime(), end: end.getTime() + 86400000 }); } } 
-            else if(periodo === '3m' || periodo === '6m' || periodo === '1y') { let meses = periodo === '3m' ? 3 : (periodo === '6m' ? 6 : 12); for(let i=meses-1; i>=0; i--) { let d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1); let n = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]; let end = new Date(hoy.getFullYear(), hoy.getMonth() - i + 1, 0); cestas.push({ label: `${n[d.getMonth()]} ${d.getFullYear().toString().substring(2)}`, start: d.getTime(), end: end.getTime() + 86400000 }); } }
-            return cestas;
+
+        const MESES_METRICAS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const DIAS_METRICAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+        let metricasInicializadas = false;
+        let metricasSolicitud = 0;
+
+        const inicioMesMetricas = (anio, mesIndex) => new Date(anio, mesIndex, 1, 0, 0, 0, 0);
+        const finMesMetricas = (anio, mesIndex) => new Date(anio, mesIndex + 1, 1, 0, 0, 0, 0);
+        const esIngresoVentaMetricas = i => ['pago','pago_auto','venta_mostrador','venta'].includes(String(i?.tipo || ''));
+        const montoIngresoMetricas = i => (Number(i?.efectivo) || 0) + (Number(i?.transferencia) || 0);
+        const fechaValidaMetricas = f => f instanceof Date && !Number.isNaN(f.getTime());
+        const dineroMetricas = n => `$${window.formatearNum(Number(n) || 0)}`;
+        const porcentajeMetricas = n => `${(Number(n) || 0).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})}%`;
+
+        function prepararRangoMesMetricas(anio, mesIndex) {
+            return { inicio: inicioMesMetricas(anio, mesIndex), fin: finMesMetricas(anio, mesIndex) };
         }
 
-        window.exportarGraficoPNG = () => {
-            const canvas=document.getElementById('graficoMetricas');
-            if(!canvas || !metricasChart){window.mostrarAlertaUI('No hay un gráfico disponible para exportar.');return;}
-            const ps=document.getElementById('select-periodo-metricas'), cs=document.getElementById('select-categoria-metricas');
-            const periodo=ps?.options[ps.selectedIndex]?.text||'periodo', categoria=cs?.options[cs.selectedIndex]?.text||'metrica';
-            const salida=document.createElement('canvas'); salida.width=canvas.width; salida.height=canvas.height;
-            const ctx=salida.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,salida.width,salida.height); ctx.drawImage(canvas,0,0);
-            const nombre=`shopo_${categoria}_${periodo}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
-            const a=document.createElement('a'); a.href=salida.toDataURL('image/png'); a.download=(nombre||'shopo_grafico')+'.png'; document.body.appendChild(a); a.click(); a.remove();
+        async function consultarIngresosMetricas(anio, mesIndex) {
+            const { inicio, fin } = prepararRangoMesMetricas(anio, mesIndex);
+            const qMetricas = query(
+                collection(db, 'ingresos'),
+                where('negocioId', '==', negocioIdActual),
+                where('fecha', '>=', inicio),
+                where('fecha', '<', fin),
+                orderBy('fecha', 'asc')
+            );
+            const snap = await getDocs(qMetricas);
+            return snap.docs.map(d => {
+                const data = normalizarFechaFirestore(d.data());
+                return { id:d.id, ...data };
+            }).filter(esIngresoVentaMetricas);
+        }
+
+        async function cargarPedidosDeIngresosMetricas(ingresos) {
+            const ids = [...new Set(ingresos
+                .filter(i => i.tipo === 'pago' || i.tipo === 'pago_auto')
+                .map(i => String(i.pedidoId || (String(i.id || '').startsWith('pedido_pago_') ? String(i.id).slice('pedido_pago_'.length) : '')).trim())
+                .filter(Boolean))];
+            const pares = await Promise.all(ids.map(async id => {
+                try {
+                    const snap = await getDoc(doc(db,'pedidos',id));
+                    return [id, snap.exists() ? snap.data() : null];
+                } catch(e) {
+                    console.warn('No se pudo cargar un pedido para métricas:', id, e);
+                    return [id, null];
+                }
+            }));
+            return new Map(pares);
+        }
+
+        function resumenVentasMetricas(ingresos) {
+            return {
+                totalVentas: ingresos.reduce((s,i)=>s+montoIngresoMetricas(i),0),
+                operaciones: ingresos.length
+            };
+        }
+
+        function variacionMetricas(actual, base) {
+            const a = Number(actual) || 0;
+            const b = Number(base) || 0;
+            if(b === 0) return null;
+            return ((a - b) / b) * 100;
+        }
+
+        function pintarVariacionMetricas(id, valor) {
+            const el = document.getElementById(id);
+            if(!el) return;
+            el.classList.remove('positiva','negativa','neutra');
+            if(valor === null) {
+                el.textContent = 'Sin base de comparación';
+                el.classList.add('neutra');
+                return;
+            }
+            const v = Number(valor) || 0;
+            el.textContent = `${v > 0 ? '+' : ''}${porcentajeMetricas(v)}`;
+            el.classList.add(v > 0 ? 'positiva' : v < 0 ? 'negativa' : 'neutra');
+        }
+
+        function acumularMapaMetricas(mapa, clave, valor) {
+            const k = String(clave || 'Sin identificar').trim() || 'Sin identificar';
+            mapa.set(k, (mapa.get(k) || 0) + (Number(valor) || 0));
+        }
+
+        function obtenerRubroItemMetricas(item) {
+            if(item?.isPack === true || String(item?.idProd || item?.productoId || '').startsWith('pack_')) return 'Packs';
+            const productoId = String(item?.productoId || item?.idProd || '').replace(/^prod_/, '');
+            const producto = productos.find(p => p.id === productoId);
+            return producto?.categoria || item?.categoria || 'Sin rubro';
+        }
+
+        function procesarItemsMetricas(items, mapas) {
+            (Array.isArray(items) ? items : []).forEach(item => {
+                const cantidad = Math.max(0, Number(item?.cantidad) || 0);
+                const precio = Math.max(0, Number(item?.precio) || 0);
+                const ventaLinea = precio * cantidad;
+                mapas.unidades += cantidad;
+                acumularMapaMetricas(mapas.productos, item?.nombre || 'Producto sin nombre', ventaLinea);
+                acumularMapaMetricas(mapas.rubros, obtenerRubroItemMetricas(item), ventaLinea);
+                mapas.totalProductos += ventaLinea;
+            });
+        }
+
+        function construirComposicionMetricas(ingresos, pedidosPorId, anio, mesIndex) {
+            const mapas = { unidades:0, productos:new Map(), rubros:new Map(), totalProductos:0 };
+            const porDiaSemana = new Map(DIAS_METRICAS.map(d => [d,0]));
+            const porDiaMes = new Map();
+
+            ingresos.forEach(ing => {
+                const monto = montoIngresoMetricas(ing);
+                if(fechaValidaMetricas(ing.fecha)) {
+                    acumularMapaMetricas(porDiaSemana, DIAS_METRICAS[ing.fecha.getDay()], monto);
+                    const dia = ing.fecha.getDate();
+                    porDiaMes.set(dia, (porDiaMes.get(dia) || 0) + monto);
+                }
+
+                if(ing.tipo === 'venta_mostrador' || ing.tipo === 'venta') {
+                    if(Array.isArray(ing.items) && ing.items.length) procesarItemsMetricas(ing.items, mapas);
+                    else mapas.unidades += Math.max(0, Number(ing.itemsCount) || 0);
+                    return;
+                }
+
+                const pedidoId = String(ing.pedidoId || (String(ing.id || '').startsWith('pedido_pago_') ? String(ing.id).slice('pedido_pago_'.length) : '')).trim();
+                const pedido = pedidosPorId.get(pedidoId);
+                if(pedido?.items) procesarItemsMetricas(pedido.items, mapas);
+            });
+
+            const hoy = new Date();
+            const finNatural = new Date(anio, mesIndex + 1, 0).getDate();
+            let ultimoDia = finNatural;
+            if(anio === hoy.getFullYear() && mesIndex === hoy.getMonth()) ultimoDia = hoy.getDate();
+            if(inicioMesMetricas(anio,mesIndex) > hoy) ultimoDia = 0;
+
+            const acumulado = [];
+            let suma = 0;
+            for(let dia=1; dia<=ultimoDia; dia++) {
+                suma += porDiaMes.get(dia) || 0;
+                acumulado.push({ dia, total:suma });
+            }
+
+            return { ...mapas, porDiaSemana, acumulado };
+        }
+
+        function renderListaParticipacionMetricas(id, mapa, total) {
+            const el = document.getElementById(id);
+            if(!el) return;
+            const filas = [...mapa.entries()].filter(([,v])=>Number(v)>0).sort((a,b)=>b[1]-a[1]);
+            if(!filas.length || !(Number(total)>0)) {
+                el.innerHTML = '<div class="metrica-estado">Sin ventas para mostrar.</div>';
+                return;
+            }
+            el.innerHTML = filas.map(([nombre,venta]) => `<div class="metrica-detalle-fila"><span>${escaparHtml(nombre)}</span><span>${porcentajeMetricas((venta/total)*100)}</span></div>`).join('');
+        }
+
+        function renderDiasMetricas(mapa, totalVentas) {
+            const el = document.getElementById('metrica-participacion-dias');
+            if(!el) return;
+            if(!(Number(totalVentas)>0)) {
+                el.innerHTML = '<div class="metrica-estado">Sin ventas para mostrar.</div>';
+                return;
+            }
+            const orden = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+            el.innerHTML = orden.map(dia => `<div class="metrica-detalle-fila"><span>${dia}</span><span>${porcentajeMetricas(((mapa.get(dia)||0)/totalVentas)*100)}</span></div>`).join('');
+        }
+
+        function renderAcumuladoMetricas(acumulado, mesIndex) {
+            const el = document.getElementById('metrica-acumulado-mensual');
+            if(!el) return;
+            if(!acumulado.length) {
+                el.innerHTML = '<div class="metrica-estado">No hay fechas transcurridas para este período.</div>';
+                return;
+            }
+            el.innerHTML = acumulado.map(x => `<div class="metrica-detalle-fila"><span>${String(x.dia).padStart(2,'0')} ${MESES_METRICAS[mesIndex]}</span><span>${dineroMetricas(x.total)}</span></div>`).join('');
+        }
+
+        window.prepararMetricasFinancieras = () => {
+            if(metricasInicializadas) return;
+            const selectMes = document.getElementById('metricas-mes');
+            const selectAnio = document.getElementById('metricas-anio');
+            if(!selectMes || !selectAnio) return;
+            const hoy = new Date();
+            selectMes.innerHTML = MESES_METRICAS.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+            selectMes.value = String(hoy.getMonth());
+            const anios=[];
+            for(let a=hoy.getFullYear(); a>=hoy.getFullYear()-10; a--) anios.push(a);
+            selectAnio.innerHTML = anios.map(a=>`<option value="${a}">${a}</option>`).join('');
+            selectAnio.value = String(hoy.getFullYear());
+            metricasInicializadas = true;
+            window.actualizarMetricasFinancieras();
         };
 
-        window.actualizarGraficos = function() {
-            const ctxCanvas = document.getElementById('graficoMetricas'); if(!ctxCanvas) return;
-            const periodo = document.getElementById('select-periodo-metricas').value; const categoria = document.getElementById('select-categoria-metricas').value; let cestas = obtenerCestasPeriodo(periodo); let datosBarras = cestas.map(() => 0); let datosLinea = cestas.map(() => 0);
-            const addToBucket = (time, valueBar, valueLine) => { for(let i=0; i<cestas.length; i++) { if(time >= cestas[i].start && time < cestas[i].end) { datosBarras[i] += valueBar; datosLinea[i] += valueLine; break; } } };
-            
-            pedidosGlobales.forEach(p => {
-                if(!p.fecha) return; let time = p.fecha.getTime(); let cobrado = p.estadoPago === true; let monto = p.total || 0; let cantItems = p.items ? p.items.reduce((s, it) => s + (it.cantidad || 1), 0) : 0; 
-                let pagoEfvo = p.metodoPago === 'Efectivo' ? monto : 0; 
-                let pagoTrans = p.metodoPago !== 'Efectivo' ? monto : 0;
-                
-                if (categoria === 'efectivo' && cobrado) addToBucket(time, pagoEfvo, 1); if (categoria === 'transferencia' && cobrado) addToBucket(time, pagoTrans, 1); if (categoria === 'retiros' && p.metodoEntrega === 'Retiro') addToBucket(time, 1, 0); if (categoria === 'envios' && p.metodoEntrega === 'Envio') addToBucket(time, 1, 0); if (categoria === 'productos' && cobrado) addToBucket(time, cantItems, 0); if (categoria === 'ventas_web' && cobrado) addToBucket(time, monto, 1); if ((categoria === 'neto' || categoria === 'bruto') && cobrado) addToBucket(time, monto, 1);
-            });
+        window.actualizarMetricasFinancieras = async () => {
+            if(!negocioIdActual) return;
+            const mesIndex = Number(document.getElementById('metricas-mes')?.value);
+            const anio = Number(document.getElementById('metricas-anio')?.value);
+            if(!Number.isInteger(mesIndex) || mesIndex < 0 || mesIndex > 11 || !Number.isInteger(anio)) return;
+            const estado = document.getElementById('metricas-estado-carga');
+            const solicitud = ++metricasSolicitud;
+            if(estado) estado.textContent = 'Calculando indicadores…';
 
-            ingresosGlobales.forEach(ing => {
-                if(!ing.fecha) return; let time = ing.fecha.getTime(); let monto = (ing.efectivo || 0) + (ing.transferencia || 0); let isMostrador = ing.tipo === 'venta_mostrador' || ing.tipo === 'venta'; let cantItems = ing.itemsCount || 1; let isAutoPagoWeb = (ing.tipo === 'pago' || ing.tipo === 'pago_auto');
-                if (!isAutoPagoWeb) { if (categoria === 'efectivo') addToBucket(time, ing.efectivo || 0, 1); if (categoria === 'transferencia') addToBucket(time, ing.transferencia || 0, 1); if (categoria === 'productos' && isMostrador) addToBucket(time, cantItems, 0); if (categoria === 'ventas_fisicas' && isMostrador) addToBucket(time, monto, 1); if (categoria === 'neto' || categoria === 'bruto') addToBucket(time, monto, 1); }
-            });
+            try {
+                const prev = new Date(anio, mesIndex - 1, 1);
+                const [actual, anterior, interanual] = await Promise.all([
+                    consultarIngresosMetricas(anio, mesIndex),
+                    consultarIngresosMetricas(prev.getFullYear(), prev.getMonth()),
+                    consultarIngresosMetricas(anio - 1, mesIndex)
+                ]);
+                if(solicitud !== metricasSolicitud) return;
 
-            if (categoria === 'gastos' || categoria === 'neto') { gastosGlobales.forEach(g => { if(!g.fecha) return; let time = g.fecha.getTime(); let monto = g.importe || 0; if (categoria === 'gastos') addToBucket(time, monto, 1); if (categoria === 'neto') addToBucket(time, -monto, 0); }); }
-            let isMoney = ['efectivo', 'transferencia', 'ventas_web', 'ventas_fisicas', 'neto', 'bruto', 'gastos'].includes(categoria); let labelBar = isMoney ? "Monto Total" : "Cantidad Total"; let labelLine = isMoney ? "Operaciones Generadas" : "Ventas"; const etiquetas = cestas.map(c => c.label); const ctx = ctxCanvas.getContext('2d');
-            if (metricasChart) { metricasChart.destroy(); } Chart.defaults.color = '#616161';
-            metricasChart = new Chart(ctx, { type: 'bar', data: { labels: etiquetas, datasets: [ { label: labelBar, data: datosBarras, backgroundColor: categoria === 'gastos' ? '#ef4444' : '#5d4037', borderRadius: 4, order: 2 }, { label: labelLine, data: datosLinea, type: 'line', borderColor: '#8d6e63', backgroundColor: 'rgba(141, 110, 99, 0.1)', borderWidth: 3, fill: true, tension: 0.3, order: 1 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { family: "'Helvetica Neue', sans-serif" } } }, tooltip: { mode: 'index', intersect: false, callbacks: { label: function(context) { let label = context.dataset.label || ''; let value = context.parsed.y; if (label) { label += ': '; } if (isMoney && context.datasetIndex === 0) { label += '$' + value.toLocaleString('es-AR'); } else { label += value; } return label; } } } }, scales: { y: { beginAtZero: true, grid: { color: '#eeeeee' }, ticks: { callback: function(value) { return isMoney ? '$' + value.toLocaleString('es-AR') : value; } } }, x: { grid: { display: false } } } } });
-            
-            let listHTML = '<ul style="list-style:none; padding:0; margin:0;">'; let hayDatos = false;
-            for(let i = 0; i < etiquetas.length; i++) { if (datosBarras[i] !== 0 || datosLinea[i] !== 0) { hayDatos = true; listHTML += `<li style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-light);"><span style="color:var(--text-main); font-weight:500;">${etiquetas[i]}</span><span style="color:var(--text-muted);">${isMoney ? '$'+window.formatearNum(datosBarras[i]) : datosBarras[i]} ${labelBar.toLowerCase()} | ${datosLinea[i]} ${labelLine.toLowerCase()}</span></li>`; } } listHTML += '</ul>';
-            document.getElementById('metricas-data-list').innerHTML = hayDatos ? listHTML : 'No hay datos para mostrar en este periodo.';
-        }
-    
+                const [resActual, resAnterior, resInteranual] = [actual, anterior, interanual].map(resumenVentasMetricas);
+                const pedidosPorId = await cargarPedidosDeIngresosMetricas(actual);
+                if(solicitud !== metricasSolicitud) return;
+                const composicion = construirComposicionMetricas(actual, pedidosPorId, anio, mesIndex);
+
+                const ventasConsolidadas = document.getElementById('metrica-ventas-consolidadas');
+                if(ventasConsolidadas) ventasConsolidadas.textContent = `${window.formatearNum(composicion.unidades)} unidades`;
+                const ticket = document.getElementById('metrica-ticket-promedio');
+                if(ticket) ticket.textContent = dineroMetricas(resActual.operaciones ? resActual.totalVentas / resActual.operaciones : 0);
+
+                pintarVariacionMetricas('metrica-variacion-intermensual', variacionMetricas(resActual.totalVentas, resAnterior.totalVentas));
+                pintarVariacionMetricas('metrica-variacion-interanual', variacionMetricas(resActual.totalVentas, resInteranual.totalVentas));
+                renderListaParticipacionMetricas('metrica-participacion-rubros', composicion.rubros, composicion.totalProductos);
+                renderListaParticipacionMetricas('metrica-participacion-productos', composicion.productos, composicion.totalProductos);
+                renderDiasMetricas(composicion.porDiaSemana, resActual.totalVentas);
+                renderAcumuladoMetricas(composicion.acumulado, mesIndex);
+
+                if(estado) estado.textContent = `${MESES_METRICAS[mesIndex]} ${anio} · Ventas: ${dineroMetricas(resActual.totalVentas)} · Operaciones: ${window.formatearNum(resActual.operaciones)}`;
+            } catch(e) {
+                console.error('Error calculando métricas:', e);
+                if(estado) estado.textContent = e?.message?.includes('index')
+                    ? 'Falta un índice de Firestore para consultar las métricas de este período.'
+                    : 'No se pudieron calcular las métricas. Intentá nuevamente.';
+            }
+        };
+
         panelFuncionesListas = true;
 </script>
 
