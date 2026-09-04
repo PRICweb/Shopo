@@ -5,6 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
+    <meta name="theme-color" content="#5d4037">
+    <meta name="application-name" content="Shopo">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Shopo">
+    <meta name="description" content="Panel integral de control de negocios y ventas">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
@@ -1381,14 +1389,46 @@
             .horario-tramos { grid-template-columns: 1fr; }
         }
 
+
+
+        /* ===== PWA SHOPO ===== */
+        .pwa-install-card { padding:16px; border:1px solid var(--border-light); border-radius:10px; background:var(--card-bg); }
+        .pwa-install-card p { margin:0 0 14px; color:var(--text-muted); font-size:.8rem; line-height:1.55; }
+        .pwa-install-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .pwa-install-actions button { min-height:42px; }
+        .pwa-status { margin-top:10px; color:var(--text-muted); font-size:.73rem; line-height:1.45; }
+        .pwa-status.ok { color:#166534; }
+        .pwa-status.warn { color:#92400e; }
+        #pwa-offline-overlay { position:fixed; inset:0; z-index:2000000; display:flex; align-items:center; justify-content:center; padding:24px; background:#fff; color:var(--text-main); }
+        #pwa-offline-overlay.hidden { display:none !important; }
+        .pwa-offline-card { width:min(100%,430px); text-align:center; padding:26px; }
+        .pwa-offline-icon { width:52px; height:52px; margin:0 auto 15px; border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:1.25rem; }
+        .pwa-offline-card h2 { margin:0 0 10px; color:var(--primary); font-size:1.15rem; font-weight:500 !important; }
+        .pwa-offline-card p { margin:0 0 20px; color:var(--text-muted); font-size:.86rem; line-height:1.55; }
+        .pwa-push-toast { position:fixed; top:max(14px,env(safe-area-inset-top)); left:50%; transform:translate(-50%,-18px); z-index:1900000; width:min(calc(100vw - 28px),460px); padding:13px 14px; border:1px solid var(--border); border-radius:12px; background:#fff; box-shadow:0 12px 36px rgba(0,0,0,.14); opacity:0; visibility:hidden; transition:.2s ease; cursor:pointer; }
+        .pwa-push-toast.show { opacity:1; visibility:visible; transform:translate(-50%,0); }
+        .pwa-push-toast strong { display:block; color:var(--primary); margin-bottom:4px; font-size:.83rem; }
+        .pwa-push-toast span { display:block; color:var(--text-muted); font-size:.76rem; line-height:1.4; }
+        @media(max-width:768px){ .pwa-install-actions{display:grid;grid-template-columns:1fr;} .pwa-install-actions button{width:100%;} }
+
     </style>
 </head>
 <body>
 
+    <div id="pwa-offline-overlay" class="hidden" role="alert" aria-live="assertive">
+        <div class="pwa-offline-card">
+            <div class="pwa-offline-icon">!</div>
+            <h2>Sin conexión a internet</h2>
+            <p>Shopo necesita conexión para administrar tu negocio. Revisá tu conexión e intentá nuevamente.</p>
+            <button type="button" onclick="window.pwaReintentarConexion()">Reintentar</button>
+        </div>
+    </div>
+    <div id="pwa-push-toast" class="pwa-push-toast" role="status" aria-live="polite"><strong></strong><span></span></div>
+
     <div id="pantalla-carga">
         <div class="logo-wrapper">
-            <img src="https://i.pinimg.com/736x/93/ab/35/93ab3576f2c1c55a0d966cedec575ddc.jpg" class="logo-base" alt="" onerror="this.style.display='none'">
-            <img src="https://i.pinimg.com/736x/93/ab/35/93ab3576f2c1c55a0d966cedec575ddc.jpg" class="logo-fill" alt="" onerror="this.style.display='none'">
+            <img src="./icons/icon-512.png" class="logo-base" alt="" onerror="this.style.display='none'">
+            <img src="./icons/icon-512.png" class="logo-fill" alt="" onerror="this.style.display='none'">
         </div>
     </div>
 
@@ -1688,6 +1728,32 @@
                         </div>
                     </div>
                 </div>
+                <div id="modulo-instalar-shopo" class="modulo-oscuro">
+                    <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-instalar-shopo')">
+                        <span>Instalar Shopo</span><span>⌄</span>
+                    </div>
+                    <div id="body-config-instalar-shopo" class="modulo-body hidden">
+                        <div class="pwa-install-card">
+                            <p>Instalá Shopo en este dispositivo para abrir el panel como una aplicación, desde tu pantalla de inicio y sin la barra del navegador.</p>
+                            <div class="pwa-install-actions"><button id="btn-instalar-pwa" type="button" onclick="window.instalarShopoPWA()">Instalar Shopo</button></div>
+                            <div id="pwa-install-status" class="pwa-status">Comprobando compatibilidad de instalación…</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="modulo-notificaciones-shopo" class="modulo-oscuro">
+                    <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-notificaciones-shopo')">
+                        <span>Notificaciones</span><span>⌄</span>
+                    </div>
+                    <div id="body-config-notificaciones-shopo" class="modulo-body hidden">
+                        <div class="pwa-install-card">
+                            <p>Recibí avisos de nuevos pedidos, stock bajo y cambios importantes de tu suscripción, incluso cuando Shopo no esté abierto.</p>
+                            <div class="pwa-install-actions"><button id="btn-activar-push" type="button" onclick="window.activarNotificacionesPWA()">Activar notificaciones</button></div>
+                            <div id="pwa-push-status" class="pwa-status">Las notificaciones todavía no están activadas en este dispositivo.</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="modulo-oscuro">
                     <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-tienda')">
                         <span>Tienda</span><span>⌄</span>
@@ -2030,9 +2096,10 @@
     <script type="module">
         // ===== INTEGRACIÓN FIREBASE ACTUALIZADA (MULTI-TENANT) =====
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
+        import { initializeAppCheck, ReCaptchaEnterpriseProvider, getToken as getAppCheckToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
         import { getFirestore, collection, getDocs, getDoc, doc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit, startAfter, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+        import { getMessaging, getToken as getMessagingToken, onMessage, isSupported as messagingIsSupported } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -2054,6 +2121,249 @@
         });
 
 const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1.run.app";
+
+        // ===== PWA SHOPO =====
+        let pwaInstallPrompt = null;
+        let pwaServiceWorkerRegistration = null;
+        let pushTokenActual = null;
+        let messagingPWA = null;
+        let pwaRecargaPorSW = false;
+
+        const pwaEsStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        const pwaEsIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+
+        function actualizarEstadoInstalacionPWA() {
+            const modulo = document.getElementById('modulo-instalar-shopo');
+            const btn = document.getElementById('btn-instalar-pwa');
+            const estado = document.getElementById('pwa-install-status');
+            if (pwaEsStandalone()) {
+                if(modulo) modulo.classList.add('hidden');
+                return;
+            }
+            if(modulo) modulo.classList.remove('hidden');
+            if(!btn || !estado) return;
+            if(pwaInstallPrompt) {
+                btn.disabled = false;
+                estado.textContent = 'Shopo está listo para instalarse en este dispositivo.';
+                estado.className = 'pwa-status ok';
+            } else if(pwaEsIOS()) {
+                btn.disabled = false;
+                estado.textContent = 'En iPhone/iPad, tocá Instalar y te indicaremos cómo agregar Shopo a la pantalla de inicio.';
+                estado.className = 'pwa-status';
+            } else {
+                btn.disabled = true;
+                estado.textContent = 'El navegador habilitará la instalación cuando termine de validar la PWA.';
+                estado.className = 'pwa-status';
+            }
+        }
+
+        window.instalarShopoPWA = async () => {
+            if(pwaEsStandalone()) return;
+            if(pwaInstallPrompt) {
+                const evento = pwaInstallPrompt;
+                pwaInstallPrompt = null;
+                await evento.prompt();
+                await evento.userChoice.catch(()=>null);
+                actualizarEstadoInstalacionPWA();
+                return;
+            }
+            if(pwaEsIOS()) {
+                window.mostrarAlertaUI('En iPhone/iPad: abrí el menú Compartir de Safari y elegí “Agregar a pantalla de inicio”.');
+                return;
+            }
+            window.mostrarAlertaUI('La instalación todavía no está disponible. Esperá unos segundos y volvé a intentarlo.');
+        };
+
+        window.addEventListener('beforeinstallprompt', event => {
+            event.preventDefault();
+            pwaInstallPrompt = event;
+            actualizarEstadoInstalacionPWA();
+        });
+        window.addEventListener('appinstalled', () => {
+            pwaInstallPrompt = null;
+            actualizarEstadoInstalacionPWA();
+        });
+
+        async function registrarServiceWorkerPWA() {
+            if(!('serviceWorker' in navigator)) return null;
+            try {
+                const reg = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+                pwaServiceWorkerRegistration = reg;
+                reg.update().catch(()=>{});
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if(pwaRecargaPorSW) return;
+                    pwaRecargaPorSW = true;
+                    window.location.reload();
+                });
+                return reg;
+            } catch(error) {
+                console.error('No se pudo registrar el Service Worker de Shopo.', error);
+                return null;
+            }
+        }
+
+        function actualizarEstadoConexionPWA() {
+            const overlay = document.getElementById('pwa-offline-overlay');
+            if(!overlay) return;
+            overlay.classList.toggle('hidden', navigator.onLine);
+        }
+        window.pwaReintentarConexion = () => {
+            actualizarEstadoConexionPWA();
+            if(navigator.onLine) window.location.reload();
+        };
+        window.addEventListener('online', actualizarEstadoConexionPWA);
+        window.addEventListener('offline', actualizarEstadoConexionPWA);
+        actualizarEstadoConexionPWA();
+
+        function plataformaPWA() {
+            if(pwaEsIOS()) return 'ios-web';
+            if(/android/i.test(navigator.userAgent || '')) return 'android-web';
+            return 'desktop-web';
+        }
+
+        async function requestNotificacionesBackend(path, opciones={}) {
+            const headers = await obtenerHeadersBackendAdmin();
+            const response = await fetch(`${SHOPO_BACKEND_URL}${path}`, {
+                ...opciones,
+                headers:{...headers,...(opciones.body?{'Content-Type':'application/json'}:{}),...(opciones.headers||{})},
+                cache:'no-store'
+            });
+            const data=await response.json().catch(()=>({}));
+            if(!response.ok) throw new Error(data?.mensaje || data?.error || `Error ${response.status}`);
+            return data;
+        }
+
+        function setEstadoPush(texto, clase='') {
+            const el=document.getElementById('pwa-push-status');
+            if(el){ el.textContent=texto; el.className=`pwa-status${clase?` ${clase}`:''}`; }
+        }
+
+        async function registrarTokenPushActual(solicitarPermiso=false) {
+            if(!auth?.currentUser) return false;
+            if(!(await messagingIsSupported())) {
+                setEstadoPush('Este navegador no admite Firebase Cloud Messaging.', 'warn');
+                return false;
+            }
+            if(!('Notification' in window)) {
+                setEstadoPush('Este dispositivo no admite notificaciones web.', 'warn');
+                return false;
+            }
+            let permiso=Notification.permission;
+            if(permiso==='default' && solicitarPermiso) permiso=await Notification.requestPermission();
+            if(permiso!=='granted') {
+                setEstadoPush(permiso==='denied'?'Las notificaciones están bloqueadas en la configuración del navegador.':'Las notificaciones todavía no están activadas.', permiso==='denied'?'warn':'');
+                return false;
+            }
+            const config=await requestNotificacionesBackend('/api/v1/notificaciones/config');
+            const vapidKey=String(config?.vapidPublicKey||'').trim();
+            if(!vapidKey) {
+                setEstadoPush('Falta configurar la clave pública Web Push de Firebase en el backend.', 'warn');
+                return false;
+            }
+            if(!pwaServiceWorkerRegistration) pwaServiceWorkerRegistration=await registrarServiceWorkerPWA();
+            if(!pwaServiceWorkerRegistration) throw new Error('No se pudo iniciar el Service Worker.');
+            messagingPWA=messagingPWA || getMessaging(app);
+            pushTokenActual=await getMessagingToken(messagingPWA,{vapidKey,serviceWorkerRegistration:pwaServiceWorkerRegistration});
+            if(!pushTokenActual) throw new Error('Firebase no devolvió un token de notificaciones.');
+            await requestNotificacionesBackend('/api/v1/notificaciones/dispositivos/registrar',{
+                method:'POST',body:JSON.stringify({token:pushTokenActual,plataforma:plataformaPWA(),userAgent:navigator.userAgent||''})
+            });
+            setEstadoPush('Notificaciones activadas en este dispositivo.', 'ok');
+            return true;
+        }
+
+        window.activarNotificacionesPWA=async()=>{
+            const btn=document.getElementById('btn-activar-push');
+            if(btn){btn.disabled=true;btn.textContent='Activando…';}
+            try { await registrarTokenPushActual(true); }
+            catch(error){ console.error(error); setEstadoPush(error.message||'No se pudieron activar las notificaciones.','warn'); }
+            finally { if(btn){btn.disabled=false;btn.textContent='Activar notificaciones';} }
+        };
+
+        async function desactivarPushSesionActual() {
+            if(!pushTokenActual || !auth?.currentUser) return;
+            try {
+                await requestNotificacionesBackend('/api/v1/notificaciones/dispositivos/desactivar',{
+                    method:'POST',body:JSON.stringify({token:pushTokenActual})
+                });
+            } catch(error) { console.warn('No se pudo desactivar el token push al cerrar sesión.', error); }
+            pushTokenActual=null;
+        }
+
+        function abrirDestinoPWA(target, abrirAcordeon='') {
+            const panel=['panel-movimientos','panel-pedidos','panel-inventario','panel-finanzas','panel-config'].includes(target)?target:'panel-movimientos';
+            window.togglePanel?.(panel);
+            if(abrirAcordeon) {
+                const body=document.getElementById(abrirAcordeon);
+                if(body?.classList.contains('hidden')) window.toggleAcordeon?.(abrirAcordeon);
+            }
+            window.scrollTo({top:0,behavior:'smooth'});
+        }
+
+        function mostrarPushForeground(payload) {
+            const data=payload?.data||{};
+            const toast=document.getElementById('pwa-push-toast');
+            if(!toast) return;
+            toast.querySelector('strong').textContent=data.title||'Shopo';
+            toast.querySelector('span').textContent=data.body||'';
+            toast.onclick=()=>{ toast.classList.remove('show'); abrirDestinoPWA(data.target,data.abrirAcordeon); };
+            toast.classList.add('show');
+            setTimeout(()=>toast.classList.remove('show'),6000);
+            pwaServiceWorkerRegistration?.showNotification?.(data.title||'Shopo',{
+                body:data.body||'',icon:'./icons/icon-192.png',badge:'./icons/icon-96.png',
+                vibrate:[180,90,180],data:{target:data.target||'panel-movimientos',abrirAcordeon:data.abrirAcordeon||''}
+            }).catch(()=>{});
+        }
+
+        async function inicializarMensajeriaPWA() {
+            try {
+                if(!(await messagingIsSupported())) return;
+                messagingPWA=messagingPWA||getMessaging(app);
+                onMessage(messagingPWA,mostrarPushForeground);
+                if(Notification.permission==='granted') await registrarTokenPushActual(false);
+                else setEstadoPush(Notification.permission==='denied'?'Las notificaciones están bloqueadas en este navegador.':'Las notificaciones todavía no están activadas.',Notification.permission==='denied'?'warn':'');
+            } catch(error) { console.error('Error inicializando notificaciones PWA:',error); }
+        }
+
+        function procesarDestinoInicialPWA() {
+            const params=new URLSearchParams(window.location.search);
+            const panel=params.get('pwaPanel');
+            const acordeon=params.get('pwaAcordeon');
+            const retornoPago=params.get('suscripcion');
+            if(panel) setTimeout(()=>abrirDestinoPWA(panel,acordeon||''),120);
+            if(retornoPago) {
+                setTimeout(()=>abrirDestinoPWA('panel-config','body-config-suscripcion'),160);
+                if(retornoPago==='pending') setTimeout(()=>window.mostrarAlertaUI('El pago está pendiente de acreditación.'),250);
+                if(retornoPago==='failure') setTimeout(()=>window.mostrarAlertaUI('No pudimos confirmar el pago, contáctese con el soporte.'),250);
+                const limpia=new URL(window.location.href); limpia.searchParams.delete('suscripcion');
+                history.replaceState(history.state,'',limpia.href);
+            }
+        }
+
+        function actualizarBadgePWA(cantidad) {
+            if(!('setAppBadge' in navigator)) return;
+            const n=Math.max(0,Number(cantidad)||0);
+            (n?navigator.setAppBadge(n):navigator.clearAppBadge()).catch?.(()=>{});
+        }
+
+        function instalarGestionBackPWA() {
+            if(window.__pwaBackInstalado) return;
+            window.__pwaBackInstalado=true;
+            window.addEventListener('popstate',()=>{
+                const visibles=[...document.querySelectorAll('.modal-overlay:not(.hidden)')];
+                const modal=visibles.at(-1);
+                if(modal) modal.classList.add('hidden');
+            });
+        }
+
+        async function inicializarPWAAdmin() {
+            await registrarServiceWorkerPWA();
+            actualizarEstadoInstalacionPWA();
+            instalarGestionBackPWA();
+            await inicializarMensajeriaPWA();
+            procesarDestinoInicialPWA();
+        }
+
 
         let estadoSuscripcionActual = null;
         let planesSuscripcionActuales = [];
@@ -2158,7 +2468,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
 async function obtenerHeadersBackendAdmin() {
     if (!auth?.currentUser) throw new Error("No hay una sesión de administrador activa.");
     const [appCheckResult, idToken] = await Promise.all([
-        getToken(appCheck, false),
+        getAppCheckToken(appCheck, false),
         auth.currentUser.getIdToken()
     ]);
     if (!appCheckResult?.token) throw new Error("No se pudo obtener el token de App Check.");
@@ -2744,9 +3054,9 @@ async function obtenerHeadersBackendAdmin() {
 
 
         // ===== FIREBASE STORAGE / IMÁGENES OPTIMIZADAS =====
-        const STORAGE_MAX_ORIGINAL_BYTES = 5 * 1024 * 1024;
+        const STORAGE_MAX_ORIGINAL_BYTES = 12 * 1024 * 1024;
         const STORAGE_MAX_DIMENSION = 1200;
-        const STORAGE_TARGET_BYTES = 350 * 1024;
+        const STORAGE_TARGET_BYTES = 2 * 1024 * 1024;
         const STORAGE_ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
         const normalizarSegmentoStorage = (valor, fallback = 'archivo') => {
@@ -2762,7 +3072,7 @@ async function obtenerHeadersBackendAdmin() {
         const validarArchivoImagen = (archivo) => {
             if(!archivo) throw new Error('Seleccioná una imagen.');
             if(!STORAGE_ALLOWED_TYPES.has(archivo.type)) throw new Error('La imagen debe ser JPG, PNG o WebP.');
-            if(archivo.size > STORAGE_MAX_ORIGINAL_BYTES) throw new Error('La imagen original no puede superar los 5 MB.');
+            if(archivo.size > STORAGE_MAX_ORIGINAL_BYTES) throw new Error('La imagen original no puede superar los 12 MB; Shopo la comprimirá automáticamente antes de subirla.');
         };
 
         const cargarImagenArchivo = (archivo) => new Promise((resolve, reject) => {
@@ -2792,12 +3102,12 @@ async function obtenerHeadersBackendAdmin() {
             ctx.drawImage(img, 0, 0, width, height);
 
             let blob = null;
-            for(const quality of [0.84, 0.76, 0.68, 0.60]) {
+            for(const quality of [0.80, 0.72, 0.64, 0.56]) {
                 blob = await canvasAWebP(canvas, quality);
                 if(blob && blob.size <= STORAGE_TARGET_BYTES) break;
             }
             if(!blob) throw new Error('No se pudo convertir la imagen a WebP.');
-            if(blob.size > 1024 * 1024) throw new Error('La imagen optimizada sigue siendo demasiado pesada.');
+            if(blob.size > 2 * 1024 * 1024) throw new Error('La imagen optimizada sigue superando los 2 MB.');
             return blob;
         };
 
@@ -3056,6 +3366,7 @@ async function obtenerHeadersBackendAdmin() {
             setTxt('notif-pedidos', pedidosPend);
             setTxt('notif-stock', alertasStock);
             setTxt('notif-pagos', pagosPend);
+            actualizarBadgePWA(pedidosPend);
         };
 
         window.abrirResumenNotificacion = (tipo) => {
@@ -3117,6 +3428,7 @@ async function obtenerHeadersBackendAdmin() {
                 document.getElementById('login-container').classList.remove('hidden');
                 document.getElementById('login-pass').value = '';
 
+                await desactivarPushSesionActual();
                 await signOut(auth);
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
@@ -3168,6 +3480,7 @@ async function obtenerHeadersBackendAdmin() {
                                 renderSuscripcionAdmin();
                             }
                             cargarDatosBD();
+                            inicializarPWAAdmin().catch(error => console.error('No se pudo inicializar la PWA:', error));
                         } else {
                             // Mostrar el cartel estético con el texto solicitado
                             window.mostrarAlertaUI("Ya te has registrado, en breves tendrás acceso al panel.");
