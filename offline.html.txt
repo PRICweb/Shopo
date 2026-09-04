@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#5d4037">
+  <title>Shopo · Sin conexión</title>
+  <style>
+    *{box-sizing:border-box} html,body{margin:0;width:100%;min-height:100%;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#212121}
+    body{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom))}
+    main{width:min(100%,430px);text-align:center}.logo{width:96px;height:96px;object-fit:contain;margin:0 auto 18px;display:block}h1{margin:0 0 10px;color:#5d4037;font-size:1.25rem;font-weight:500}p{margin:0 0 22px;color:#616161;line-height:1.55;font-size:.9rem}button{border:0;border-radius:9px;background:#5d4037;color:#fff;padding:12px 20px;min-height:44px;font-size:1rem;cursor:pointer}
+  </style>
+</head>
+<body>
+<main>
+  <img class="logo" src="./icons/icon-192.png" alt="Shopo">
+  <h1>Sin conexión a internet</h1>
+  <p>Shopo necesita conexión para administrar tu negocio. Revisá tu conexión e intentá nuevamente.</p>
+  <button type="button" onclick="location.reload()">Reintentar</button>
+</main>
+</body>
+</html>
