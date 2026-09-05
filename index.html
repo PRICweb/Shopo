@@ -1439,7 +1439,7 @@
             }
 
             #panel-movimientos .modulo-oscuro {
-                margin: 0 0 24px !important;
+                margin: 0 0 34px !important;
                 padding: 0 !important;
                 background: transparent !important;
                 border: 0 !important;
@@ -1477,6 +1477,7 @@
 
             #body-ventas-mostrador {
                 padding-top: 0 !important;
+                margin-bottom: 42px !important;
             }
 
             #body-ventas-mostrador > div:first-child {
@@ -1494,10 +1495,181 @@
                 text-align: center !important;
             }
 
-            /* Selectores nativos, visualmente alineados con los inputs. */
-            #panel-movimientos select {
+            /* Selectores móviles propios de Shopo: evitan el selector oscuro del sistema. */
+            .shopo-mobile-select-native {
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                padding: 0 !important;
+                margin: -1px !important;
+                overflow: hidden !important;
+                clip: rect(0, 0, 0, 0) !important;
+                white-space: nowrap !important;
+                border: 0 !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+
+            .shopo-mobile-select {
+                position: relative;
+                width: 100%;
+                min-width: 0;
+            }
+
+            .shopo-mobile-select-btn {
+                width: 100% !important;
+                min-height: 54px !important;
+                display: grid !important;
+                grid-template-columns: 1fr auto;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 14px !important;
+                background: #ffffff !important;
+                color: var(--text-main) !important;
+                border: 1px solid var(--border) !important;
+                border-radius: 12px !important;
+                box-shadow: none !important;
+                text-transform: none !important;
+                letter-spacing: .1px !important;
+                font-size: 16px !important;
                 text-align: center !important;
-                text-align-last: center !important;
+            }
+
+            .shopo-mobile-select-btn:hover,
+            .shopo-mobile-select-btn:active {
+                background: #ffffff !important;
+                color: var(--text-main) !important;
+                transform: none !important;
+            }
+
+            .shopo-mobile-select-btn > span:first-child {
+                min-width: 0;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                text-align: center;
+            }
+
+            .shopo-mobile-select-caret {
+                color: var(--primary);
+                font-size: 13px;
+                line-height: 1;
+            }
+
+            .shopo-mobile-select-menu {
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: calc(100% + 6px);
+                z-index: 18000;
+                display: none;
+                max-height: min(320px, 52vh);
+                overflow-y: auto;
+                padding: 4px;
+                background: #ffffff;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                box-shadow: 0 12px 32px rgba(0,0,0,.12);
+            }
+
+            .shopo-mobile-select.open .shopo-mobile-select-menu {
+                display: block;
+            }
+
+            .shopo-mobile-select-option {
+                width: 100% !important;
+                min-height: 48px !important;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 10px 12px !important;
+                background: #ffffff !important;
+                color: var(--text-main) !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                border-bottom: 1px solid var(--border-light) !important;
+                text-transform: none !important;
+                letter-spacing: .1px !important;
+                font-size: 15px !important;
+                text-align: center !important;
+            }
+
+            .shopo-mobile-select-option:last-child {
+                border-bottom: 0 !important;
+            }
+
+            .shopo-mobile-select-option.selected {
+                color: var(--primary) !important;
+                background: var(--card-hover) !important;
+            }
+
+            .shopo-mobile-select-option:disabled {
+                color: var(--text-dark) !important;
+                background: #ffffff !important;
+            }
+
+            /* Resultados de búsqueda de registros: tabla clara dentro de la PWA. */
+            .registro-resultados-mobile {
+                display: none;
+                margin-top: 7px;
+                overflow: hidden;
+                background: #ffffff;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                box-shadow: 0 10px 24px rgba(0,0,0,.08);
+            }
+
+            .registro-resultados-mobile.show {
+                display: block;
+            }
+
+            .registro-resultado-row {
+                width: 100% !important;
+                min-height: 58px !important;
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 12px;
+                align-items: center;
+                padding: 10px 12px !important;
+                background: #ffffff !important;
+                color: var(--text-main) !important;
+                border: 0 !important;
+                border-bottom: 1px solid var(--border-light) !important;
+                border-radius: 0 !important;
+                text-transform: none !important;
+                letter-spacing: .1px !important;
+                text-align: left !important;
+            }
+
+            .registro-resultado-row:last-child {
+                border-bottom: 0 !important;
+            }
+
+            .registro-resultado-row:hover,
+            .registro-resultado-row:active {
+                background: var(--card-hover) !important;
+                color: var(--text-main) !important;
+                transform: none !important;
+            }
+
+            .registro-resultado-principal {
+                min-width: 0;
+                font-size: .84rem;
+                line-height: 1.35;
+                overflow-wrap: anywhere;
+            }
+
+            .registro-resultado-monto {
+                color: var(--primary);
+                white-space: nowrap;
+                font-size: .82rem;
+            }
+
+            .registro-resultados-vacio {
+                padding: 13px 12px;
+                color: var(--text-muted);
+                font-size: .8rem;
+                text-align: center;
             }
 
             /* Buscador 3/4 + cantidad 1/4; Añadir ocupa la fila inferior. */
@@ -1891,8 +2063,8 @@
                                 <label class="mini-label">Registro</label>
                                 <select id="borrar-registro-id" class="registro-select-desktop" onchange="window.actualizarOpcionDevolverStock()"><option value="">Seleccioná primero un tipo...</option></select>
                                 <div class="registro-busqueda-mobile">
-                                    <input type="search" id="borrar-registro-busqueda" list="borrar-registro-opciones" disabled autocomplete="off" placeholder="Código, cliente, teléfono..." oninput="window.buscarRegistrosBorrables(this.value)">
-                                    <datalist id="borrar-registro-opciones"></datalist>
+                                    <input type="search" id="borrar-registro-busqueda" disabled autocomplete="off" placeholder="Código, cliente, teléfono..." oninput="window.buscarRegistrosBorrables(this.value)">
+                                    <div id="borrar-registro-resultados" class="registro-resultados-mobile" role="listbox" aria-label="Resultados de registros"></div>
                                 </div>
                             </div>
                         </div>
@@ -5423,33 +5595,64 @@ async function obtenerHeadersBackendAdmin() {
             const t=document.getElementById('borrar-registro-tipo')?.value||'',
                   select=document.getElementById('borrar-registro-id'),
                   input=document.getElementById('borrar-registro-busqueda'),
-                  lista=document.getElementById('borrar-registro-opciones'),
+                  resultados=document.getElementById('borrar-registro-resultados'),
                   box=document.getElementById('borrar-registro-stock-box');
+
             if(select){
                 select.innerHTML=t?'<option value="">Seleccionar registro...</option>':'<option value="">Seleccioná primero un tipo...</option>';
-                registrosBorrablesPorTipo(t).slice().sort((a,b)=>(b.fecha?.getTime?.()||0)-(a.fecha?.getTime?.()||0)).forEach(r=>{
-                    const option=document.createElement('option');
-                    option.value=r.__id;
-                    option.textContent=etiquetaRegistroBorrable(r,t);
-                    select.appendChild(option);
-                });
+                registrosBorrablesPorTipo(t)
+                    .slice()
+                    .sort((a,b)=>(b.fecha?.getTime?.()||0)-(a.fecha?.getTime?.()||0))
+                    .forEach(r=>{
+                        const option=document.createElement('option');
+                        option.value=r.__id;
+                        option.textContent=etiquetaRegistroBorrable(r,t);
+                        select.appendChild(option);
+                    });
             }
-            if(input){input.value='';input.disabled=!t;}
-            if(lista)lista.innerHTML='';
+
+            if(input){
+                input.value='';
+                input.disabled=!t;
+                input.placeholder=t?'Código, cliente, teléfono...':'Elegí primero un tipo';
+            }
+
+            if(resultados){
+                resultados.innerHTML='';
+                resultados.classList.remove('show');
+            }
+
             box?.classList.add('hidden');
+            window.sincronizarSelectMovilShopo?.(document.getElementById('borrar-registro-tipo'));
+        };
+
+        window.seleccionarRegistroBorrable=(id,etiqueta='')=>{
+            const select=document.getElementById('borrar-registro-id'),
+                  input=document.getElementById('borrar-registro-busqueda'),
+                  resultados=document.getElementById('borrar-registro-resultados');
+            if(!select)return;
+            select.value=id||'';
+            if(input) input.value=etiqueta||select.options[select.selectedIndex]?.textContent||'';
+            resultados?.classList.remove('show');
+            window.actualizarOpcionDevolverStock();
         };
 
         window.buscarRegistrosBorrables=(valor='')=>{
             const t=document.getElementById('borrar-registro-tipo')?.value||'',
                   input=document.getElementById('borrar-registro-busqueda'),
-                  lista=document.getElementById('borrar-registro-opciones'),
+                  resultados=document.getElementById('borrar-registro-resultados'),
                   select=document.getElementById('borrar-registro-id');
-            if(!lista||!select)return;
+            if(!resultados||!select)return;
+
             const q=String(valor||'').trim().toLocaleLowerCase('es-AR');
-            lista.innerHTML='';
+            resultados.innerHTML='';
             select.value='';
             document.getElementById('borrar-registro-stock-box')?.classList.add('hidden');
-            if(!t||q.length<1)return;
+
+            if(!t||q.length<1){
+                resultados.classList.remove('show');
+                return;
+            }
 
             const registros=registrosBorrablesPorTipo(t)
                 .slice()
@@ -5457,18 +5660,28 @@ async function obtenerHeadersBackendAdmin() {
                 .filter(r=>textoBusquedaRegistroBorrable(r,t).includes(q))
                 .slice(0,40);
 
+            if(!registros.length){
+                resultados.innerHTML='<div class="registro-resultados-vacio">Sin coincidencias</div>';
+                resultados.classList.add('show');
+                return;
+            }
+
             registros.forEach(r=>{
-                const option=document.createElement('option');
-                option.value=etiquetaRegistroBorrable(r,t);
-                option.dataset.id=r.__id;
-                lista.appendChild(option);
+                const fila=document.createElement('button');
+                fila.type='button';
+                fila.className='registro-resultado-row';
+                fila.setAttribute('role','option');
+                const etiqueta=etiquetaRegistroBorrable(r,t);
+                const monto=`$${window.formatearNum(montoRegistroBorrable(r,t))}`;
+                let principal=etiqueta;
+                const sufijo=` · ${monto}`;
+                if(principal.endsWith(sufijo)) principal=principal.slice(0,-sufijo.length);
+                fila.innerHTML=`<span class="registro-resultado-principal">${escaparHtml(principal)}</span><span class="registro-resultado-monto">${escaparHtml(monto)}</span>`;
+                fila.addEventListener('click',()=>window.seleccionarRegistroBorrable(r.__id,etiqueta));
+                resultados.appendChild(fila);
             });
 
-            const exacto=Array.from(lista.options).find(o=>o.value===String(input?.value||''));
-            if(exacto){
-                select.value=exacto.dataset.id||'';
-                window.actualizarOpcionDevolverStock();
-            }
+            resultados.classList.add('show');
         };
 
         window.actualizarOpcionDevolverStock=()=>{
@@ -6011,6 +6224,146 @@ async function obtenerHeadersBackendAdmin() {
                 setTimeout(function(){ loader.style.visibility = 'hidden'; }, 500);
             }
         }, 8000);
+    </script>
+
+
+<script>
+        (() => {
+            const MOBILE_QUERY = window.matchMedia('(max-width: 768px)');
+            const SELECT_WRAPPER_CLASS = 'shopo-mobile-select';
+
+            function optionLabel(option) {
+                return String(option?.textContent || '').trim();
+            }
+
+            function closeAll(except = null) {
+                document.querySelectorAll(`.${SELECT_WRAPPER_CLASS}.open`).forEach(el => {
+                    if (el !== except) {
+                        el.classList.remove('open');
+                        el.querySelector('.shopo-mobile-select-btn')?.setAttribute('aria-expanded','false');
+                    }
+                });
+            }
+
+            function buildSelect(select) {
+                if (!MOBILE_QUERY.matches || !select || select.dataset.shopoMobileSelect === '1') return;
+                if (select.classList.contains('hidden') || select.classList.contains('registro-select-desktop')) return;
+                if (select.closest('.shopo-mobile-select')) return;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = SELECT_WRAPPER_CLASS;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'shopo-mobile-select-btn';
+                btn.setAttribute('aria-haspopup','listbox');
+                btn.setAttribute('aria-expanded','false');
+
+                const label = document.createElement('span');
+                const caret = document.createElement('span');
+                caret.className = 'shopo-mobile-select-caret';
+                caret.textContent = '⌄';
+
+                btn.append(label, caret);
+
+                const menu = document.createElement('div');
+                menu.className = 'shopo-mobile-select-menu';
+                menu.setAttribute('role','listbox');
+
+                select.parentNode.insertBefore(wrapper, select);
+                wrapper.appendChild(select);
+                wrapper.append(btn, menu);
+                select.classList.add('shopo-mobile-select-native');
+                select.dataset.shopoMobileSelect = '1';
+
+                const sync = () => {
+                    menu.innerHTML = '';
+                    const opts = Array.from(select.options);
+                    const selected = select.options[select.selectedIndex] || opts[0];
+                    label.textContent = selected ? optionLabel(selected) : 'Seleccionar...';
+                    btn.disabled = !!select.disabled;
+
+                    opts.forEach((opt, index) => {
+                        const row = document.createElement('button');
+                        row.type = 'button';
+                        row.className = 'shopo-mobile-select-option';
+                        row.textContent = optionLabel(opt);
+                        row.disabled = !!opt.disabled;
+                        row.classList.toggle('selected', index === select.selectedIndex);
+                        row.addEventListener('click', () => {
+                            if (row.disabled) return;
+                            select.selectedIndex = index;
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                            sync();
+                            wrapper.classList.remove('open');
+                            btn.setAttribute('aria-expanded','false');
+                        });
+                        menu.appendChild(row);
+                    });
+                };
+
+                wrapper._shopoSync = sync;
+
+                btn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    const opening = !wrapper.classList.contains('open');
+                    closeAll(wrapper);
+                    wrapper.classList.toggle('open', opening);
+                    btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+                    if (opening) sync();
+                });
+
+                select.addEventListener('change', sync);
+
+                const observer = new MutationObserver(sync);
+                observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled','selected'] });
+
+                sync();
+            }
+
+            function enhanceAll(root = document) {
+                if (!MOBILE_QUERY.matches) return;
+                if (root?.matches?.('select')) buildSelect(root);
+                root.querySelectorAll?.('select').forEach(buildSelect);
+            }
+
+            function refreshExisting() {
+                document.querySelectorAll(`.${SELECT_WRAPPER_CLASS}`).forEach(w => w._shopoSync?.());
+            }
+
+            window.sincronizarSelectMovilShopo = (select) => {
+                if (!select) return;
+                const wrapper = select.closest(`.${SELECT_WRAPPER_CLASS}`);
+                if (wrapper) wrapper._shopoSync?.();
+                else buildSelect(select);
+            };
+
+            document.addEventListener('click', () => closeAll());
+            document.addEventListener('keydown', (ev) => {
+                if (ev.key === 'Escape') closeAll();
+            });
+
+            const start = () => {
+                enhanceAll(document);
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach(m => {
+                        m.addedNodes.forEach(node => {
+                            if (node.nodeType === 1) enhanceAll(node);
+                        });
+                    });
+                    refreshExisting();
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            };
+
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+            else start();
+
+            MOBILE_QUERY.addEventListener?.('change', () => {
+                if (MOBILE_QUERY.matches) enhanceAll(document);
+                else closeAll();
+            });
+        })();
     </script>
 
 <script>
