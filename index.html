@@ -1763,6 +1763,193 @@
                 background: #ffffff !important;
             }
         }
+
+
+        /* ===== AJUSTES MOBILE V6: VISTAS, MODALES Y SUSCRIPCIÓN ===== */
+        .mobile-only-action { display:none; }
+        .shopo-mobile-modal-body { min-width:0; }
+        .suscripcion-renovacion-grid { margin-top:16px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; }
+        .suscripcion-pago-fila { padding:10px 0; border-bottom:1px solid var(--border-light); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; }
+        .suscripcion-pago-fila:last-child { border-bottom:0; }
+        .suscripcion-pago-principal { min-width:0; overflow-wrap:anywhere; }
+        .suscripcion-pago-importe { white-space:nowrap; color:var(--primary); text-align:right; }
+
+        @media (max-width:768px) {
+            /* Las vistas móviles no repiten el título de sección: la barra inferior ya indica dónde está el usuario. */
+            #panel-movimientos > h3,
+            #panel-finanzas > h3,
+            #panel-config > h3,
+            #panel-pedidos .pedidos-mobile-cabecera h3,
+            #panel-inventario > div:first-child > h3 {
+                display:none !important;
+            }
+
+            #panel-movimientos,
+            #panel-pedidos,
+            #panel-inventario,
+            #panel-finanzas,
+            #panel-config {
+                padding-top:8px !important;
+            }
+
+            #panel-pedidos .pedidos-mobile-cabecera {
+                justify-content:flex-end;
+                margin-bottom:10px;
+            }
+
+            /* Finanzas: exportar es una acción directa y abre el formulario en modal. */
+            .mobile-finance-export-btn {
+                display:flex !important;
+                align-items:center;
+                justify-content:center;
+                width:100%;
+                min-height:52px;
+                margin:20px 0 0;
+                border-radius:12px !important;
+            }
+
+            /* Configuración: instalar y notificaciones dejan de ser acordeones en móvil. */
+            #modulo-instalar-shopo,
+            #modulo-notificaciones-shopo {
+                display:none !important;
+            }
+
+            .config-pwa-mobile-actions {
+                display:grid !important;
+                grid-template-columns:1fr 1fr;
+                gap:10px;
+                width:100%;
+                margin-top:22px;
+            }
+
+            .config-pwa-mobile-actions button {
+                width:100%;
+                min-width:0;
+                min-height:54px;
+                padding:10px 8px !important;
+                border-radius:12px !important;
+                white-space:normal;
+                line-height:1.2;
+            }
+
+            .config-pwa-mobile-actions button:disabled {
+                opacity:1;
+                background:#f5f5f5;
+                color:var(--primary);
+                border:1px solid var(--border-light);
+            }
+
+            /* Modales de acciones móviles: simples y sin contenido encimado. */
+            #modal-exportar-movimientos-mobile .modal-content,
+            #modal-config-pwa-mobile .modal-content {
+                width:calc(100vw - 24px) !important;
+                max-width:560px !important;
+                margin:12px auto calc(84px + env(safe-area-inset-bottom)) !important;
+                padding:18px !important;
+                border-radius:16px !important;
+            }
+
+            .shopo-mobile-modal-header {
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:12px;
+                margin-bottom:16px;
+                padding-bottom:12px;
+                border-bottom:1px solid var(--border-light);
+            }
+
+            .shopo-mobile-modal-header h3 {
+                margin:0 !important;
+                padding:0 !important;
+                border:0 !important;
+                font-size:.92rem !important;
+            }
+
+            .shopo-mobile-modal-close {
+                width:38px !important;
+                min-width:38px !important;
+                height:38px !important;
+                min-height:38px !important;
+                padding:0 !important;
+                border:1px solid var(--border) !important;
+                background:#fff !important;
+                color:var(--text-main) !important;
+                font-size:1.2rem !important;
+                line-height:1 !important;
+            }
+
+            #modal-exportar-movimientos-mobile #body-exportar-excel,
+            #modal-config-pwa-mobile #body-config-instalar-shopo,
+            #modal-config-pwa-mobile #body-config-notificaciones-shopo {
+                padding:0 !important;
+                border:0 !important;
+            }
+
+            #modal-exportar-movimientos-mobile .dark-input-group {
+                display:grid !important;
+                grid-template-columns:1fr 1fr;
+                gap:12px;
+                margin-bottom:14px;
+            }
+
+            #modal-exportar-movimientos-mobile .dark-input-group > div {
+                width:100% !important;
+                min-width:0 !important;
+            }
+
+            #modal-exportar-movimientos-mobile .dark-input-group > div:nth-child(3),
+            #modal-exportar-movimientos-mobile .dark-input-group > div:nth-child(4) {
+                grid-column:1 / -1;
+            }
+
+            /* Suscripción: estructura limpia, sin botones ni textos superpuestos. */
+            #body-config-suscripcion .suscripcion-card {
+                border:0 !important;
+                border-radius:0 !important;
+                padding:0 !important;
+                background:transparent !important;
+            }
+
+            #body-config-suscripcion .store-settings-heading {
+                margin-bottom:12px;
+            }
+
+            #body-config-suscripcion .suscripcion-grid {
+                grid-template-columns:1fr !important;
+                gap:8px !important;
+                margin:12px 0 !important;
+            }
+
+            #body-config-suscripcion .suscripcion-dato,
+            #body-config-suscripcion .suscripcion-aviso {
+                border-radius:10px !important;
+            }
+
+            #body-config-suscripcion .suscripcion-renovacion-grid {
+                grid-template-columns:1fr !important;
+                gap:10px !important;
+                align-items:stretch !important;
+            }
+
+            #body-config-suscripcion .suscripcion-renovacion-grid button {
+                width:100% !important;
+                min-height:48px;
+            }
+
+            #body-config-suscripcion .suscripcion-pago-fila {
+                grid-template-columns:1fr !important;
+                gap:4px !important;
+                padding:11px 0 !important;
+            }
+
+            #body-config-suscripcion .suscripcion-pago-importe {
+                white-space:normal;
+                text-align:left;
+                color:var(--text-muted);
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -2002,6 +2189,8 @@
                 </div>
             </div>
 
+            <button id="btn-exportar-finanzas-mobile" type="button" class="mobile-only-action mobile-finance-export-btn" onclick="window.abrirModalExportarMovimientosMobile()">Exportar</button>
+
             <div class="modulo-oscuro mobile-ocultar-exportar-movimientos">
                 <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-exportar-excel')"><span>Exportar movimientos</span></div>
                 <div id="body-exportar-excel" class="modulo-body hidden">
@@ -2095,7 +2284,7 @@
                                 <div class="suscripcion-dato"><span>Tiempo restante</span><strong id="suscripcion-restante">—</strong></div>
                             </div>
                             <div id="suscripcion-aviso" class="suscripcion-aviso">Consultando suscripción…</div>
-                            <div style="margin-top:16px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end;">
+                            <div class="suscripcion-renovacion-grid">
                                 <div><label class="mini-label">Plan para renovar</label><select id="suscripcion-plan-select"><option value="mensual">Mensual · $30.000</option></select></div>
                                 <button id="btn-renovar-suscripcion" type="button" onclick="window.renovarSuscripcionMercadoPago()">Renovar con Mercado Pago</button>
                             </div>
@@ -2359,6 +2548,31 @@
                     </div>
                 </div>
             </div>
+
+            <div id="config-pwa-mobile-actions" class="mobile-only-action config-pwa-mobile-actions">
+                <button id="btn-config-instalar-mobile" type="button" class="secondary" onclick="window.abrirModalConfigPWAMobile('instalar')">Instalar Shopo</button>
+                <button id="btn-config-notificaciones-mobile" type="button" class="secondary" onclick="window.abrirModalConfigPWAMobile('notificaciones')">Activar notificaciones</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-exportar-movimientos-mobile" class="modal-overlay hidden" onclick="if(event.target===this) window.cerrarModalExportarMovimientosMobile()">
+        <div class="modal-content">
+            <div class="shopo-mobile-modal-header">
+                <h3>Exportar movimientos</h3>
+                <button type="button" class="shopo-mobile-modal-close" onclick="window.cerrarModalExportarMovimientosMobile()" aria-label="Cerrar">×</button>
+            </div>
+            <div id="modal-exportar-movimientos-mobile-body" class="shopo-mobile-modal-body"></div>
+        </div>
+    </div>
+
+    <div id="modal-config-pwa-mobile" class="modal-overlay hidden" onclick="if(event.target===this) window.cerrarModalConfigPWAMobile()">
+        <div class="modal-content">
+            <div class="shopo-mobile-modal-header">
+                <h3 id="modal-config-pwa-mobile-title">Shopo</h3>
+                <button type="button" class="shopo-mobile-modal-close" onclick="window.cerrarModalConfigPWAMobile()" aria-label="Cerrar">×</button>
+            </div>
+            <div id="modal-config-pwa-mobile-body" class="shopo-mobile-modal-body"></div>
         </div>
     </div>
 
@@ -2503,9 +2717,24 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         let pushTokenActual = null;
         let messagingPWA = null;
         let pwaRecargaPorSW = false;
+        let pushPWAActivo = false;
 
         const pwaEsStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
         const pwaEsIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent || '');
+
+        function actualizarAccionesPWAMobile() {
+            const instalar=document.getElementById('btn-config-instalar-mobile');
+            const notif=document.getElementById('btn-config-notificaciones-mobile');
+            const instalada=pwaEsStandalone();
+            if(instalar){
+                instalar.textContent=instalada?'Ya instalado':'Instalar Shopo';
+                instalar.disabled=instalada;
+            }
+            if(notif){
+                notif.textContent=pushPWAActivo?'Ya activadas':'Activar notificaciones';
+                notif.disabled=pushPWAActivo;
+            }
+        }
 
         function actualizarEstadoInstalacionPWA() {
             const modulo = document.getElementById('modulo-instalar-shopo');
@@ -2513,23 +2742,29 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
             const estado = document.getElementById('pwa-install-status');
             if (pwaEsStandalone()) {
                 if(modulo) modulo.classList.add('hidden');
+                if(btn){ btn.disabled=true; btn.textContent='Ya instalado'; }
+                if(estado){ estado.textContent='Shopo ya está instalado en este dispositivo.'; estado.className='pwa-status ok'; }
+                actualizarAccionesPWAMobile();
                 return;
             }
             if(modulo) modulo.classList.remove('hidden');
-            if(!btn || !estado) return;
-            if(pwaInstallPrompt) {
-                btn.disabled = false;
-                estado.textContent = 'Shopo está listo para instalarse en este dispositivo.';
-                estado.className = 'pwa-status ok';
-            } else if(pwaEsIOS()) {
-                btn.disabled = false;
-                estado.textContent = 'En iPhone/iPad, tocá Instalar y te indicaremos cómo agregar Shopo a la pantalla de inicio.';
-                estado.className = 'pwa-status';
-            } else {
-                btn.disabled = true;
-                estado.textContent = 'El navegador habilitará la instalación cuando termine de validar la PWA.';
-                estado.className = 'pwa-status';
+            if(btn && estado){
+                btn.textContent='Instalar Shopo';
+                if(pwaInstallPrompt) {
+                    btn.disabled = false;
+                    estado.textContent = 'Shopo está listo para instalarse en este dispositivo.';
+                    estado.className = 'pwa-status ok';
+                } else if(pwaEsIOS()) {
+                    btn.disabled = false;
+                    estado.textContent = 'En iPhone/iPad, tocá Instalar y te indicaremos cómo agregar Shopo a la pantalla de inicio.';
+                    estado.className = 'pwa-status';
+                } else {
+                    btn.disabled = true;
+                    estado.textContent = 'El navegador habilitará la instalación cuando termine de validar la PWA.';
+                    estado.className = 'pwa-status';
+                }
             }
+            actualizarAccionesPWAMobile();
         }
 
         window.instalarShopoPWA = async () => {
@@ -2611,6 +2846,8 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         function setEstadoPush(texto, clase='') {
             const el=document.getElementById('pwa-push-status');
             if(el){ el.textContent=texto; el.className=`pwa-status${clase?` ${clase}`:''}`; }
+            pushPWAActivo = clase === 'ok' && /activad/i.test(String(texto||''));
+            actualizarAccionesPWAMobile();
         }
 
         async function registrarTokenPushActual(solicitarPermiso=false) {
@@ -2727,7 +2964,10 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
             window.addEventListener('popstate',()=>{
                 const visibles=[...document.querySelectorAll('.modal-overlay:not(.hidden)')];
                 const modal=visibles.at(-1);
-                if(modal) modal.classList.add('hidden');
+                if(!modal) return;
+                if(modal.id==='modal-exportar-movimientos-mobile') { window.cerrarModalExportarMovimientosMobile?.(); return; }
+                if(modal.id==='modal-config-pwa-mobile') { window.cerrarModalConfigPWAMobile?.(); return; }
+                modal.classList.add('hidden');
             });
         }
 
@@ -2818,8 +3058,8 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
             if(sel) sel.innerHTML=planesSuscripcionActuales.map(p=>`<option value="${String(p.id).replace(/"/g,'')}">${p.nombre} · ${new Intl.NumberFormat('es-AR',{style:'currency',currency:p.moneda||'ARS',maximumFractionDigits:0}).format(Number(p.precio)||0)}</option>`).join('') || '<option value="mensual">Mensual · $30.000</option>';
             const hist=document.getElementById('suscripcion-historial');
             if(hist){
-                const pagos=Array.isArray(historial.pagos)?historial.pagos:[];
-                hist.innerHTML=pagos.length?pagos.map(p=>`<div style="padding:8px 0;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;"><span>${fechaSuscripcionTexto(p.fechaAprobacion||p.createdAt)} · ${p.planId||'Plan'}</span><span>${new Intl.NumberFormat('es-AR',{style:'currency',currency:p.moneda||'ARS',maximumFractionDigits:0}).format(Number(p.importe)||0)} · ${p.estado||'—'}</span></div>`).join(''):'Todavía no hay pagos registrados.';
+                const pagos=(Array.isArray(historial.pagos)?historial.pagos:[]).filter(p=>String(p?.estado||'').toLowerCase()==='approved');
+                hist.innerHTML=pagos.length?pagos.map(p=>`<div class="suscripcion-pago-fila"><span class="suscripcion-pago-principal">${fechaSuscripcionTexto(p.fechaAprobacion||p.createdAt)} · ${p.planId||'Plan'}</span><span class="suscripcion-pago-importe">${new Intl.NumberFormat('es-AR',{style:'currency',currency:p.moneda||'ARS',maximumFractionDigits:0}).format(Number(p.importe)||0)} · Aprobado</span></div>`).join(''):'Todavía no hay pagos aprobados registrados.';
             }
             renderSuscripcionAdmin();
             return estado;
@@ -6212,7 +6452,66 @@ async function obtenerHeadersBackendAdmin() {
         };
 
         panelFuncionesListas = true;
-</script>
+
+
+        // ===== ACCIONES MOBILE EN MODAL: FINANZAS + PWA =====
+        let exportarMobileParent = null;
+        let configPWAMobileEstado = null;
+
+        window.abrirModalExportarMovimientosMobile = () => {
+            const modal=document.getElementById('modal-exportar-movimientos-mobile');
+            const slot=document.getElementById('modal-exportar-movimientos-mobile-body');
+            const body=document.getElementById('body-exportar-excel');
+            if(!modal || !slot || !body) return;
+            if(!exportarMobileParent) exportarMobileParent=body.parentElement;
+            body.classList.remove('hidden');
+            slot.appendChild(body);
+            modal.classList.remove('hidden');
+            document.body.style.overflow='hidden';
+        };
+
+        window.cerrarModalExportarMovimientosMobile = () => {
+            const modal=document.getElementById('modal-exportar-movimientos-mobile');
+            const body=document.getElementById('body-exportar-excel');
+            if(body && exportarMobileParent){
+                body.classList.add('hidden');
+                exportarMobileParent.appendChild(body);
+            }
+            modal?.classList.add('hidden');
+            document.body.style.overflow='';
+        };
+
+        window.abrirModalConfigPWAMobile = (tipo) => {
+            if(tipo==='instalar' && pwaEsStandalone()) return;
+            if(tipo==='notificaciones' && pushPWAActivo) return;
+            const modal=document.getElementById('modal-config-pwa-mobile');
+            const slot=document.getElementById('modal-config-pwa-mobile-body');
+            const title=document.getElementById('modal-config-pwa-mobile-title');
+            const id=tipo==='instalar'?'body-config-instalar-shopo':'body-config-notificaciones-shopo';
+            const body=document.getElementById(id);
+            if(!modal || !slot || !body) return;
+            configPWAMobileEstado={body,parent:body.parentElement,tipo};
+            body.classList.remove('hidden');
+            slot.appendChild(body);
+            if(title) title.textContent=tipo==='instalar'?'Instalar Shopo':'Notificaciones';
+            modal.classList.remove('hidden');
+            document.body.style.overflow='hidden';
+        };
+
+        window.cerrarModalConfigPWAMobile = () => {
+            const modal=document.getElementById('modal-config-pwa-mobile');
+            if(configPWAMobileEstado?.body && configPWAMobileEstado?.parent){
+                configPWAMobileEstado.body.classList.add('hidden');
+                configPWAMobileEstado.parent.appendChild(configPWAMobileEstado.body);
+            }
+            configPWAMobileEstado=null;
+            modal?.classList.add('hidden');
+            document.body.style.overflow='';
+            actualizarEstadoInstalacionPWA();
+            actualizarAccionesPWAMobile();
+        };
+
+    </script>
 
     <script>
         // Fallback anti-loader: evita que la pantalla quede congelada si algún script externo tarda o falla.
