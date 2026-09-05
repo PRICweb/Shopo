@@ -12,7 +12,7 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-const CACHE_VERSION = 'shopo-pwa-v4';
+const CACHE_VERSION = 'shopo-pwa-v5';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const APP_SCOPE = '/Shopo/';
 const PRECACHE = [
@@ -58,6 +58,24 @@ self.addEventListener('fetch', event => {
         return await fetch(request, { cache: 'no-store' });
       } catch (_) {
         return (await caches.match('/Shopo/offline.html')) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // El manifest debe priorizar red para que Android reciba inmediatamente
+  // cambios de theme_color/background_color de la PWA instalada.
+  if (url.origin === self.location.origin && url.pathname === '/Shopo/manifest.webmanifest') {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response && response.ok) {
+          const cache = await caches.open(STATIC_CACHE);
+          cache.put(request, response.clone()).catch(() => {});
+        }
+        return response;
+      } catch (_) {
+        return (await caches.match(request)) || Response.error();
       }
     })());
     return;
