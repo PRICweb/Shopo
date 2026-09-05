@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: dark)">
+    <meta name="color-scheme" content="light">
     <meta name="application-name" content="Shopo">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -6345,13 +6347,19 @@ async function obtenerHeadersBackendAdmin() {
 
             const start = () => {
                 enhanceAll(document);
+                // Observa únicamente nodos nuevos que puedan contener SELECTS.
+                // No refresca todos los selectores en cada mutación: el menú visual
+                // también genera mutaciones y eso producía un bucle infinito que
+                // bloqueaba el hilo principal y dejaba la app clavada en el logo.
                 const observer = new MutationObserver((mutations) => {
                     mutations.forEach(m => {
                         m.addedNodes.forEach(node => {
-                            if (node.nodeType === 1) enhanceAll(node);
+                            if (node.nodeType !== 1) return;
+                            if (node.matches?.('select') || node.querySelector?.('select')) {
+                                enhanceAll(node);
+                            }
                         });
                     });
-                    refreshExisting();
                 });
                 observer.observe(document.body, { childList: true, subtree: true });
             };
