@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración</title>
-    <meta name="theme-color" content="#5d4037">
+    <meta name="theme-color" content="#ffffff">
     <meta name="application-name" content="Shopo">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -1411,6 +1411,90 @@
         .pwa-push-toast span { display:block; color:var(--text-muted); font-size:.76rem; line-height:1.4; }
         @media(max-width:768px){ .pwa-install-actions{display:grid;grid-template-columns:1fr;} .pwa-install-actions button{width:100%;} }
 
+
+        /* ===== AJUSTES VISUALES MÓVILES — MOVIMIENTOS / PWA ===== */
+        @media (max-width: 768px) {
+            /* La venta de mostrador deja de ser acordeón únicamente en móvil. */
+            #panel-movimientos .modulo-header[onclick*="body-ventas-mostrador"] {
+                display: none !important;
+            }
+
+            #body-ventas-mostrador.hidden {
+                display: block !important;
+            }
+
+            #body-ventas-mostrador {
+                border-top: 0 !important;
+                padding-top: 15px !important;
+            }
+
+            /* Buscador 3/4 + cantidad 1/4; Añadir ocupa la fila siguiente. */
+            #body-ventas-mostrador .mostrador-producto-grid {
+                display: grid !important;
+                grid-template-columns: minmax(0, 3fr) minmax(70px, 1fr) !important;
+                gap: 10px !important;
+                align-items: end !important;
+            }
+
+            #body-ventas-mostrador .mostrador-producto-grid > div {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: none !important;
+            }
+
+            #body-ventas-mostrador .mostrador-producto-grid > div:nth-child(3) {
+                grid-column: 1 / -1;
+            }
+
+            #body-ventas-mostrador .mostrador-producto-grid input,
+            #body-ventas-mostrador .mostrador-producto-grid button {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            /* Efectivo y transferencia, mitad y mitad. */
+            #body-ventas-mostrador .mostrador-pagos-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+                align-items: end !important;
+            }
+
+            #body-ventas-mostrador .mostrador-pagos-grid > div {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            /* Extraordinarios: concepto y tipo completos; pagos 50/50. */
+            #body-registrar-extraordinario .extraordinario-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+                align-items: end !important;
+            }
+
+            #body-registrar-extraordinario .extraordinario-grid > div {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+
+            #body-registrar-extraordinario .extraordinario-grid > div:nth-child(1),
+            #body-registrar-extraordinario .extraordinario-grid > div:nth-child(2) {
+                grid-column: 1 / -1;
+            }
+
+            /* Eliminar registros vuelve a estar disponible y adaptado a móvil. */
+            #body-eliminar-registros .gestion-borrado-grid {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            #body-eliminar-registros select,
+            #body-eliminar-registros button {
+                width: 100% !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1674,21 +1758,21 @@
                             <label style="font-size:0.8rem; text-transform:uppercase; font-weight:600;">Venta de Mostrador</label>
                             <div class="hidden" style="display:flex; align-items:center; gap:8px;"><label style="font-size:0.7rem;">Cliente / Descuento</label><select id="mostrador-tipo-cliente" style="padding: 4px; font-size:0.8rem; width: auto;" onchange="window.renderizarCarritoMostrador()"></select></div>
                         </div>
-                        <div class="dark-input-group"><div style="flex: 2;" class="mostrador-producto-wrap"><input type="text" id="mostrador-prod-search" placeholder="Buscar producto por nombre..." autocomplete="off" aria-autocomplete="list" aria-expanded="false"><div id="mostrador-prod-sugerencias" class="mostrador-sugerencias hidden" role="listbox"></div><select id="mostrador-prod" class="hidden"><option value="">Seleccionar producto...</option></select></div><div style="flex: 1; max-width: 100px;"><input type="number" id="mostrador-cant" placeholder="Cant." value="1" min="1"></div><div><button type="button" class="secondary" style="width: 100%;" onclick="window.agregarItemMostrador()">Añadir</button></div></div>
+                        <div class="dark-input-group mostrador-producto-grid"><div style="flex: 2;" class="mostrador-producto-wrap"><input type="text" id="mostrador-prod-search" placeholder="Buscar producto por nombre..." autocomplete="off" aria-autocomplete="list" aria-expanded="false"><div id="mostrador-prod-sugerencias" class="mostrador-sugerencias hidden" role="listbox"></div><select id="mostrador-prod" class="hidden"><option value="">Seleccionar producto...</option></select></div><div style="flex: 1; max-width: 100px;"><input type="number" id="mostrador-cant" placeholder="Cant." value="1" min="1"></div><div><button type="button" class="secondary" style="width: 100%;" onclick="window.agregarItemMostrador()">Añadir</button></div></div>
                         <ul id="lista-mostrador" style="list-style:none; padding:0; margin: 10px 0 20px 0; font-size:0.85rem;"></ul>
                         <div style="text-align: right; font-weight: 500; margin-bottom: 15px; color: var(--primary); font-size: 1.1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 10px;">Total de Venta: $<span id="total-mostrador">0</span></div>
-                        <div class="dark-input-group"><div><label style="font-size:0.7rem;">Monto en Efectivo $</label><input type="number" autocomplete="off" id="mostrador-efectivo" placeholder="Efectivo $"></div><div><label style="font-size:0.7rem;">Monto Transferencia $</label><input type="number" autocomplete="off" id="mostrador-transf" placeholder="Transf. $"></div></div>
+                        <div class="dark-input-group mostrador-pagos-grid"><div><label style="font-size:0.7rem;">Monto en Efectivo $</label><input type="number" autocomplete="off" id="mostrador-efectivo" placeholder="Efectivo $"></div><div><label style="font-size:0.7rem;">Monto Transferencia $</label><input type="number" autocomplete="off" id="mostrador-transf" placeholder="Transf. $"></div></div>
                         <button onclick="window.ejecutarAccionBoton(this, 'Registrando...', () => window.registrarVentaMostrador())" style="width:100%; margin-top: 10px;">Registrar Venta</button>
                     </div>
                 </div>
                 <div class="modulo-oscuro">
                     <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-registrar-extraordinario')"><span>Registrar Extraordinarios</span></div>
                     <div id="body-registrar-extraordinario" class="modulo-body hidden">
-                        <div class="dark-input-group"><div style="flex:2;"><label>Concepto del registro</label><input type="text" autocomplete="off" id="extraordinario-concepto" placeholder="Concepto..."></div><div><label>Tipo</label><select id="extraordinario-tipo"><option value="ingreso">Ingreso</option><option value="egreso">Egreso</option></select></div><div><label>Efectivo $</label><input type="number" autocomplete="off" id="extraordinario-efectivo" min="0" step="0.01" placeholder="0"></div><div><label>Transferencia $</label><input type="number" autocomplete="off" id="extraordinario-transferencia" min="0" step="0.01" placeholder="0"></div></div>
+                        <div class="dark-input-group extraordinario-grid"><div style="flex:2;"><label>Concepto del registro</label><input type="text" autocomplete="off" id="extraordinario-concepto" placeholder="Concepto..."></div><div><label>Tipo</label><select id="extraordinario-tipo"><option value="ingreso">Ingreso</option><option value="egreso">Egreso</option></select></div><div><label>Efectivo $</label><input type="number" autocomplete="off" id="extraordinario-efectivo" min="0" step="0.01" placeholder="0"></div><div><label>Transferencia $</label><input type="number" autocomplete="off" id="extraordinario-transferencia" min="0" step="0.01" placeholder="0"></div></div>
                         <button onclick="window.ejecutarAccionBoton(this, 'Registrando...', () => window.registrarExtraordinario())" style="width:100%;">Registrar Extraordinario</button>
                     </div>
                 </div>
-                <div class="modulo-oscuro mobile-ocultar-eliminar-registros">
+                <div class="modulo-oscuro">
                     <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-eliminar-registros')"><span>Eliminar Registros</span></div>
                     <div id="body-eliminar-registros" class="modulo-body hidden">
                         <div class="gestion-borrado-grid">
