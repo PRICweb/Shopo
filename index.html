@@ -14,7 +14,7 @@
     <meta name="color-scheme" content="light">
     <meta name="apple-mobile-web-app-title" content="Shopo">
     <meta name="description" content="Panel integral de control de negocios y ventas">
-    <link rel="manifest" href="./manifest.webmanifest?v=12">
+    <link rel="manifest" href="./manifest.webmanifest?v=13">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -1090,6 +1090,16 @@
         .store-settings-heading p { margin:0; max-width:760px; color:var(--text-muted); font-size:.78rem; line-height:1.5; }
         .store-settings-divider { height:1px; background:var(--border-light); margin:26px 0; }
 
+        #modulo-info-general .info-general-form { display:grid; gap:0; }
+        #modulo-info-general .info-general-form-row { display:grid; grid-template-columns:minmax(150px,.72fr) minmax(0,1.28fr); gap:16px; align-items:center; padding:14px 0; border-bottom:1px solid var(--border-light); }
+        #modulo-info-general .info-general-form-row:first-child { padding-top:0; }
+        #modulo-info-general .info-general-form-row:last-child { border-bottom:0; padding-bottom:0; }
+        #modulo-info-general .info-general-form-row > label { margin:0; color:var(--text-muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.8px; }
+        #modulo-info-general .info-general-form-row input { min-height:44px; }
+        #modulo-info-general .info-general-logo-box { padding:10px; }
+        #modulo-info-general .storage-upload-preview { margin-top:8px; }
+        #modulo-info-general .preview-img-admin { width:64px; height:64px; }
+
         .config-tienda-link { display:grid; grid-template-columns:minmax(0, 1fr) auto auto; gap:8px; align-items:center; }
         .config-tienda-link input { min-width:0; height:42px; background:var(--bg-color); border-radius:8px; padding:0 12px; color:var(--text-muted); }
         .config-tienda-link button { min-height:42px; border-radius:8px; white-space:nowrap; }
@@ -2003,38 +2013,17 @@
                 margin: 20px 0 0;
                 border-radius: 12px !important;
             }
-            #modulo-info-general .info-general-grid {
-                display: grid;
-                gap: 14px;
+            #modulo-info-general .info-general-form-row {
+                grid-template-columns: 1fr;
+                gap: 7px;
+                align-items: stretch;
+                padding: 15px 0;
             }
-            #modulo-info-general .info-general-item {
-                display: grid;
-                grid-template-columns: minmax(90px, .7fr) minmax(0, 1.3fr);
-                gap: 14px;
-                align-items: start;
-                padding-bottom: 12px;
-                border-bottom: 1px solid var(--border-light);
+            #modulo-info-general .info-general-form-row > label {
+                font-size: .7rem;
             }
-            #modulo-info-general .info-general-item:last-child {
-                border-bottom: 0;
-                padding-bottom: 0;
-            }
-            #modulo-info-general .info-general-item span {
-                color: var(--text-muted);
-                font-size: .72rem;
-                text-transform: uppercase;
-                letter-spacing: .8px;
-            }
-            #modulo-info-general .info-general-item strong {
-                min-width: 0;
-                overflow-wrap: anywhere;
-                color: var(--text-main);
-                font-size: .82rem;
-                text-align: right;
-            }
-            #modulo-info-general .info-general-logout {
-                width: 100%;
-                margin-top: 18px;
+            #modulo-info-general .info-general-form-row input {
+                min-height: 48px;
             }
             #modulo-instalar-shopo,
             #modulo-notificaciones-shopo {
@@ -2042,7 +2031,7 @@
             }
             .config-pwa-mobile-actions {
                 display: grid !important;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr;
                 gap: 10px;
                 width: 100%;
                 margin-top: 22px;
@@ -2620,12 +2609,46 @@
                         <span>Información general</span><span>⌄</span>
                     </div>
                     <div id="body-config-info-general" class="modulo-body hidden">
-                        <div class="info-general-grid">
-                            <div class="info-general-item"><span>Negocio</span><strong id="info-general-negocio">—</strong></div>
-                            <div class="info-general-item"><span>Correo</span><strong id="info-general-email">—</strong></div>
-                            <div class="info-general-item"><span>ID interno</span><strong id="info-general-id">—</strong></div>
+                        <div class="info-general-form">
+                            <div class="info-general-form-row">
+                                <label for="conf-tienda-nombre-publico">Nombre público</label>
+                                <div>
+                                    <input type="text" id="conf-tienda-nombre-publico" maxlength="50" placeholder="Ej: El Hornito" autocomplete="off">
+                                    <span class="field-status">Es el nombre visible de tu negocio y debe ser único.</span>
+                                </div>
+                            </div>
+                            <div class="info-general-form-row">
+                                <label for="conf-logo">Logo</label>
+                                <div class="storage-upload-box info-general-logo-box">
+                                    <input type="file" id="conf-logo" accept="image/jpeg,image/png,image/webp" onchange="window.previsualizarArchivoImagen(this, 'preview-conf-logo')">
+                                    <span class="storage-upload-help">JPG, PNG o WebP. Shopo lo optimiza antes de subirlo.</span>
+                                    <div class="storage-upload-preview"><img id="preview-conf-logo" class="preview-img-admin" alt="Vista previa del logo"></div>
+                                </div>
+                            </div>
+                            <div class="info-general-form-row">
+                                <label for="conf-instagram">Link de Instagram</label>
+                                <input type="url" autocomplete="off" id="conf-instagram" placeholder="https://instagram.com/tu_negocio">
+                            </div>
+                            <div class="info-general-form-row">
+                                <label for="conf-wsp-negocio">Número de WhatsApp</label>
+                                <div>
+                                    <input type="text" autocomplete="off" id="conf-wsp-negocio" inputmode="numeric" placeholder="5493511234567">
+                                    <span class="field-status">Código de país + área + número, solo dígitos.</span>
+                                </div>
+                            </div>
+                            <div class="info-general-form-row">
+                                <label for="conf-maps">Link de Google Maps</label>
+                                <input type="url" autocomplete="off" id="conf-maps" placeholder="https://maps.app.goo.gl/...">
+                            </div>
+                            <div class="info-general-form-row">
+                                <label for="conf-ubicacion-texto">Ubicación visible</label>
+                                <div>
+                                    <input type="text" autocomplete="off" id="conf-ubicacion-texto" placeholder="Av. Ejemplo 123, Córdoba">
+                                    <span class="field-status">Es el texto de ubicación que verá el cliente en la tienda.</span>
+                                </div>
+                            </div>
                         </div>
-                        <button type="button" class="secondary info-general-logout" onclick="window.cerrarSesion()">Cerrar sesión</button>
+                        <button id="btn-guardar-info-general" type="button" style="width:100%; margin-top:18px;" onclick="window.ejecutarAccionBoton(this, 'Guardando...', () => window.guardarInformacionGeneral())">Guardar información general</button>
                     </div>
                 </div>
                 <div class="modulo-oscuro" id="modulo-plan-pagos">
@@ -2680,30 +2703,6 @@
                         <span>Tienda</span><span>⌄</span>
                     </div>
                     <div id="body-config-tienda" class="modulo-body hidden">
-                        <div class="store-settings-section">
-                            <div class="store-settings-heading">
-                                <div>
-                                    <h4>Nombre público y enlace</h4>
-                                    <p>Elegí el nombre que aparecerá en el enlace de tu tienda. El ID interno del negocio no cambia.</p>
-                                </div>
-                            </div>
-                            <div class="config-tienda-nombre-publico">
-                                <div>
-                                    <label class="mini-label" for="conf-tienda-nombre-publico">Nombre público</label>
-                                    <input type="text" id="conf-tienda-nombre-publico" maxlength="50" placeholder="Ej: El Hornito" autocomplete="off">
-                                    <span class="config-tienda-nombre-ayuda">Debe ser único. Mayúsculas y minúsculas no generan nombres diferentes. El enlace usa una versión segura del nombre, por ejemplo: el-hornito.</span>
-                                </div>
-                                <button id="btn-guardar-nombre-publico" type="button" onclick="window.guardarNombrePublicoTienda()">Guardar nombre</button>
-                            </div>
-                            <div class="config-tienda-link">
-                                <input type="text" id="conf-tienda-link" readonly aria-label="Enlace público de la tienda" placeholder="Definí un nombre público para generar el enlace">
-                                <button type="button" class="secondary" onclick="window.copiarLinkTienda()">Copiar</button>
-                                <button type="button" onclick="window.abrirTiendaPublica()">Abrir tienda</button>
-                            </div>
-                        </div>
-
-                        <div class="store-settings-divider"></div>
-
                         <div class="store-settings-section">
                             <div class="store-settings-heading">
                                 <div>
@@ -2787,40 +2786,6 @@
                         <span>Logística</span><span>⌄</span>
                     </div>
                     <div id="body-config-logistica" class="modulo-body hidden">
-                        <p style="margin:0 0 15px 0; font-size:0.78rem; color:var(--text-muted); line-height:1.5;">Las imágenes se optimizan y se guardan en Firebase Storage. Formatos permitidos: JPG, PNG y WebP. Máximo original: 5 MB.</p>
-
-                        <div class="form-group">
-                            <label>Logo del negocio</label>
-                            <div class="storage-upload-box">
-                                <input type="file" id="conf-logo" accept="image/jpeg,image/png,image/webp" onchange="window.previsualizarArchivoImagen(this, 'preview-conf-logo')">
-                                <span class="storage-upload-help">Se redimensiona y convierte a WebP antes de subir.</span>
-                                <div class="storage-upload-preview"><img id="preview-conf-logo" class="preview-img-admin" alt="Vista previa del logo"></div>
-                            </div>
-                        </div>
-
-                        <h4 style="margin:0 0 12px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Presencia del negocio</h4>
-                        <div class="grid-contacto-logistica">
-                            <div class="form-group">
-                                <label>Instagram</label>
-                                <input type="url" autocomplete="off" id="conf-instagram" placeholder="https://instagram.com/tu_negocio">
-                                <span class="field-status">Si lo completás, aparecerá junto al logo en la tienda.</span>
-                            </div>
-                            <div class="form-group">
-                                <label>WhatsApp del negocio</label>
-                                <input type="text" autocomplete="off" id="conf-wsp-negocio" placeholder="5493511234567">
-                                <span class="field-status">Código de país + área + número, solo dígitos.</span>
-                            </div>
-                            <div class="form-group">
-                                <label>Link de Google Maps</label>
-                                <input type="url" autocomplete="off" id="conf-maps" placeholder="https://maps.app.goo.gl/...">
-                            </div>
-                            <div class="form-group">
-                                <label>Ubicación visible</label>
-                                <input type="text" autocomplete="off" id="conf-ubicacion-texto" placeholder="Av. Ejemplo 123, Córdoba">
-                                <span class="field-status">Este texto se mostrará al lado del pin rojo.</span>
-                            </div>
-                        </div>
-
                         <div class="dark-input-group">
                             <div><label>Envíos</label><select id="conf-envio-disp"><option value="si">Habilitado</option><option value="no">Deshabilitado</option></select></div>
                             <div><label>Tarifa $</label><input type="number" id="conf-envio-precio"></div>
@@ -2869,7 +2834,6 @@
                         <span>Mensajes automáticos y conexión con WhatsApp</span><span>⌄</span>
                     </div>
                     <div id="body-config-whatsapp" class="modulo-body hidden">
-                        <div class="form-group"><label>Número de WhatsApp del negocio</label><input type="text" autocomplete="off" id="wa-numero-negocio" placeholder="Ej: 5493511234567"><span class="field-status">Usá código de país y área, solo números. También se usa para el botón de WhatsApp de la tienda.</span></div>
                         <div class="form-group"><label>Mensaje al marcar un pedido como entregado</label><textarea id="wa-mensaje-entrega" rows="4" style="width:100%; resize:vertical;" placeholder="Gracias por tu compra. Tu pedido fue entregado."></textarea><span class="field-status">Podés usar {nombre}, {codigo} y {total}.</span></div>
                         <hr><h4 style="margin:0 0 8px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Datos que incluirá el mensaje del comprador</h4>
                         <div class="wa-check-grid">
@@ -2909,6 +2873,7 @@
             <div id="config-pwa-mobile-actions" class="mobile-only-action config-pwa-mobile-actions">
                 <button id="btn-config-instalar-mobile" type="button" class="secondary" onclick="window.abrirModalConfigPWAMobile('instalar')">Instalar Shopo</button>
                 <button id="btn-config-notificaciones-mobile" type="button" class="secondary" onclick="window.abrirModalConfigPWAMobile('notificaciones')">Activar notificaciones</button>
+                <button id="btn-config-cerrar-sesion-mobile" type="button" class="secondary" onclick="window.cerrarSesion()">Cerrar sesión</button>
             </div>
         </div>
     </div>
@@ -3154,7 +3119,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         async function registrarServiceWorkerPWA() {
             if(!('serviceWorker' in navigator)) return null;
             try {
-                const reg = await navigator.serviceWorker.register('./service-worker.js?v=12', { scope: './' });
+                const reg = await navigator.serviceWorker.register('./service-worker.js?v=13', { scope: './' });
                 pwaServiceWorkerRegistration = reg;
                 reg.update().catch(()=>{});
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -4446,9 +4411,6 @@ async function obtenerHeadersBackendAdmin() {
                                 mobileBrand.textContent = nombreNegocioAdmin;
                                 mobileBrand.setAttribute('aria-label', nombreNegocioAdmin);
                             }
-                            document.getElementById('info-general-negocio').textContent = nombreNegocioAdmin;
-                            document.getElementById('info-general-email').textContent = user.email || datosUsuario.email || '—';
-                            document.getElementById('info-general-id').textContent = negocioIdActual;
                             
                             document.getElementById('login-container').classList.add('hidden');
                             document.getElementById('vista-dueno').classList.remove('hidden');
@@ -5273,35 +5235,8 @@ async function obtenerHeadersBackendAdmin() {
         window.guardarConfiguracion = async () => {
             const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
             return conEstadoBoton(btn,'Guardando configuración…',async()=>{
-                let nuevaRutaLogo = '';
-                const rutaLogoAnterior = String(configTienda.logoPath || '').trim();
-
                 try{
                     exigirContextoAdmin();
-
-                    const inputLogo = document.getElementById('conf-logo');
-                    let logo = String(configTienda.logo || '').trim();
-                    let logoPath = rutaLogoAnterior;
-
-                    if(inputLogo?.files?.[0]) {
-                        const subida = await subirImagenStorage({
-                            archivo: inputLogo.files[0],
-                            carpeta: 'config',
-                            nombreBase: 'logo'
-                        });
-                        logo = subida.url;
-                        logoPath = subida.path;
-                        nuevaRutaLogo = subida.path;
-                    }
-
-                    const instagramUrl=String(document.getElementById('conf-instagram')?.value||'').trim();
-                    const mapsUrl=String(document.getElementById('conf-maps')?.value||'').trim();
-                    const ubicacionTexto=String(document.getElementById('conf-ubicacion-texto')?.value||'').trim();
-                    const telefono=String(document.getElementById('conf-wsp-negocio')?.value||'').replace(/[^0-9]/g,'');
-
-                    if(telefono && (telefono.length < 8 || telefono.length > 15)) {
-                        throw new Error('El número de WhatsApp debe tener entre 8 y 15 dígitos.');
-                    }
 
                     const envioPrecio=validarNumero(document.getElementById('conf-envio-precio').value||0,'Tarifa de envío',{min:0,max:999999999,requerido:false});
                     const efectivoPct=validarNumero(document.getElementById('desc-pago-efectivo-pct').value||0,'Descuento por efectivo',{min:0,max:100,requerido:false});
@@ -5313,26 +5248,10 @@ async function obtenerHeadersBackendAdmin() {
 
                     const horariosDetallados = leerHorariosDetalladosDesdeFormulario();
                     const diasApertura = {};
-                    DIAS_META_CONFIG.forEach(dia => {
-                        diasApertura[dia.id] = !!horariosDetallados[dia.id]?.activo;
-                    });
+                    DIAS_META_CONFIG.forEach(dia => { diasApertura[dia.id] = !!horariosDetallados[dia.id]?.activo; });
                     const rangoCompatibilidad = obtenerRangoGeneralCompatibilidad(horariosDetallados);
 
-                    const waActual = normalizarConfigWhatsApp();
-                    const whatsapp = {
-                        ...waActual,
-                        numeroNegocio: telefono || waActual.numeroNegocio || ''
-                    };
-
-                    configTienda={
-                        ...configTienda,
-                        logo,
-                        logoPath,
-                        instagramUrl,
-                        mapsUrl,
-                        ubicacionTexto,
-                        telefono,
-                        whatsapp,
+                    const actualizacion = {
                         horaApertura:rangoCompatibilidad.horaApertura,
                         horaCierre:rangoCompatibilidad.horaCierre,
                         diasApertura,
@@ -5345,38 +5264,89 @@ async function obtenerHeadersBackendAdmin() {
                         updatedAt:serverTimestamp(),
                         updatedBy:actorActual()
                     };
-
-                    await setDoc(doc(db,'configuracion',negocioIdActual),configTienda,{merge:true});
-
-                    if(nuevaRutaLogo && rutaLogoAnterior && rutaLogoAnterior !== nuevaRutaLogo) {
-                        await eliminarImagenStorageSegura(rutaLogoAnterior);
-                    }
-
-                    nuevaRutaLogo = '';
-                    if(inputLogo) inputLogo.value = '';
-
-                    const waNumero=document.getElementById('wa-numero-negocio');
-                    if(waNumero) waNumero.value=telefono||'';
+                    configTienda={...configTienda,...actualizacion};
+                    await setDoc(doc(db,'configuracion',negocioIdActual),actualizacion,{merge:true});
 
                     await auditar('configuracion_actualizada','configuracion',negocioIdActual,{
                         envioDisponible:configTienda.envioDisponible,
                         permitirPedidosCerrado:configTienda.permitirPedidosCerrado,
-                        descuentosPago,
-                        logoStorage:!!configTienda.logoPath,
-                        instagramConfigurado:!!instagramUrl,
-                        mapsConfigurado:!!mapsUrl
+                        descuentosPago
                     });
 
                     window.triggerConfiguracion();
                     window.mostrarAlertaUI('Configuración guardada correctamente.');
                 }catch(e){
-                    if(nuevaRutaLogo) await eliminarImagenStorageSegura(nuevaRutaLogo);
                     window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración.');
                     throw e;
                 }
             });
         };
-        
+
+        window.guardarInformacionGeneral = async () => {
+            exigirContextoAdmin();
+            const btn = document.getElementById('btn-guardar-info-general');
+            return conEstadoBoton(btn,'Guardando información…',async()=>{
+                let nuevaRutaLogo='';
+                const rutaLogoAnterior=String(configTienda.logoPath||'').trim();
+                try {
+                    const nombrePublico=String(document.getElementById('conf-tienda-nombre-publico')?.value||'').trim();
+                    const slugPrevio=normalizarSlugPublicoCliente(nombrePublico);
+                    if(nombrePublico.length<3||nombrePublico.length>50) throw new Error('El nombre público debe tener entre 3 y 50 caracteres.');
+                    if(slugPrevio.length<3) throw new Error('El nombre público debe contener al menos 3 letras o números.');
+
+                    let nombreGuardado=String(configTienda.nombrePublico||'').trim();
+                    let slugGuardado=String(configTienda.nombrePublicoSlug||'').trim();
+                    if(nombrePublico!==nombreGuardado) {
+                        const headers=await obtenerHeadersBackendAdmin();
+                        const response=await fetch(`${SHOPO_BACKEND_URL}/api/v1/admin/tienda/nombre-publico`,{
+                            method:'POST',headers:{...headers,'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify({nombrePublico})
+                        });
+                        const data=await response.json().catch(()=>({}));
+                        if(!response.ok||!data?.ok) throw new Error(data?.mensaje||data?.error||`Error ${response.status}`);
+                        nombreGuardado=data.nombrePublico;
+                        slugGuardado=data.slug;
+                    }
+
+                    const inputLogo=document.getElementById('conf-logo');
+                    let logo=String(configTienda.logo||'').trim();
+                    let logoPath=rutaLogoAnterior;
+                    if(inputLogo?.files?.[0]) {
+                        const subida=await subirImagenStorage({archivo:inputLogo.files[0],carpeta:'config',nombreBase:'logo'});
+                        logo=subida.url; logoPath=subida.path; nuevaRutaLogo=subida.path;
+                    }
+
+                    const instagramUrl=String(document.getElementById('conf-instagram')?.value||'').trim();
+                    const mapsUrl=String(document.getElementById('conf-maps')?.value||'').trim();
+                    const ubicacionTexto=String(document.getElementById('conf-ubicacion-texto')?.value||'').trim();
+                    const telefono=String(document.getElementById('conf-wsp-negocio')?.value||'').replace(/[^0-9]/g,'');
+                    if(telefono&&(telefono.length<8||telefono.length>15)) throw new Error('El número de WhatsApp debe tener entre 8 y 15 dígitos.');
+
+                    const waActual=normalizarConfigWhatsApp();
+                    const whatsapp={...waActual,numeroNegocio:telefono};
+                    const actualizacion={
+                        logo,logoPath,instagramUrl,mapsUrl,ubicacionTexto,telefono,whatsapp,
+                        negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()
+                    };
+                    configTienda={...configTienda,...actualizacion,nombrePublico:nombreGuardado,nombrePublicoSlug:slugGuardado};
+                    await setDoc(doc(db,'configuracion',negocioIdActual),actualizacion,{merge:true});
+
+                    if(nuevaRutaLogo&&rutaLogoAnterior&&rutaLogoAnterior!==nuevaRutaLogo) await eliminarImagenStorageSegura(rutaLogoAnterior);
+                    nuevaRutaLogo='';
+                    if(inputLogo) inputLogo.value='';
+
+                    await auditar('informacion_general_actualizada','configuracion',negocioIdActual,{
+                        nombrePublico:nombreGuardado,logoStorage:!!logoPath,instagramConfigurado:!!instagramUrl,mapsConfigurado:!!mapsUrl,whatsappConfigurado:!!telefono
+                    });
+                    window.triggerConfiguracion();
+                    window.mostrarAlertaUI('Información general guardada correctamente.');
+                } catch(e) {
+                    if(nuevaRutaLogo) await eliminarImagenStorageSegura(nuevaRutaLogo);
+                    window.mostrarAlertaUI(e.message||'No se pudo guardar la información general.');
+                    throw e;
+                }
+            });
+        };
+
         const colorHexValido = (valor) => /^#[0-9a-fA-F]{6}$/.test(String(valor || ''));
         const normalizarTemaTienda = (tema = {}) => {
             const limpio = {};
@@ -5479,7 +5449,7 @@ async function obtenerHeadersBackendAdmin() {
         window.guardarNombrePublicoTienda = async () => {
             exigirContextoAdmin();
             const input = document.getElementById('conf-tienda-nombre-publico');
-            const btn = document.getElementById('btn-guardar-nombre-publico');
+            const btn = document.getElementById('btn-guardar-info-general');
             const nombrePublico = String(input?.value || '').trim();
             const slugPrevio = normalizarSlugPublicoCliente(nombrePublico);
             if(nombrePublico.length < 3 || nombrePublico.length > 50) throw new Error('El nombre público debe tener entre 3 y 50 caracteres.');
@@ -5551,7 +5521,7 @@ async function obtenerHeadersBackendAdmin() {
         window.guardarMensajesWhatsApp = async () => {
             const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
             return conEstadoBoton(btn,'Guardando WhatsApp…',async()=>{
-                try { exigirContextoAdmin(); const numero=String(document.getElementById('wa-numero-negocio')?.value||'').replace(/[^0-9]/g,''); if(numero&&(numero.length<8||numero.length>15)) throw new Error('El número de WhatsApp debe tener entre 8 y 15 dígitos.'); const mensajeEntrega=validarTexto(document.getElementById('wa-mensaje-entrega')?.value||'','Mensaje de entrega',800,true); const camposMensajeCliente={ fecha:!!document.getElementById('wa-campo-fecha')?.checked,nombre:!!document.getElementById('wa-campo-nombre')?.checked,total:!!document.getElementById('wa-campo-total')?.checked,codigo:!!document.getElementById('wa-campo-codigo')?.checked,telefono:!!document.getElementById('wa-campo-telefono')?.checked,entrega:!!document.getElementById('wa-campo-entrega')?.checked,pago:!!document.getElementById('wa-campo-pago')?.checked,items:!!document.getElementById('wa-campo-items')?.checked }; if(!Object.values(camposMensajeCliente).some(Boolean)) throw new Error('Seleccioná al menos un dato para el mensaje del comprador.'); const whatsapp={numeroNegocio:numero,mensajeEntrega,camposMensajeCliente}; configTienda={...configTienda,telefono:numero,whatsapp}; await setDoc(doc(db,'configuracion',negocioIdActual),{telefono:numero,whatsapp,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()},{merge:true}); const telGeneral=document.getElementById('conf-wsp-negocio'); if(telGeneral) telGeneral.value=numero; await auditar('whatsapp_configurado','configuracion',negocioIdActual,{camposMensajeCliente}); window.mostrarAlertaUI('Configuración de WhatsApp guardada correctamente.'); } catch(e){ window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración de WhatsApp.'); throw e; }
+                try { exigirContextoAdmin(); const numero=String(configTienda.telefono||normalizarConfigWhatsApp().numeroNegocio||'').replace(/[^0-9]/g,''); const mensajeEntrega=validarTexto(document.getElementById('wa-mensaje-entrega')?.value||'','Mensaje de entrega',800,true); const camposMensajeCliente={ fecha:!!document.getElementById('wa-campo-fecha')?.checked,nombre:!!document.getElementById('wa-campo-nombre')?.checked,total:!!document.getElementById('wa-campo-total')?.checked,codigo:!!document.getElementById('wa-campo-codigo')?.checked,telefono:!!document.getElementById('wa-campo-telefono')?.checked,entrega:!!document.getElementById('wa-campo-entrega')?.checked,pago:!!document.getElementById('wa-campo-pago')?.checked,items:!!document.getElementById('wa-campo-items')?.checked }; if(!Object.values(camposMensajeCliente).some(Boolean)) throw new Error('Seleccioná al menos un dato para el mensaje del comprador.'); const whatsapp={numeroNegocio:numero,mensajeEntrega,camposMensajeCliente}; configTienda={...configTienda,telefono:numero,whatsapp}; await setDoc(doc(db,'configuracion',negocioIdActual),{telefono:numero,whatsapp,negocioId:negocioIdActual,updatedAt:serverTimestamp(),updatedBy:actorActual()},{merge:true}); await auditar('whatsapp_configurado','configuracion',negocioIdActual,{camposMensajeCliente}); window.mostrarAlertaUI('Configuración de WhatsApp guardada correctamente.'); } catch(e){ window.mostrarAlertaUI(e.message||'No se pudo guardar la configuración de WhatsApp.'); throw e; }
             });
         };
 
@@ -5568,6 +5538,7 @@ async function obtenerHeadersBackendAdmin() {
             if(confUbicacion) confUbicacion.value=configTienda.ubicacionTexto || '';
 
             const nombrePublicoInput=document.getElementById('conf-tienda-nombre-publico'); if(nombrePublicoInput) nombrePublicoInput.value=configTienda.nombrePublico || '';
+            const mobileBrand=document.getElementById('admin-mobile-brand'); if(mobileBrand&&configTienda.nombrePublico){ mobileBrand.textContent=configTienda.nombrePublico; mobileBrand.setAttribute('aria-label',configTienda.nombrePublico); }
 
             const dp=configTienda.descuentosPago||{}, dpe=dp.efectivo||{}, dpt=dp.transferencia||{};
             const ea=document.getElementById('desc-pago-efectivo-activo'); if(ea) ea.checked=!!dpe.activo;
@@ -5578,8 +5549,7 @@ async function obtenerHeadersBackendAdmin() {
             const ap=document.getElementById('desc-pago-aplica-packs'); if(ap) ap.checked=!!dp.aplicaPacks;
 
             const wa = normalizarConfigWhatsApp();
-            const waNumero=document.getElementById('wa-numero-negocio'); if(waNumero) waNumero.value=wa.numeroNegocio;
-            const wspLogistica=document.getElementById('conf-wsp-negocio'); if(wspLogistica) wspLogistica.value=wa.numeroNegocio || configTienda.telefono || '';
+            const wspGeneral=document.getElementById('conf-wsp-negocio'); if(wspGeneral) wspGeneral.value=wa.numeroNegocio || configTienda.telefono || '';
             const waMensaje=document.getElementById('wa-mensaje-entrega'); if(waMensaje) waMensaje.value=wa.mensajeEntrega;
             const mapaWaChecks={fecha:'wa-campo-fecha',nombre:'wa-campo-nombre',total:'wa-campo-total',codigo:'wa-campo-codigo',telefono:'wa-campo-telefono',entrega:'wa-campo-entrega',pago:'wa-campo-pago',items:'wa-campo-items'};
             Object.entries(mapaWaChecks).forEach(([clave,id])=>{const el=document.getElementById(id);if(el)el.checked=!!wa.camposMensajeCliente[clave];});
