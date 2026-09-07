@@ -12,7 +12,7 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
-const CACHE_VERSION = 'shopo-pwa-v12';
+const CACHE_VERSION = 'shopo-pwa-v13';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const APP_SCOPE = '/Shopo/';
 const PRECACHE = [
