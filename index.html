@@ -14,7 +14,7 @@
     <meta name="color-scheme" content="light">
     <meta name="apple-mobile-web-app-title" content="Shopo">
     <meta name="description" content="Panel integral de control de negocios y ventas">
-    <link rel="manifest" href="./manifest.webmanifest?v=10">
+    <link rel="manifest" href="./manifest.webmanifest?v=11">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -859,29 +859,6 @@
                 justify-content: center;
             }
 
-            #panel-inventario > div:first-child {
-                width: 100%;
-                display: grid !important;
-                grid-template-columns: 1fr !important;
-                gap: 12px;
-                margin-bottom: 18px !important;
-            }
-
-            #panel-inventario > div:first-child > div {
-                width: 100%;
-                max-width: none !important;
-            }
-
-            #panel-inventario > div:first-child > div > div:last-child {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 8px !important;
-                width: 100%;
-            }
-
-            #panel-inventario > div:first-child > div > div:last-child button:last-child {
-                grid-column: 1 / -1;
-            }
 
             .modal-overlay {
                 align-items: flex-start;
@@ -1857,7 +1834,7 @@
             #panel-inventario .inventario-busqueda-fila {
                 order: 2;
                 display: grid !important;
-                grid-template-columns: minmax(0,3fr) minmax(54px,1fr) !important;
+                grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) !important;
                 gap: 10px !important;
                 width: 100% !important;
                 min-width: 0 !important;
@@ -1878,7 +1855,7 @@
                 align-items: center !important;
                 justify-content: center !important;
                 width: 100% !important;
-                min-width: 54px !important;
+                min-width: 0 !important;
                 height: 52px !important;
                 min-height: 52px !important;
                 padding: 0 !important;
@@ -3043,7 +3020,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
                 instalar.disabled=instalada;
             }
             if(notif){
-                notif.textContent=pushPWAActivo?'Ya activadas':'Activar notificaciones';
+                notif.textContent=pushPWAActivo?'Notificaciones activadas':'Activar notificaciones';
                 notif.disabled=pushPWAActivo;
             }
         }
@@ -3109,7 +3086,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         async function registrarServiceWorkerPWA() {
             if(!('serviceWorker' in navigator)) return null;
             try {
-                const reg = await navigator.serviceWorker.register('./service-worker.js?v=10', { scope: './' });
+                const reg = await navigator.serviceWorker.register('./service-worker.js?v=11', { scope: './' });
                 pwaServiceWorkerRegistration = reg;
                 reg.update().catch(()=>{});
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
