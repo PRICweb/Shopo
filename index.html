@@ -14,7 +14,7 @@
     <meta name="color-scheme" content="light">
     <meta name="apple-mobile-web-app-title" content="Shopo">
     <meta name="description" content="Panel integral de control de negocios y ventas">
-    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="manifest" href="./manifest.webmanifest?v=10">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -1416,9 +1416,16 @@
         .pwa-push-toast span { display:block; color:var(--text-muted); font-size:.76rem; line-height:1.4; }
         @media(max-width:768px){ .pwa-install-actions{display:grid;grid-template-columns:1fr;} .pwa-install-actions button{width:100%;} }
 
-        /* ===== MOVIMIENTOS MÓVIL ===== */
+        
+
+
+        
+
+    
+
+        
+        /* ===== ADMIN MÓVIL ===== */
         @media (max-width: 768px) {
-            /* Superficies limpias: sin tarjetas ni marcos curvos en Movimientos. */
             #panel-movimientos {
                 padding: 10px 16px 30px !important;
                 background: #ffffff !important;
@@ -1426,11 +1433,9 @@
                 box-shadow: none !important;
                 border-radius: 0 !important;
             }
-
             #panel-movimientos > h3 {
                 display: none !important;
             }
-
             #panel-movimientos > .movimientos-contenido {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -1439,7 +1444,6 @@
                 border-radius: 0 !important;
                 box-shadow: none !important;
             }
-
             #panel-movimientos .modulo-oscuro {
                 margin: 0 0 34px !important;
                 padding: 0 !important;
@@ -1449,7 +1453,6 @@
                 box-shadow: none !important;
                 overflow: visible !important;
             }
-
             #panel-movimientos .modulo-header {
                 min-height: 50px;
                 padding: 13px 0 !important;
@@ -1459,7 +1462,6 @@
                 border-radius: 0 !important;
                 color: var(--primary) !important;
             }
-
             #panel-movimientos .modulo-body {
                 padding: 16px 0 0 !important;
                 background: transparent !important;
@@ -1467,37 +1469,27 @@
                 border-radius: 0 !important;
                 box-shadow: none !important;
             }
-
-            /* Venta física siempre visible en móvil. */
             #panel-movimientos .modulo-header[onclick*="body-ventas-mostrador"] {
                 display: none !important;
             }
-
             #body-ventas-mostrador.hidden {
                 display: block !important;
             }
-
             #body-ventas-mostrador {
                 padding-top: 0 !important;
                 margin-bottom: 42px !important;
             }
-
             #body-ventas-mostrador > div:first-child {
                 margin-bottom: 14px !important;
             }
-
-            /* Cuadros de texto y números centrados. */
             #panel-movimientos input[type="text"],
             #panel-movimientos input[type="search"],
             #panel-movimientos input[type="number"] {
                 text-align: center !important;
             }
-
             #panel-movimientos input::placeholder {
                 text-align: center !important;
             }
-
-            /* Selectores móviles propios de Shopo: evitan el selector oscuro del sistema. */
             .shopo-mobile-select-native {
                 position: absolute !important;
                 width: 1px !important;
@@ -1511,13 +1503,11 @@
                 opacity: 0 !important;
                 pointer-events: none !important;
             }
-
             .shopo-mobile-select {
                 position: relative;
                 width: 100%;
                 min-width: 0;
             }
-
             .shopo-mobile-select-btn {
                 width: 100% !important;
                 min-height: 54px !important;
@@ -1536,14 +1526,12 @@
                 font-size: 16px !important;
                 text-align: center !important;
             }
-
             .shopo-mobile-select-btn:hover,
             .shopo-mobile-select-btn:active {
                 background: #ffffff !important;
                 color: var(--text-main) !important;
                 transform: none !important;
             }
-
             .shopo-mobile-select-btn > span:first-child {
                 min-width: 0;
                 overflow: hidden;
@@ -1551,13 +1539,11 @@
                 text-overflow: ellipsis;
                 text-align: center;
             }
-
             .shopo-mobile-select-caret {
                 color: var(--primary);
                 font-size: 13px;
                 line-height: 1;
             }
-
             .shopo-mobile-select-menu {
                 position: absolute;
                 left: 0;
@@ -1573,11 +1559,9 @@
                 border-radius: 12px;
                 box-shadow: 0 12px 32px rgba(0,0,0,.12);
             }
-
             .shopo-mobile-select.open .shopo-mobile-select-menu {
                 display: block;
             }
-
             .shopo-mobile-select-option {
                 width: 100% !important;
                 min-height: 48px !important;
@@ -1595,22 +1579,17 @@
                 font-size: 15px !important;
                 text-align: center !important;
             }
-
             .shopo-mobile-select-option:last-child {
                 border-bottom: 0 !important;
             }
-
             .shopo-mobile-select-option.selected {
                 color: var(--primary) !important;
                 background: var(--card-hover) !important;
             }
-
             .shopo-mobile-select-option:disabled {
                 color: var(--text-dark) !important;
                 background: #ffffff !important;
             }
-
-            /* Resultados de búsqueda de registros: tabla clara dentro de la PWA. */
             .registro-resultados-mobile {
                 display: none;
                 margin-top: 7px;
@@ -1620,11 +1599,9 @@
                 border-radius: 12px;
                 box-shadow: 0 10px 24px rgba(0,0,0,.08);
             }
-
             .registro-resultados-mobile.show {
                 display: block;
             }
-
             .registro-resultado-row {
                 width: 100% !important;
                 min-height: 58px !important;
@@ -1642,63 +1619,51 @@
                 letter-spacing: .1px !important;
                 text-align: left !important;
             }
-
             .registro-resultado-row:last-child {
                 border-bottom: 0 !important;
             }
-
             .registro-resultado-row:hover,
             .registro-resultado-row:active {
                 background: var(--card-hover) !important;
                 color: var(--text-main) !important;
                 transform: none !important;
             }
-
             .registro-resultado-principal {
                 min-width: 0;
                 font-size: .84rem;
                 line-height: 1.35;
                 overflow-wrap: anywhere;
             }
-
             .registro-resultado-monto {
                 color: var(--primary);
                 white-space: nowrap;
                 font-size: .82rem;
             }
-
             .registro-resultados-vacio {
                 padding: 13px 12px;
                 color: var(--text-muted);
                 font-size: .8rem;
                 text-align: center;
             }
-
-            /* Buscador 3/4 + cantidad 1/4; Añadir ocupa la fila inferior. */
             #body-ventas-mostrador .mostrador-producto-grid {
                 display: grid !important;
                 grid-template-columns: minmax(0, 3fr) minmax(70px, 1fr) !important;
                 gap: 10px !important;
                 align-items: end !important;
             }
-
             #body-ventas-mostrador .mostrador-producto-grid > div {
                 width: 100% !important;
                 min-width: 0 !important;
                 max-width: none !important;
             }
-
             #body-ventas-mostrador .mostrador-producto-grid > div:nth-child(3) {
                 grid-column: 1 / -1;
             }
-
             #body-ventas-mostrador .mostrador-producto-grid input,
             #body-ventas-mostrador .mostrador-producto-grid button {
                 width: 100% !important;
                 min-width: 0 !important;
             }
-
-            /* Efectivo y transferencia mitad y mitad. */
             #body-ventas-mostrador .mostrador-pagos-grid,
             #body-registrar-extraordinario .extraordinario-pagos-grid {
                 display: grid !important;
@@ -1706,42 +1671,37 @@
                 gap: 10px !important;
                 align-items: end !important;
             }
-
             #body-ventas-mostrador .mostrador-pagos-grid > div,
             #body-registrar-extraordinario .extraordinario-pagos-grid > div {
                 width: 100% !important;
                 min-width: 0 !important;
             }
-
-            /* Extraordinarios: concepto y tipo en filas completas. */
             #body-registrar-extraordinario .extraordinario-grid {
                 display: grid !important;
                 grid-template-columns: 1fr !important;
                 gap: 12px !important;
                 align-items: end !important;
             }
-
             #body-registrar-extraordinario .extraordinario-grid > div {
                 width: 100% !important;
                 min-width: 0 !important;
             }
-
-            .registro-select-desktop { display: none !important; }
-            .registro-busqueda-mobile { display: block !important; }
-
-            /* Borrado: búsqueda simple sin selector gigante. */
+            .registro-select-desktop {
+                display: none !important;
+            }
+            .registro-busqueda-mobile {
+                display: block !important;
+            }
             #body-eliminar-registros .gestion-borrado-grid {
                 display: grid !important;
                 grid-template-columns: 1fr !important;
                 gap: 12px !important;
             }
-
             #body-eliminar-registros input,
             #body-eliminar-registros select,
             #body-eliminar-registros button {
                 width: 100% !important;
             }
-
             #borrar-registro-stock-box {
                 padding: 0 !important;
                 margin-top: 14px !important;
@@ -1749,390 +1709,538 @@
                 border: 0 !important;
                 border-radius: 0 !important;
             }
-
             #borrar-registro-stock-nota:empty {
                 display: none !important;
             }
-
             .gestion-borrado-nota {
                 margin-top: 10px;
             }
-
-            /* La barra de la página también queda blanca. */
             .admin-mobile-topbar {
                 background: #ffffff !important;
+                border-bottom: 0 !important;
             }
-        }
-
-
-        /* ===== AJUSTES MOBILE V6: VISTAS, MODALES Y SUSCRIPCIÓN ===== */
-        .mobile-only-action { display:none; }
-        .shopo-mobile-modal-body { min-width:0; }
-        .suscripcion-renovacion-grid { margin-top:16px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; }
-        .suscripcion-pago-fila { padding:10px 0; border-bottom:1px solid var(--border-light); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; }
-        .suscripcion-pago-fila:last-child { border-bottom:0; }
-        .suscripcion-pago-principal { min-width:0; overflow-wrap:anywhere; }
-        .suscripcion-pago-importe { white-space:nowrap; color:var(--primary); text-align:right; }
-
-        .inventario-cabecera { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:15px; }
-        .inventario-controles { display:flex; gap:15px; flex-wrap:wrap; width:100%; max-width:650px; justify-content:flex-end; align-items:center; }
-        .inventario-busqueda-fila { display:flex; align-items:center; gap:8px; flex:1; min-width:220px; }
-        .inventario-search { flex:1; min-width:0; }
-        .inventario-filtro-btn { display:none; }
-        .inventario-acciones-crear { display:flex; gap:8px; }
-
-        @media (max-width:768px) {
-            /* Las vistas móviles no repiten el título de sección: la barra inferior ya indica dónde está el usuario. */
             #panel-movimientos > h3,
             #panel-finanzas > h3,
             #panel-config > h3,
             #panel-pedidos .pedidos-mobile-cabecera h3,
             #panel-inventario > div:first-child > h3 {
-                display:none !important;
+                display: none !important;
             }
-
             #panel-movimientos,
             #panel-pedidos,
             #panel-inventario,
             #panel-finanzas,
             #panel-config {
-                padding-top:8px !important;
-                border:0 !important;
+                padding-top: 8px !important;
+                border: 0 !important;
             }
-
-            /* Sin líneas grises de borde al comienzo o final de las vistas móviles. */
-            .admin-mobile-topbar { border-bottom:0 !important; }
-            .admin-sidebar { border-top:0 !important; }
-
-            /* Estilo único de acordeón móvil: fondo blanco, sin caja y una línea inferior simple. */
+            .admin-sidebar {
+                border-top: 0 !important;
+            }
             #panel-movimientos .modulo-oscuro,
             #panel-pedidos .modulo-oscuro,
             #panel-finanzas .modulo-oscuro,
             #panel-config .modulo-oscuro {
-                border:0 !important;
-                border-radius:0 !important;
-                background:transparent !important;
-                box-shadow:none !important;
-                margin-bottom:26px !important;
-                overflow:visible !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                margin-bottom: 26px !important;
+                overflow: visible !important;
             }
             #panel-movimientos .modulo-oscuro > .modulo-header,
             #panel-pedidos .modulo-oscuro > .modulo-header,
             #panel-finanzas .modulo-oscuro > .modulo-header,
             #panel-config .modulo-oscuro > .modulo-header {
-                min-height:48px !important;
-                padding:0 0 14px !important;
-                border:0 !important;
-                border-bottom:1px solid var(--border-light) !important;
-                border-radius:0 !important;
-                background:transparent !important;
-                color:var(--primary) !important;
+                min-height: 48px !important;
+                padding: 0 0 14px !important;
+                border: 0 !important;
+                border-bottom: 1px solid var(--border-light) !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                color: var(--primary) !important;
             }
             #panel-movimientos .modulo-oscuro > .modulo-body,
             #panel-pedidos .modulo-oscuro > .modulo-body,
             #panel-finanzas .modulo-oscuro > .modulo-body,
             #panel-config .modulo-oscuro > .modulo-body {
-                padding:18px 0 0 !important;
-                border:0 !important;
+                padding: 18px 0 0 !important;
+                border: 0 !important;
             }
-
             #panel-pedidos .pedidos-mobile-cabecera {
-                display:none !important;
-                margin:0 !important;
+                display: none !important;
+                margin: 0 !important;
             }
-
-            /* Pedidos móvil: pendientes siempre visibles y filtro simple marrón. */
             #btn-abrir-filtros-pedidos {
-                width:40px !important;
-                min-width:40px !important;
-                height:40px !important;
-                min-height:40px !important;
-                padding:0 !important;
-                border:0 !important;
-                border-radius:0 !important;
-                background:transparent !important;
-                color:var(--primary) !important;
-                box-shadow:none !important;
+                width: 40px !important;
+                min-width: 40px !important;
+                height: 40px !important;
+                min-height: 40px !important;
+                padding: 0 !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                color: var(--primary) !important;
+                box-shadow: none !important;
             }
-            #btn-abrir-filtros-pedidos svg { width:23px !important; height:23px !important; stroke:currentColor !important; }
-            #panel-pedidos .pedidos-pendientes-modulo { border:0 !important; border-radius:0 !important; background:transparent !important; margin-bottom:30px !important; }
+            #btn-abrir-filtros-pedidos svg {
+                width: 23px !important;
+                height: 23px !important;
+                stroke: currentColor !important;
+            }
+            #panel-pedidos .pedidos-pendientes-modulo {
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                margin-bottom: 30px !important;
+            }
             #panel-pedidos .pedidos-pendientes-header {
-                min-height:48px !important;
-                display:flex !important;
-                align-items:center !important;
-                justify-content:space-between !important;
-                gap:12px !important;
-                padding:0 0 14px !important;
-                border:0 !important;
-                border-bottom:1px solid var(--border-light) !important;
-                border-radius:0 !important;
-                background:transparent !important;
-                color:var(--primary) !important;
+                min-height: 48px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                gap: 12px !important;
+                padding: 0 0 14px !important;
+                border: 0 !important;
+                border-bottom: 1px solid var(--border-light) !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                color: var(--primary) !important;
             }
             #panel-pedidos .pedidos-pendientes-header > span {
-                display:flex;
-                align-items:center;
-                min-height:40px;
+                display: flex;
+                align-items: center;
+                min-height: 40px;
             }
-            #panel-pedidos #body-pedidos-pendientes { display:block !important; padding:18px 0 0 !important; border:0 !important; }
-            #panel-pedidos .pedidos-historial-modulo { border:0 !important; border-radius:0 !important; background:transparent !important; margin-bottom:24px !important; }
+            #panel-pedidos #body-pedidos-pendientes {
+                display: block !important;
+                padding: 18px 0 0 !important;
+                border: 0 !important;
+            }
+            #panel-pedidos .pedidos-historial-modulo {
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                margin-bottom: 24px !important;
+            }
             #panel-pedidos .pedidos-historial-modulo > .modulo-header {
-                min-height:auto !important;
-                padding:0 0 14px !important;
-                border:0 !important;
-                border-bottom:1px solid var(--border-light) !important;
-                border-radius:0 !important;
-                background:transparent !important;
-                color:var(--primary) !important;
+                min-height: auto !important;
+                padding: 0 0 14px !important;
+                border: 0 !important;
+                border-bottom: 1px solid var(--border-light) !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                color: var(--primary) !important;
             }
-            #panel-pedidos .pedidos-historial-modulo > .modulo-body { padding:18px 0 0 !important; border:0 !important; }
-
-            /* Inventario móvil: buscador + filtro y jerarquía de acciones. */
-            #panel-inventario .inventario-cabecera { display:block !important; margin-bottom:26px !important; }
-            #panel-inventario .inventario-controles { display:flex !important; flex-direction:column !important; gap:14px !important; width:100% !important; max-width:none !important; }
-            #panel-inventario .inventario-acciones-crear { order:1; }
-            #panel-inventario .inventario-busqueda-fila { order:2; display:grid !important; grid-template-columns:minmax(0,1fr) 42px !important; gap:8px !important; width:100% !important; min-width:0 !important; margin:0 !important; }
-            #panel-inventario .inventario-search { width:100% !important; max-width:none !important; margin:0 !important; }
-            #panel-inventario .inventario-search input { text-align:left !important; }
+            #panel-pedidos .pedidos-historial-modulo > .modulo-body {
+                padding: 18px 0 0 !important;
+                border: 0 !important;
+            }
+            #panel-inventario .inventario-cabecera {
+                display: block !important;
+                margin-bottom: 26px !important;
+            }
+            #panel-inventario .inventario-controles {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 14px !important;
+                width: 100% !important;
+                max-width: none !important;
+            }
+            #panel-inventario .inventario-acciones-crear {
+                order: 1;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+            #panel-inventario .inventario-busqueda-fila {
+                order: 2;
+                display: grid !important;
+                grid-template-columns: minmax(0,3fr) minmax(54px,1fr) !important;
+                gap: 10px !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                margin: 0 !important;
+                align-items: center !important;
+            }
+            #panel-inventario .inventario-search {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                min-width: 0 !important;
+            }
+            #panel-inventario .inventario-search input {
+                text-align: left !important;
+            }
             #panel-inventario .inventario-filtro-btn {
-                display:flex !important; align-items:center; justify-content:center;
-                width:42px !important; min-width:42px !important; height:42px !important; min-height:42px !important;
-                padding:0 !important; border:0 !important; border-radius:0 !important;
-                background:transparent !important; color:var(--primary) !important; box-shadow:none !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 100% !important;
+                min-width: 54px !important;
+                height: 52px !important;
+                min-height: 52px !important;
+                padding: 0 !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                color: var(--primary) !important;
+                box-shadow: none !important;
             }
-            #panel-inventario .inventario-filtro-btn svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-            #panel-inventario .inventario-acciones-crear { display:grid !important; grid-template-columns:1fr 1fr !important; gap:8px !important; width:100% !important; }
-            #panel-inventario .inventario-acciones-crear button { width:100% !important; min-height:52px !important; }
-            #panel-inventario .inventario-crear-producto { grid-column:1 / -1 !important; }
-            #panel-inventario .inventario-crear-oferta { grid-column:1 !important; }
-            #panel-inventario .inventario-crear-pack { grid-column:2 !important; }
-            #panel-inventario thead th { font-size:.72rem !important; }
-            .inventario-filtro-modal { max-width:420px !important; }
-            .inventario-filtro-actions { display:grid !important; grid-template-columns:1fr 1fr !important; gap:8px !important; }
-            .inventario-filtro-actions button { width:100% !important; }
-
-            /* Libro Diario móvil: todos los datos visibles sin desplazamiento lateral. */
+            #panel-inventario .inventario-filtro-btn svg {
+                width: 23px;
+                height: 23px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 1.8;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+            #panel-inventario .inventario-acciones-crear button {
+                width: 100% !important;
+                min-height: 52px !important;
+            }
+            #panel-inventario .inventario-crear-producto {
+                grid-column: 1 / -1 !important;
+            }
+            #panel-inventario .inventario-crear-oferta {
+                grid-column: 1 !important;
+            }
+            #panel-inventario .inventario-crear-pack {
+                grid-column: 2 !important;
+            }
+            #panel-inventario thead th {
+                font-size: .72rem !important;
+            }
+            .inventario-filtro-modal {
+                max-width: 420px !important;
+            }
+            .inventario-filtro-actions {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+            }
+            .inventario-filtro-actions button {
+                width: 100% !important;
+            }
             #panel-finanzas #body-transacciones {
-                overflow-x:hidden !important;
-                width:100% !important;
+                overflow-x: hidden !important;
+                width: 100% !important;
             }
             #panel-finanzas #body-transacciones table {
-                width:100% !important;
-                min-width:0 !important;
-                table-layout:fixed !important;
-                margin-top:0 !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                table-layout: fixed !important;
+                margin-top: 0 !important;
             }
-            #panel-finanzas #body-transacciones thead { display:none !important; }
+            #panel-finanzas #body-transacciones thead {
+                display: none !important;
+            }
             #panel-finanzas #body-transacciones tbody,
             #panel-finanzas #body-transacciones tr {
-                display:block !important;
-                width:100% !important;
+                display: block !important;
+                width: 100% !important;
             }
             #panel-finanzas #body-transacciones tr {
-                padding:14px 0 !important;
-                border-bottom:1px solid var(--border-light) !important;
-                background:transparent !important;
+                padding: 14px 0 !important;
+                border-bottom: 1px solid var(--border-light) !important;
+                background: transparent !important;
             }
-            #panel-finanzas #body-transacciones tr:last-child { border-bottom:0 !important; }
+            #panel-finanzas #body-transacciones tr:last-child {
+                border-bottom: 0 !important;
+            }
             #panel-finanzas #body-transacciones td {
-                width:100% !important;
-                max-width:100% !important;
-                display:grid !important;
-                grid-template-columns:112px minmax(0,1fr) !important;
-                gap:10px !important;
-                align-items:start !important;
-                padding:5px 0 !important;
-                border:0 !important;
-                background:transparent !important;
-                text-align:left !important;
-                overflow-wrap:anywhere !important;
-                white-space:normal !important;
-                font-size:.78rem !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                display: grid !important;
+                grid-template-columns: 112px minmax(0,1fr) !important;
+                gap: 10px !important;
+                align-items: start !important;
+                padding: 5px 0 !important;
+                border: 0 !important;
+                background: transparent !important;
+                text-align: left !important;
+                overflow-wrap: anywhere !important;
+                white-space: normal !important;
+                font-size: .78rem !important;
             }
             #panel-finanzas #body-transacciones td::before {
-                color:var(--text-muted);
-                font-size:.66rem;
-                text-transform:uppercase;
-                letter-spacing:.8px;
+                color: var(--text-muted);
+                font-size: .66rem;
+                text-transform: uppercase;
+                letter-spacing: .8px;
             }
-            #panel-finanzas #body-transacciones td:nth-child(1)::before { content:'Fecha'; }
-            #panel-finanzas #body-transacciones td:nth-child(2)::before { content:'Concepto'; }
-            #panel-finanzas #body-transacciones td:nth-child(3)::before { content:'Detalle'; }
-            #panel-finanzas #body-transacciones td:nth-child(4)::before { content:'Efectivo'; }
-            #panel-finanzas #body-transacciones td:nth-child(5)::before { content:'Transferencia'; }
-            #panel-finanzas #body-transacciones td:nth-child(6)::before { content:'Monto'; }
-
-            /* Tooltips de métricas centrados en la pantalla para que nunca queden recortados. */
+            #panel-finanzas #body-transacciones td:nth-child(1)::before {
+                content: "Fecha";
+            }
+            #panel-finanzas #body-transacciones td:nth-child(2)::before {
+                content: "Concepto";
+            }
+            #panel-finanzas #body-transacciones td:nth-child(3)::before {
+                content: "Detalle";
+            }
+            #panel-finanzas #body-transacciones td:nth-child(4)::before {
+                content: "Efectivo";
+            }
+            #panel-finanzas #body-transacciones td:nth-child(5)::before {
+                content: "Transferencia";
+            }
+            #panel-finanzas #body-transacciones td:nth-child(6)::before {
+                content: "Monto";
+            }
             #panel-finanzas .metrica-info::after {
-                position:fixed !important;
-                left:50% !important;
-                top:50% !important;
-                right:auto !important;
-                bottom:auto !important;
-                transform:translate(-50%,-50%) !important;
-                width:min(320px, calc(100vw - 36px)) !important;
-                max-width:calc(100vw - 36px) !important;
-                padding:14px 16px !important;
-                border-radius:12px !important;
-                text-align:center !important;
-                line-height:1.5 !important;
-                z-index:5000 !important;
+                position: fixed !important;
+                left: 50% !important;
+                top: 50% !important;
+                right: auto !important;
+                bottom: auto !important;
+                transform: translate(-50%,-50%) !important;
+                width: min(320px, calc(100vw - 36px)) !important;
+                max-width: calc(100vw - 36px) !important;
+                padding: 14px 16px !important;
+                border-radius: 12px !important;
+                text-align: center !important;
+                line-height: 1.5 !important;
+                z-index: 5000 !important;
             }
-
-            /* Finanzas: exportar es una acción directa y abre el formulario en modal. */
             .mobile-finance-export-btn {
-                display:flex !important;
-                align-items:center;
-                justify-content:center;
-                width:100%;
-                min-height:52px;
-                margin:20px 0 0;
-                border-radius:12px !important;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                min-height: 52px;
+                margin: 20px 0 0;
+                border-radius: 12px !important;
             }
-
-            /* Configuración: instalar y notificaciones dejan de ser acordeones en móvil. */
             #modulo-instalar-shopo,
             #modulo-notificaciones-shopo {
-                display:none !important;
+                display: none !important;
             }
-
             .config-pwa-mobile-actions {
-                display:grid !important;
-                grid-template-columns:1fr 1fr;
-                gap:10px;
-                width:100%;
-                margin-top:22px;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                width: 100%;
+                margin-top: 22px;
             }
-
             .config-pwa-mobile-actions button {
-                width:100%;
-                min-width:0;
-                min-height:54px;
-                padding:10px 8px !important;
-                border-radius:12px !important;
-                white-space:normal;
-                line-height:1.2;
+                width: 100%;
+                min-width: 0;
+                min-height: 54px;
+                padding: 10px 8px !important;
+                border-radius: 12px !important;
+                white-space: normal;
+                line-height: 1.2;
             }
-
             .config-pwa-mobile-actions button:disabled {
-                opacity:1;
-                background:#f5f5f5;
-                color:var(--primary);
-                border:1px solid var(--border-light);
+                opacity: 1;
+                background: #f5f5f5;
+                color: var(--primary);
+                border: 1px solid var(--border-light);
             }
-
-            /* Modales de acciones móviles: simples y sin contenido encimado. */
             #modal-exportar-movimientos-mobile .modal-content,
             #modal-config-pwa-mobile .modal-content {
-                width:calc(100vw - 24px) !important;
-                max-width:560px !important;
-                margin:12px auto calc(84px + env(safe-area-inset-bottom)) !important;
-                padding:18px !important;
-                border-radius:16px !important;
+                width: calc(100vw - 24px) !important;
+                max-width: 560px !important;
+                margin: 12px auto calc(84px + env(safe-area-inset-bottom)) !important;
+                padding: 18px !important;
+                border-radius: 16px !important;
             }
-
             .shopo-mobile-modal-header {
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-                gap:12px;
-                margin-bottom:16px;
-                padding-bottom:12px;
-                border-bottom:1px solid var(--border-light);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 16px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--border-light);
             }
-
             .shopo-mobile-modal-header h3 {
-                margin:0 !important;
-                padding:0 !important;
-                border:0 !important;
-                font-size:.92rem !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                font-size: .92rem !important;
             }
-
             .shopo-mobile-modal-close {
-                width:38px !important;
-                min-width:38px !important;
-                height:38px !important;
-                min-height:38px !important;
-                padding:0 !important;
-                border:1px solid var(--border) !important;
-                background:#fff !important;
-                color:var(--text-main) !important;
-                font-size:1.2rem !important;
-                line-height:1 !important;
+                width: 38px !important;
+                min-width: 38px !important;
+                height: 38px !important;
+                min-height: 38px !important;
+                padding: 0 !important;
+                border: 1px solid var(--border) !important;
+                background: #fff !important;
+                color: var(--text-main) !important;
+                font-size: 1.2rem !important;
+                line-height: 1 !important;
             }
-
             #modal-exportar-movimientos-mobile #body-exportar-excel,
             #modal-config-pwa-mobile #body-config-instalar-shopo,
             #modal-config-pwa-mobile #body-config-notificaciones-shopo {
-                padding:0 !important;
-                border:0 !important;
+                padding: 0 !important;
+                border: 0 !important;
             }
-
             #modal-exportar-movimientos-mobile .dark-input-group {
-                display:grid !important;
-                grid-template-columns:1fr 1fr;
-                gap:12px;
-                margin-bottom:14px;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                margin-bottom: 14px;
             }
-
             #modal-exportar-movimientos-mobile .dark-input-group > div {
-                width:100% !important;
-                min-width:0 !important;
+                width: 100% !important;
+                min-width: 0 !important;
             }
-
             #modal-exportar-movimientos-mobile .dark-input-group > div:nth-child(3),
             #modal-exportar-movimientos-mobile .dark-input-group > div:nth-child(4) {
-                grid-column:1 / -1;
+                grid-column: 1 / -1;
             }
-
-            /* Suscripción: estructura limpia, sin botones ni textos superpuestos. */
             #body-config-suscripcion .suscripcion-card {
-                border:0 !important;
-                border-radius:0 !important;
-                padding:0 !important;
-                background:transparent !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                background: transparent !important;
             }
-
             #body-config-suscripcion .store-settings-heading {
-                margin-bottom:12px;
+                margin-bottom: 12px;
             }
-
             #body-config-suscripcion .suscripcion-grid {
-                grid-template-columns:1fr !important;
-                gap:8px !important;
-                margin:12px 0 !important;
+                grid-template-columns: 1fr !important;
+                gap: 8px !important;
+                margin: 12px 0 !important;
             }
-
             #body-config-suscripcion .suscripcion-dato,
             #body-config-suscripcion .suscripcion-aviso {
-                border-radius:10px !important;
+                border-radius: 10px !important;
             }
-
             #body-config-suscripcion .suscripcion-renovacion-grid {
-                grid-template-columns:1fr !important;
-                gap:10px !important;
-                align-items:stretch !important;
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+                align-items: stretch !important;
             }
-
             #body-config-suscripcion .suscripcion-renovacion-grid button {
-                width:100% !important;
-                min-height:48px;
+                width: 100% !important;
+                min-height: 48px;
             }
-
             #body-config-suscripcion .suscripcion-pago-fila {
-                grid-template-columns:1fr !important;
-                gap:4px !important;
-                padding:11px 0 !important;
+                grid-template-columns: 1fr !important;
+                gap: 4px !important;
+                padding: 11px 0 !important;
             }
-
             #body-config-suscripcion .suscripcion-pago-importe {
-                white-space:normal;
-                text-align:left;
-                color:var(--text-muted);
+                white-space: normal;
+                text-align: left;
+                color: var(--text-muted);
+            }
+            #panel-finanzas #body-metricas-finanzas {
+                padding-top: 16px !important;
+            }
+            #panel-finanzas .metricas-periodo-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 12px !important;
+                margin-bottom: 14px !important;
+            }
+            #panel-finanzas .metricas-periodo-grid > div {
+                min-width: 0 !important;
+            }
+            #panel-finanzas .metricas-periodo-grid select {
+                min-height: 50px !important;
+                border-radius: 12px !important;
+                text-align: center !important;
+                background: #fff !important;
+            }
+            #panel-finanzas #metricas-estado-carga {
+                margin: 4px 0 18px !important;
+                padding: 0 !important;
+                font-size: .74rem !important;
+                line-height: 1.45 !important;
+                color: var(--text-muted) !important;
+            }
+            #panel-finanzas .metricas-grupo {
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+            }
+            #panel-finanzas .metricas-grupo + .metricas-grupo {
+                margin-top: 24px !important;
+                padding-top: 20px !important;
+                border-top: 1px solid var(--border-light) !important;
+            }
+            #panel-finanzas .metricas-grupo-titulo {
+                margin: 0 0 10px !important;
+                font-size: .76rem !important;
+                letter-spacing: .9px !important;
+                color: var(--text-muted) !important;
+            }
+            #panel-finanzas .metrica-item {
+                display: grid !important;
+                grid-template-columns: minmax(0,1fr) auto !important;
+                gap: 14px !important;
+                align-items: center !important;
+                padding: 13px 0 !important;
+                border-bottom: 1px solid var(--border-light) !important;
+            }
+            #panel-finanzas .metrica-item:last-child {
+                border-bottom: 0 !important;
+            }
+            #panel-finanzas .metrica-label {
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                min-width: 0 !important;
+                font-size: .82rem !important;
+                line-height: 1.3 !important;
+            }
+            #panel-finanzas .metrica-valor {
+                font-size: .88rem !important;
+                font-weight: 500 !important;
+                text-align: right !important;
+                white-space: nowrap !important;
+            }
+            #panel-finanzas .metrica-info {
+                width: 18px !important;
+                min-width: 18px !important;
+                height: 18px !important;
+                font-size: .64rem !important;
+                border-color: var(--border) !important;
+                background: #fff !important;
+            }
+            #panel-finanzas .metrica-item[style*="display:block"] {
+                display: block !important;
+                padding: 14px 0 !important;
+            }
+            #panel-finanzas .metrica-item[style*="display:block"] > .metrica-label {
+                margin-bottom: 12px !important;
+            }
+            #panel-finanzas .metrica-subtitulo {
+                margin: 14px 0 7px !important;
+                font-size: .66rem !important;
+                color: var(--text-muted) !important;
+            }
+            #panel-finanzas .metrica-detalle-lista {
+                margin-top: 0 !important;
+                padding: 0 12px !important;
+                border: 1px solid var(--border-light) !important;
+                border-radius: 12px !important;
+                background: #fff !important;
+                overflow: hidden !important;
+            }
+            #panel-finanzas .metrica-detalle-fila {
+                grid-template-columns: minmax(0,1fr) auto !important;
+                gap: 12px !important;
+                padding: 11px 0 !important;
+                font-size: .76rem !important;
+            }
+            #panel-finanzas .metrica-detalle-fila span:last-child {
+                white-space: nowrap !important;
+                font-weight: 500 !important;
+            }
+            #panel-finanzas .mobile-finance-export-btn {
+                margin-top: 38px !important;
+                margin-bottom: 8px !important;
             }
         }
-
-    </style>
+</style>
 </head>
 <body>
 
@@ -3001,7 +3109,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         async function registrarServiceWorkerPWA() {
             if(!('serviceWorker' in navigator)) return null;
             try {
-                const reg = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+                const reg = await navigator.serviceWorker.register('./service-worker.js?v=10', { scope: './' });
                 pwaServiceWorkerRegistration = reg;
                 reg.update().catch(()=>{});
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
