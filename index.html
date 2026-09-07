@@ -1797,11 +1797,48 @@
             #panel-finanzas,
             #panel-config {
                 padding-top:8px !important;
+                border:0 !important;
+            }
+
+            /* Sin líneas grises de borde al comienzo o final de las vistas móviles. */
+            .admin-mobile-topbar { border-bottom:0 !important; }
+            .admin-sidebar { border-top:0 !important; }
+
+            /* Estilo único de acordeón móvil: fondo blanco, sin caja y una línea inferior simple. */
+            #panel-movimientos .modulo-oscuro,
+            #panel-pedidos .modulo-oscuro,
+            #panel-finanzas .modulo-oscuro,
+            #panel-config .modulo-oscuro {
+                border:0 !important;
+                border-radius:0 !important;
+                background:transparent !important;
+                box-shadow:none !important;
+                margin-bottom:26px !important;
+                overflow:visible !important;
+            }
+            #panel-movimientos .modulo-oscuro > .modulo-header,
+            #panel-pedidos .modulo-oscuro > .modulo-header,
+            #panel-finanzas .modulo-oscuro > .modulo-header,
+            #panel-config .modulo-oscuro > .modulo-header {
+                min-height:48px !important;
+                padding:0 0 14px !important;
+                border:0 !important;
+                border-bottom:1px solid var(--border-light) !important;
+                border-radius:0 !important;
+                background:transparent !important;
+                color:var(--primary) !important;
+            }
+            #panel-movimientos .modulo-oscuro > .modulo-body,
+            #panel-pedidos .modulo-oscuro > .modulo-body,
+            #panel-finanzas .modulo-oscuro > .modulo-body,
+            #panel-config .modulo-oscuro > .modulo-body {
+                padding:18px 0 0 !important;
+                border:0 !important;
             }
 
             #panel-pedidos .pedidos-mobile-cabecera {
-                justify-content:flex-end;
-                margin-bottom:18px;
+                display:none !important;
+                margin:0 !important;
             }
 
             /* Pedidos móvil: pendientes siempre visibles y filtro simple marrón. */
@@ -1820,14 +1857,22 @@
             #btn-abrir-filtros-pedidos svg { width:23px !important; height:23px !important; stroke:currentColor !important; }
             #panel-pedidos .pedidos-pendientes-modulo { border:0 !important; border-radius:0 !important; background:transparent !important; margin-bottom:30px !important; }
             #panel-pedidos .pedidos-pendientes-header {
-                pointer-events:none;
-                min-height:auto !important;
+                min-height:48px !important;
+                display:flex !important;
+                align-items:center !important;
+                justify-content:space-between !important;
+                gap:12px !important;
                 padding:0 0 14px !important;
                 border:0 !important;
                 border-bottom:1px solid var(--border-light) !important;
                 border-radius:0 !important;
                 background:transparent !important;
                 color:var(--primary) !important;
+            }
+            #panel-pedidos .pedidos-pendientes-header > span {
+                display:flex;
+                align-items:center;
+                min-height:40px;
             }
             #panel-pedidos #body-pedidos-pendientes { display:block !important; padding:18px 0 0 !important; border:0 !important; }
             #panel-pedidos .pedidos-historial-modulo { border:0 !important; border-radius:0 !important; background:transparent !important; margin-bottom:24px !important; }
@@ -1844,8 +1889,9 @@
 
             /* Inventario móvil: buscador + filtro y jerarquía de acciones. */
             #panel-inventario .inventario-cabecera { display:block !important; margin-bottom:26px !important; }
-            #panel-inventario .inventario-controles { display:block !important; width:100% !important; max-width:none !important; }
-            #panel-inventario .inventario-busqueda-fila { display:grid !important; grid-template-columns:minmax(0,1fr) 42px !important; gap:8px !important; width:100% !important; min-width:0 !important; margin-bottom:14px !important; }
+            #panel-inventario .inventario-controles { display:flex !important; flex-direction:column !important; gap:14px !important; width:100% !important; max-width:none !important; }
+            #panel-inventario .inventario-acciones-crear { order:1; }
+            #panel-inventario .inventario-busqueda-fila { order:2; display:grid !important; grid-template-columns:minmax(0,1fr) 42px !important; gap:8px !important; width:100% !important; min-width:0 !important; margin:0 !important; }
             #panel-inventario .inventario-search { width:100% !important; max-width:none !important; margin:0 !important; }
             #panel-inventario .inventario-search input { text-align:left !important; }
             #panel-inventario .inventario-filtro-btn {
@@ -1864,6 +1910,74 @@
             .inventario-filtro-modal { max-width:420px !important; }
             .inventario-filtro-actions { display:grid !important; grid-template-columns:1fr 1fr !important; gap:8px !important; }
             .inventario-filtro-actions button { width:100% !important; }
+
+            /* Libro Diario móvil: todos los datos visibles sin desplazamiento lateral. */
+            #panel-finanzas #body-transacciones {
+                overflow-x:hidden !important;
+                width:100% !important;
+            }
+            #panel-finanzas #body-transacciones table {
+                width:100% !important;
+                min-width:0 !important;
+                table-layout:fixed !important;
+                margin-top:0 !important;
+            }
+            #panel-finanzas #body-transacciones thead { display:none !important; }
+            #panel-finanzas #body-transacciones tbody,
+            #panel-finanzas #body-transacciones tr {
+                display:block !important;
+                width:100% !important;
+            }
+            #panel-finanzas #body-transacciones tr {
+                padding:14px 0 !important;
+                border-bottom:1px solid var(--border-light) !important;
+                background:transparent !important;
+            }
+            #panel-finanzas #body-transacciones tr:last-child { border-bottom:0 !important; }
+            #panel-finanzas #body-transacciones td {
+                width:100% !important;
+                max-width:100% !important;
+                display:grid !important;
+                grid-template-columns:112px minmax(0,1fr) !important;
+                gap:10px !important;
+                align-items:start !important;
+                padding:5px 0 !important;
+                border:0 !important;
+                background:transparent !important;
+                text-align:left !important;
+                overflow-wrap:anywhere !important;
+                white-space:normal !important;
+                font-size:.78rem !important;
+            }
+            #panel-finanzas #body-transacciones td::before {
+                color:var(--text-muted);
+                font-size:.66rem;
+                text-transform:uppercase;
+                letter-spacing:.8px;
+            }
+            #panel-finanzas #body-transacciones td:nth-child(1)::before { content:'Fecha'; }
+            #panel-finanzas #body-transacciones td:nth-child(2)::before { content:'Concepto'; }
+            #panel-finanzas #body-transacciones td:nth-child(3)::before { content:'Detalle'; }
+            #panel-finanzas #body-transacciones td:nth-child(4)::before { content:'Efectivo'; }
+            #panel-finanzas #body-transacciones td:nth-child(5)::before { content:'Transferencia'; }
+            #panel-finanzas #body-transacciones td:nth-child(6)::before { content:'Monto'; }
+
+            /* Tooltips de métricas centrados en la pantalla para que nunca queden recortados. */
+            #panel-finanzas .metrica-info::after {
+                position:fixed !important;
+                left:50% !important;
+                top:50% !important;
+                right:auto !important;
+                bottom:auto !important;
+                transform:translate(-50%,-50%) !important;
+                width:min(320px, calc(100vw - 36px)) !important;
+                max-width:calc(100vw - 36px) !important;
+                padding:14px 16px !important;
+                border-radius:12px !important;
+                text-align:center !important;
+                line-height:1.5 !important;
+                z-index:5000 !important;
+            }
 
             /* Finanzas: exportar es una acción directa y abre el formulario en modal. */
             .mobile-finance-export-btn {
@@ -2152,16 +2266,16 @@
             <div class="inventario-cabecera">
                 <h3 style="margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; font-size: 1rem; color: var(--text-main);">Catálogo de Productos</h3>
                 <div class="inventario-controles">
+                    <div class="inventario-acciones-crear">
+                        <button class="inventario-crear-producto" onclick="window.abrirModal()">Crear Producto</button>
+                        <button onclick="window.abrirModalOferta()" class="secondary inventario-crear-oferta" style="border-color: var(--accent); color: var(--primary);">Crear Oferta</button>
+                        <button onclick="window.abrirModalPack()" class="secondary inventario-crear-pack" style="border-color: var(--accent); color: var(--primary);">Crear Pack</button>
+                    </div>
                     <div class="inventario-busqueda-fila">
                         <div class="search-container inventario-search"><input type="text" autocomplete="off" name="no-autofill" class="input-busqueda" placeholder="Buscar..." onkeyup="window.buscarProductos(this.value)"></div>
                         <button id="btn-filtro-inventario-mobile" type="button" class="inventario-filtro-btn" onclick="window.abrirFiltroInventarioMobile()" aria-label="Filtrar inventario" title="Filtros">
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.4 7.2v5.3l-3.2 1.5v-6.8L4 5Z"></path></svg>
                         </button>
-                    </div>
-                    <div class="inventario-acciones-crear">
-                        <button class="inventario-crear-producto" onclick="window.abrirModal()">Crear Producto</button>
-                        <button onclick="window.abrirModalOferta()" class="secondary inventario-crear-oferta" style="border-color: var(--accent); color: var(--primary);">Crear Oferta</button>
-                        <button onclick="window.abrirModalPack()" class="secondary inventario-crear-pack" style="border-color: var(--accent); color: var(--primary);">Crear Pack</button>
                     </div>
                 </div>
             </div>
@@ -2176,11 +2290,6 @@
         <div id="panel-pedidos" class="panel-oscuro-container hidden">
             <div class="pedidos-mobile-cabecera">
                 <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem; color: var(--text-main);">Gestión de Operaciones</h3>
-                <button id="btn-abrir-filtros-pedidos" type="button" class="secondary pedidos-mobile-filtros-btn" onclick="window.abrirFiltrosPedidosMobile()" aria-label="Filtrar pedidos" title="Filtros">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M4 5h16l-6.4 7.2v5.3l-3.2 1.5v-6.8L4 5Z"></path>
-                    </svg>
-                </button>
             </div>
             <div id="slot-filtros-pedidos-desktop">
             <div class="filtros-pedidos">
@@ -2191,7 +2300,7 @@
                 <div><label class="mini-label">Entrega</label><select id="filtro-pedido-entrega" onchange="window.aplicarFiltrosPedidos()"><option value="">Todas</option><option value="Retiro">Retiro</option><option value="Envio">Envío</option></select></div>
             </div>
             </div>
-            <div class="modulo-oscuro pedidos-pendientes-modulo"><div class="modulo-header pedidos-pendientes-header" aria-expanded="false" onclick="window.toggleAcordeon('body-pedidos-pendientes')"><span>Operaciones Pendientes</span></div><div id="body-pedidos-pendientes" class="modulo-body hidden"><div id="lista-pedidos-pendientes"></div></div></div>
+            <div class="modulo-oscuro pedidos-pendientes-modulo"><div class="modulo-header pedidos-pendientes-header" aria-expanded="false" onclick="if(window.innerWidth>768) window.toggleAcordeon('body-pedidos-pendientes')"><span>Operaciones Pendientes</span><button id="btn-abrir-filtros-pedidos" type="button" class="secondary pedidos-mobile-filtros-btn" onclick="event.stopPropagation(); window.abrirFiltrosPedidosMobile()" aria-label="Filtrar pedidos" title="Filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.4 7.2v5.3l-3.2 1.5v-6.8L4 5Z"></path></svg></button></div><div id="body-pedidos-pendientes" class="modulo-body hidden"><div id="lista-pedidos-pendientes"></div></div></div>
             <div class="modulo-oscuro pedidos-historial-modulo"><div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-pedidos-historial')"><span>Historial de Entregas</span></div><div id="body-pedidos-historial" class="modulo-body hidden"><div id="lista-pedidos-historial"></div><div class="pagination-actions"><button id="btn-cargar-mas-pedidos-ui" type="button" class="secondary" onclick="window.cargarMasPedidosUI(this)">Cargar 10 más</button></div></div></div>
         </div>
 
