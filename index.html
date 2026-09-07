@@ -14,7 +14,7 @@
     <meta name="color-scheme" content="light">
     <meta name="apple-mobile-web-app-title" content="Shopo">
     <meta name="description" content="Panel integral de control de negocios y ventas">
-    <link rel="manifest" href="./manifest.webmanifest?v=11">
+    <link rel="manifest" href="./manifest.webmanifest?v=12">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -411,7 +411,7 @@
             display: none;
         }
 
-        .admin-mobile-logout {
+        .admin-mobile-config-shortcut {
             display: none;
         }
 
@@ -951,6 +951,11 @@
 
             .admin-mobile-brand {
                 display: block;
+                min-width: 0;
+                max-width: calc(100% - 58px);
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
                 color: var(--primary);
                 font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
                 font-size: 1.16rem;
@@ -960,27 +965,35 @@
                 user-select: none;
             }
 
-            .admin-mobile-logout {
+            .admin-mobile-config-shortcut {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                min-height: 32px;
-                height: 32px;
+                flex: 0 0 42px;
+                width: 42px;
+                min-width: 42px;
+                height: 42px;
+                min-height: 42px;
                 margin: 0;
                 padding: 0;
                 border: 0;
-                border-radius: 0;
+                border-radius: 50%;
                 background: transparent;
-                color: var(--text-muted);
-                font-size: .72rem !important;
-                font-weight: 400 !important;
-                text-transform: none !important;
-                letter-spacing: .1px !important;
+                color: var(--primary);
                 box-shadow: none;
             }
+            .admin-mobile-config-shortcut svg {
+                width: 23px;
+                height: 23px;
+                fill: none;
+                stroke: currentColor;
+                stroke-width: 1.8;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
 
-            .admin-mobile-logout:hover,
-            .admin-mobile-logout:active {
+            .admin-mobile-config-shortcut:hover,
+            .admin-mobile-config-shortcut:active {
                 background: transparent !important;
                 color: var(--primary) !important;
                 transform: none !important;
@@ -1065,7 +1078,7 @@
                 padding-right: 12px;
             }
 
-            .admin-mobile-logout {
+            .admin-mobile-config-shortcut {
                 font-size: .68rem !important;
             }
         }
@@ -1990,6 +2003,39 @@
                 margin: 20px 0 0;
                 border-radius: 12px !important;
             }
+            #modulo-info-general .info-general-grid {
+                display: grid;
+                gap: 14px;
+            }
+            #modulo-info-general .info-general-item {
+                display: grid;
+                grid-template-columns: minmax(90px, .7fr) minmax(0, 1.3fr);
+                gap: 14px;
+                align-items: start;
+                padding-bottom: 12px;
+                border-bottom: 1px solid var(--border-light);
+            }
+            #modulo-info-general .info-general-item:last-child {
+                border-bottom: 0;
+                padding-bottom: 0;
+            }
+            #modulo-info-general .info-general-item span {
+                color: var(--text-muted);
+                font-size: .72rem;
+                text-transform: uppercase;
+                letter-spacing: .8px;
+            }
+            #modulo-info-general .info-general-item strong {
+                min-width: 0;
+                overflow-wrap: anywhere;
+                color: var(--text-main);
+                font-size: .82rem;
+                text-align: right;
+            }
+            #modulo-info-general .info-general-logout {
+                width: 100%;
+                margin-top: 18px;
+            }
             #modulo-instalar-shopo,
             #modulo-notificaciones-shopo {
                 display: none !important;
@@ -2266,8 +2312,14 @@
     <div id="vista-dueno" class="container hidden">
 
         <div id="admin-mobile-topbar" class="admin-mobile-topbar" aria-label="Barra superior de administración">
-            <div class="admin-mobile-brand" aria-label="ShoPo">ShoPo</div>
-            <button class="admin-mobile-logout" type="button" onclick="window.cerrarSesion()">Cerrar sesión</button>
+            <div id="admin-mobile-brand" class="admin-mobile-brand" aria-label="Nombre del negocio">Negocio</div>
+            <button class="admin-mobile-config-shortcut" type="button" onclick="window.togglePanel('panel-config', { abrirInfoGeneral: true })" aria-label="Abrir información general" title="Información general">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 9.5 12 3l9 6.5"/>
+                    <path d="M5 10v10h14V10"/>
+                    <path d="M9 20v-6h6v6"/>
+                </svg>
+            </button>
         </div>
 
         <aside class="admin-sidebar">
@@ -2292,9 +2344,12 @@
                 <button class="admin-nav-btn" data-panel="panel-pedidos" onclick="window.togglePanel('panel-pedidos')">
                     <span class="admin-nav-icon">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M6 3h12l2 4v14H4V7z"/>
-                            <path d="M6 7h12"/>
-                            <path d="M9 11h6"/>
+                            <path d="M9 6h11"/>
+                            <path d="M9 12h11"/>
+                            <path d="M9 18h11"/>
+                            <circle cx="4.5" cy="6" r=".7"/>
+                            <circle cx="4.5" cy="12" r=".7"/>
+                            <circle cx="4.5" cy="18" r=".7"/>
                         </svg>
                     </span>
                     Pedidos
@@ -2303,9 +2358,9 @@
                 <button class="admin-nav-btn" data-panel="panel-inventario" onclick="window.togglePanel('panel-inventario')">
                     <span class="admin-nav-icon">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M3 9.5 12 3l9 6.5"/>
-                            <path d="M5 10v10h14V10"/>
-                            <path d="M9 20v-6h6v6"/>
+                            <path d="M6 3h12l2 4v14H4V7z"/>
+                            <path d="M6 7h12"/>
+                            <path d="M9 11h6"/>
                         </svg>
                     </span>
                     Inventario
@@ -2323,7 +2378,7 @@
                     Finanzas
                 </button>
 
-                <button class="admin-nav-btn" data-panel="panel-config" onclick="window.togglePanel('panel-config')">
+                <button class="admin-nav-btn" data-panel="panel-config" onclick="window.togglePanel('panel-config', { abrirInfoGeneral: false })">
                     <span class="admin-nav-icon">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <circle cx="12" cy="12" r="3"/>
@@ -2560,6 +2615,19 @@
             <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem;">Parámetros del Sistema</h3>
 
             <div class="config-acordeones">
+                <div class="modulo-oscuro" id="modulo-info-general">
+                    <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-info-general')">
+                        <span>Información general</span><span>⌄</span>
+                    </div>
+                    <div id="body-config-info-general" class="modulo-body hidden">
+                        <div class="info-general-grid">
+                            <div class="info-general-item"><span>Negocio</span><strong id="info-general-negocio">—</strong></div>
+                            <div class="info-general-item"><span>Correo</span><strong id="info-general-email">—</strong></div>
+                            <div class="info-general-item"><span>ID interno</span><strong id="info-general-id">—</strong></div>
+                        </div>
+                        <button type="button" class="secondary info-general-logout" onclick="window.cerrarSesion()">Cerrar sesión</button>
+                    </div>
+                </div>
                 <div class="modulo-oscuro" id="modulo-plan-pagos">
                     <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-suscripcion')">
                         <span>Plan y pagos</span><span>⌄</span>
@@ -3086,7 +3154,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         async function registrarServiceWorkerPWA() {
             if(!('serviceWorker' in navigator)) return null;
             try {
-                const reg = await navigator.serviceWorker.register('./service-worker.js?v=11', { scope: './' });
+                const reg = await navigator.serviceWorker.register('./service-worker.js?v=12', { scope: './' });
                 pwaServiceWorkerRegistration = reg;
                 reg.update().catch(()=>{});
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -4371,7 +4439,16 @@ async function obtenerHeadersBackendAdmin() {
                         if (datosUsuario.rol === "admin") {
                             if(!negocioIdValido(datosUsuario.negocioId)) throw new Error('El perfil no tiene un negocioId válido.');
                             negocioIdActual = String(datosUsuario.negocioId).trim();
-                            document.getElementById('nombre-negocio-display').textContent = datosUsuario.nombreNegocio ? `${datosUsuario.nombreNegocio} · ID: ${negocioIdActual}` : `(ID: ${negocioIdActual})`;
+                            const nombreNegocioAdmin = String(datosUsuario.nombreNegocio || 'Negocio').trim() || 'Negocio';
+                            document.getElementById('nombre-negocio-display').textContent = `${nombreNegocioAdmin} · ID: ${negocioIdActual}`;
+                            const mobileBrand = document.getElementById('admin-mobile-brand');
+                            if(mobileBrand) {
+                                mobileBrand.textContent = nombreNegocioAdmin;
+                                mobileBrand.setAttribute('aria-label', nombreNegocioAdmin);
+                            }
+                            document.getElementById('info-general-negocio').textContent = nombreNegocioAdmin;
+                            document.getElementById('info-general-email').textContent = user.email || datosUsuario.email || '—';
+                            document.getElementById('info-general-id').textContent = negocioIdActual;
                             
                             document.getElementById('login-container').classList.add('hidden');
                             document.getElementById('vista-dueno').classList.remove('hidden');
@@ -4745,7 +4822,7 @@ async function obtenerHeadersBackendAdmin() {
 
         const esVistaAdminMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
-        window.togglePanel = (id) => {
+        window.togglePanel = (id, opciones = {}) => {
             if(esVistaAdminMobile() && !PANELES_ADMIN_MOBILE.includes(id)) {
                 id = 'panel-inventario';
             }
@@ -4761,6 +4838,14 @@ async function obtenerHeadersBackendAdmin() {
             document.querySelectorAll('.admin-nav-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.panel === id);
             });
+
+            const infoBody = document.getElementById('body-config-info-general');
+            const infoHeader = document.querySelector('#modulo-info-general > .modulo-header');
+            if(infoBody && infoHeader) {
+                const abrirInfo = id === 'panel-config' && opciones.abrirInfoGeneral === true;
+                infoBody.classList.toggle('hidden', !abrirInfo);
+                infoHeader.setAttribute('aria-expanded', abrirInfo ? 'true' : 'false');
+            }
 
             if(id === 'panel-finanzas') window.prepararMetricasFinancieras?.();
         };
