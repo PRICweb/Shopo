@@ -14,7 +14,7 @@
     <meta name="color-scheme" content="light">
     <meta name="apple-mobile-web-app-title" content="Shopo">
     <meta name="description" content="Panel integral de control de negocios y ventas">
-    <link rel="manifest" href="./manifest.webmanifest?v=14">
+    <link rel="manifest" href="./manifest.webmanifest?v=15">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -58,7 +58,7 @@
         button.danger:hover { color: #ef4444; border-color: #ef4444; background-color: #fef2f2;}
         
         .container { background: transparent; padding: 0; max-width: 1400px; margin: 0 auto; } 
-        .panel-oscuro-container { background-color: var(--card-bg); padding: 30px; border: 1px solid var(--border); margin-bottom: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);} 
+        .panel-oscuro-container { background:#fff; padding:22px 18px 32px; border:0; margin:0; border-radius:0; box-shadow:none; } 
         
         input, select { width: 100%; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px; border-radius: 4px; font-family: inherit; } 
         
@@ -71,8 +71,8 @@
         .search-container { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--border); padding: 2px 15px; width: 100%; max-width: 300px; border-radius: 20px; } 
         .search-container input { border: none; padding: 8px; box-shadow: none; outline:none; background: transparent; } 
         
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 15px;} 
-        .modal-content { background: var(--card-bg); padding: 40px; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.26); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); display:flex; justify-content:center; align-items:center; z-index:1000; padding:20px; } 
+        .modal-content { background:#fff; padding:24px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; border:1px solid var(--border-light); border-radius:16px; box-shadow:0 18px 50px rgba(0,0,0,.12); }
         #modal-producto .modal-content {
             width: calc(100vw - 80px);
             max-width: 1180px;
@@ -183,7 +183,7 @@
             }
         }
 
-        .modal-content h3 { font-weight: 500; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-top: 0; color: var(--primary); } 
+        .modal-content h3 { margin:0 0 18px; padding:0 0 12px; border-bottom:1px solid var(--border-light); color:var(--primary); font-size:.96rem; font-weight:500; text-transform:uppercase; letter-spacing:1px; } 
         
         .form-group { margin-bottom: 20px; } 
         .form-group label { display: block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 500;} 
@@ -195,10 +195,10 @@
         th { font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; background-color: var(--bg-color);} 
         tr:hover td { background-color: var(--card-hover); } 
         
-        .modulo-oscuro { background-color: var(--card-bg); border: 1px solid var(--border); margin-bottom: 15px; border-radius: 6px; overflow: hidden;} 
-        .modulo-header { padding: 15px 20px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; color: var(--primary); background-color: var(--bg-color);} 
-        .modulo-header:hover { background-color: var(--border-light); } 
-        .modulo-body { padding: 25px; border-top: 1px solid var(--border); } 
+        .modulo-oscuro { background:transparent; border:0; margin-bottom:28px; border-radius:0; overflow:visible; box-shadow:none; } 
+        .modulo-header { min-height:52px; padding:14px 0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; text-transform:uppercase; font-size:.82rem; letter-spacing:1px; color:var(--primary); background:#fff; border-bottom:1px solid var(--border-light); } 
+        .modulo-header:hover { background:#fff; color:var(--primary); } 
+        .modulo-body { padding:18px 0 0; border-top:0; } 
 
         .finance-actions-box {
             border: 1px solid var(--border);
@@ -293,7 +293,7 @@
 
 
         /* ===== ACTUALIZACIONES DE GESTIÓN ===== */
-        .notif-bar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+        .notif-bar { display:none !important; }
         .notif-card { flex:1; min-width:180px; border:1px solid var(--border); border-left:4px solid var(--accent); background:var(--card-bg); padding:14px; border-radius:8px; cursor:pointer; transition: all 0.25s ease; text-align:left; }
         .notif-card:hover { background:var(--card-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.04); }
         .notif-card:active { background:#ffffff !important; color:var(--primary) !important; transform: scale(0.98); }
@@ -403,22 +403,15 @@
             box-shadow: 4px 0 18px rgba(0,0,0,0.03);
         }
 
-        .admin-mobile-topbar {
-            display: none;
-        }
+        .admin-topbar { width:100%; min-height:74px; padding:0 18px; display:flex; align-items:center; justify-content:space-between; background:#fff; border-bottom:1px solid var(--border-light); margin-bottom:20px; z-index:20; }
 
-        .admin-mobile-brand {
-            display: none;
-        }
+        .admin-topbar-brand { display:block; color:var(--primary); font-size:1.12rem; line-height:1; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-        .admin-mobile-config-shortcut {
-            display: none;
-        }
+        .admin-topbar-config-shortcut { display:inline-flex; align-items:center; justify-content:center; width:40px; min-width:40px; height:40px; min-height:40px; padding:0; border:0; background:transparent; color:var(--primary); box-shadow:none; }
+        .admin-topbar-config-shortcut svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+        .admin-topbar-config-shortcut:hover, .admin-topbar-config-shortcut:active { background:transparent !important; color:var(--primary) !important; transform:none !important; }
 
-        .admin-sidebar-title {
-            padding: 2px 8px 10px 8px;
-            border-bottom: 1px solid var(--border-light);
-        }
+        .admin-sidebar-title { display:none; }
 
         .admin-sidebar-title strong {
             display: block;
@@ -473,10 +466,7 @@
             color: var(--primary);
         }
 
-        .admin-sidebar-logout {
-            color: var(--text-muted);
-            margin-top: auto;
-        }
+        .admin-sidebar-logout { display:none !important; }
 
         .admin-sidebar-logout:hover {
             color: #ef4444;
@@ -611,6 +601,44 @@
         }
 
 
+        /* ===== INTERFAZ UNIFICADA SHOPO ===== */
+        #panel-movimientos > h3,
+        #panel-pedidos > h3,
+        #panel-finanzas > h3,
+        #panel-config > h3,
+        #panel-inventario .inventario-cabecera > h3 { display:none !important; }
+
+        .accion-modal-source { display:none !important; }
+
+        .finance-export-btn {
+            display:flex !important; align-items:center; justify-content:center; width:100%;
+            min-height:52px; margin:34px 0 0; border-radius:12px !important;
+        }
+
+        .config-direct-actions {
+            display:grid !important; grid-template-columns:1fr; gap:10px; width:100%; margin-top:30px;
+        }
+        .config-direct-actions button {
+            width:100%; min-height:54px; border:1px solid var(--primary) !important;
+            border-radius:12px !important; font-weight:500 !important;
+        }
+        #btn-config-instalar-mobile:not(:disabled),
+        #btn-config-notificaciones-mobile:not(:disabled),
+        #btn-config-cerrar-sesion-mobile { background:var(--primary) !important; color:#fff !important; }
+        #btn-config-instalar-mobile:disabled,
+        #btn-config-notificaciones-mobile:disabled { background:#fff !important; color:var(--primary) !important; opacity:1 !important; }
+
+        .shopo-mobile-modal-header {
+            display:flex; align-items:center; justify-content:space-between; gap:12px;
+            margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--border-light);
+        }
+        .shopo-mobile-modal-header h3 { margin:0 !important; padding:0 !important; border:0 !important; }
+        .shopo-mobile-modal-close {
+            width:38px !important; min-width:38px !important; height:38px !important; min-height:38px !important;
+            padding:0 !important; border:1px solid var(--border) !important; background:#fff !important;
+            color:var(--text-main) !important; border-radius:10px !important; font-size:1.2rem !important; line-height:1 !important;
+        }
+
         /* ===== RESPONSIVE FINAL MULTIDISPOSITIVO ===== */
         html { width: 100%; max-width: 100%; overflow-x: hidden; }
         body { width: 100%; max-width: 100%; overflow-x: hidden; min-height: 100svh; }
@@ -629,14 +657,14 @@
         @media (min-width: 1400px) {
             #vista-dueno { padding-left: 300px !important; }
             .admin-sidebar { width: 250px !important; }
-            .panel-oscuro-container { padding: 34px; }
+            .panel-oscuro-container { padding:22px 18px 32px; }
         }
 
         @media (min-width: 1025px) and (max-width: 1399px) {
             #vista-dueno { padding-left: 270px !important; }
             .admin-sidebar { width: 224px !important; padding: 22px 14px !important; }
             .admin-nav-btn, .admin-sidebar-logout { min-height: 58px !important; padding: 13px 14px !important; }
-            .panel-oscuro-container { padding: 24px; }
+            .panel-oscuro-container { padding:22px 18px 32px; }
         }
 
         @media (min-width: 769px) and (max-width: 1024px) {
@@ -647,7 +675,7 @@
             .admin-sidebar-title span { font-size: 0.72rem !important; }
             .admin-sidebar-nav { flex-direction: row !important; gap: 8px !important; margin-top: 0 !important; }
             .admin-nav-btn, .admin-sidebar-logout { min-width: max-content !important; width: auto !important; min-height: 52px !important; padding: 10px 14px !important; font-size: 0.82rem !important; white-space: nowrap; }
-            .panel-oscuro-container { padding: 18px; }
+            .panel-oscuro-container { padding:22px 18px 32px; }
             .notif-bar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
             .modal-content { max-width: calc(100vw - 28px); }
         }
@@ -936,7 +964,7 @@
             }
 
             /* Barra superior móvil: parte del documento y se va completamente al hacer scroll. */
-            .admin-mobile-topbar {
+            .admin-topbar {
                 position: relative;
                 width: 100%;
                 height: calc(92px + env(safe-area-inset-top));
@@ -949,7 +977,7 @@
                 z-index: 20;
             }
 
-            .admin-mobile-brand {
+            .admin-topbar-brand {
                 display: block;
                 min-width: 0;
                 max-width: calc(100% - 58px);
@@ -965,7 +993,7 @@
                 user-select: none;
             }
 
-            .admin-mobile-config-shortcut {
+            .admin-topbar-config-shortcut {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -982,7 +1010,7 @@
                 color: var(--primary);
                 box-shadow: none;
             }
-            .admin-mobile-config-shortcut svg {
+            .admin-topbar-config-shortcut svg {
                 width: 23px;
                 height: 23px;
                 fill: none;
@@ -992,8 +1020,8 @@
                 stroke-linejoin: round;
             }
 
-            .admin-mobile-config-shortcut:hover,
-            .admin-mobile-config-shortcut:active {
+            .admin-topbar-config-shortcut:hover,
+            .admin-topbar-config-shortcut:active {
                 background: transparent !important;
                 color: var(--primary) !important;
                 transform: none !important;
@@ -1073,12 +1101,12 @@
                 font-size: .51rem !important;
             }
 
-            .admin-mobile-topbar {
+            .admin-topbar {
                 padding-left: 12px;
                 padding-right: 12px;
             }
 
-            .admin-mobile-config-shortcut {
+            .admin-topbar-config-shortcut {
                 font-size: .68rem !important;
             }
         }
@@ -1312,7 +1340,7 @@
             .admin-nav-icon, .admin-nav-icon svg {
                 width: 16px !important; min-width: 16px !important; height: 16px !important;
             }
-            .panel-oscuro-container { padding: 20px !important; }
+            .panel-oscuro-container { padding:22px 18px 32px !important; }
         }
 
 
@@ -1715,7 +1743,7 @@
             .gestion-borrado-nota {
                 margin-top: 10px;
             }
-            .admin-mobile-topbar {
+            .admin-topbar {
                 background: #ffffff !important;
                 border-bottom: 0 !important;
             }
@@ -2004,7 +2032,7 @@
                 line-height: 1.5 !important;
                 z-index: 5000 !important;
             }
-            .mobile-finance-export-btn {
+            .finance-export-btn {
                 display: flex !important;
                 align-items: center;
                 justify-content: center;
@@ -2029,14 +2057,14 @@
             #modulo-notificaciones-shopo {
                 display: none !important;
             }
-            .config-pwa-mobile-actions {
+            .config-direct-actions {
                 display: grid !important;
                 grid-template-columns: 1fr;
                 gap: 10px;
                 width: 100%;
                 margin-top: 22px;
             }
-            .config-pwa-mobile-actions button {
+            .config-direct-actions button {
                 width: 100%;
                 min-width: 0;
                 min-height: 54px;
@@ -2045,7 +2073,7 @@
                 white-space: normal;
                 line-height: 1.2;
             }
-            .config-pwa-mobile-actions button:disabled {
+            .config-direct-actions button:disabled {
                 opacity: 1;
                 background: #f5f5f5;
                 color: var(--primary);
@@ -2247,13 +2275,13 @@
                 white-space: nowrap !important;
                 font-weight: 500 !important;
             }
-            #panel-finanzas .mobile-finance-export-btn {
+            #panel-finanzas .finance-export-btn {
                 margin-top: 38px !important;
                 margin-bottom: 8px !important;
             }
         }
 
-        /* ===== CONFIGURACIÓN REFINADA V14 ===== */
+        /* ===== CONFIGURACIÓN ===== */
         .tienda-public-link-section { margin-bottom: 4px; }
         .logistica-seccion { padding: 2px 0 22px; margin-bottom: 22px; border-bottom: 1px solid var(--border-light); }
         .logistica-seccion:last-of-type { margin-bottom: 14px; }
@@ -2284,7 +2312,7 @@
             #body-config-suscripcion .suscripcion-aviso { padding:14px !important; line-height:1.55; }
             #body-config-suscripcion .suscripcion-renovacion-grid { padding-top:2px; }
             #body-config-suscripcion .suscripcion-historial-wrap { padding-top:2px; }
-            .config-pwa-mobile-actions { gap:10px !important; }
+            .config-direct-actions { gap:10px !important; }
             #btn-config-instalar-mobile, #btn-config-notificaciones-mobile, #btn-config-cerrar-sesion-mobile {
                 border:1px solid var(--primary) !important;
                 min-height:54px !important;
@@ -2348,9 +2376,9 @@
 
     <div id="vista-dueno" class="container hidden">
 
-        <div id="admin-mobile-topbar" class="admin-mobile-topbar" aria-label="Barra superior de administración">
-            <div id="admin-mobile-brand" class="admin-mobile-brand" aria-label="Nombre del negocio">Negocio</div>
-            <button class="admin-mobile-config-shortcut" type="button" onclick="window.togglePanel('panel-config', { abrirInfoGeneral: true })" aria-label="Abrir información general" title="Información general">
+        <div id="admin-topbar" class="admin-topbar" aria-label="Barra superior de administración">
+            <div id="admin-topbar-brand" class="admin-topbar-brand" aria-label="Nombre del negocio">Negocio</div>
+            <button class="admin-topbar-config-shortcut" type="button" onclick="window.togglePanel('panel-config', { abrirInfoGeneral: true })" aria-label="Abrir información general" title="Información general">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M3 9.5 12 3l9 6.5"/>
                     <path d="M5 10v10h14V10"/>
@@ -2570,17 +2598,15 @@
                 </div>
             </div>
 
-            <button id="btn-exportar-finanzas-mobile" type="button" class="mobile-only-action mobile-finance-export-btn" onclick="window.abrirModalExportarMovimientosMobile()">Exportar</button>
-
-            <div class="modulo-oscuro mobile-ocultar-exportar-movimientos">
-                <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-exportar-excel')"><span>Exportar movimientos</span></div>
+            <button id="btn-exportar-finanzas-mobile" type="button" class="finance-export-btn" onclick="window.abrirModalExportarMovimientosMobile()">Exportar</button>
+            <div class="accion-modal-source">
                 <div id="body-exportar-excel" class="modulo-body hidden">
                     <div class="dark-input-group">
                         <div><label>Fecha inicial</label><input type="date" id="excel-fecha-inicio"></div>
                         <div><label>Fecha final</label><input type="date" id="excel-fecha-fin"></div>
                         <div><label>Formato</label><select id="export-formato"><option value="excel">Excel (.xlsx)</option><option value="pdf">PDF (.pdf)</option></select></div>
                         <div><button onclick="window.exportarMovimientos()" style="width:100%;">Exportar archivo</button></div>
-                    </div>
+            </div>
                     <p style="margin:0; color:var(--text-muted); font-size:0.85rem;">Exporta movimientos, pedidos, stock, ventas y resumen de ganancias del rango seleccionado.</p>
                 </div>
             </div>
@@ -2720,29 +2746,22 @@
                         </div>
                     </div>
                 </div>
-                <div id="modulo-instalar-shopo" class="modulo-oscuro">
-                    <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-instalar-shopo')">
-                        <span>Instalar Shopo</span><span>⌄</span>
-                    </div>
+                <div id="modulo-instalar-shopo" class="accion-modal-source">
                     <div id="body-config-instalar-shopo" class="modulo-body hidden">
                         <div class="pwa-install-card">
                             <p>Instalá Shopo en este dispositivo para abrir el panel como una aplicación, desde tu pantalla de inicio y sin la barra del navegador.</p>
                             <div class="pwa-install-actions"><button id="btn-instalar-pwa" type="button" onclick="window.instalarShopoPWA()">Instalar Shopo</button></div>
                             <div id="pwa-install-status" class="pwa-status">Comprobando compatibilidad de instalación…</div>
-                        </div>
+                </div>
                     </div>
                 </div>
-
-                <div id="modulo-notificaciones-shopo" class="modulo-oscuro">
-                    <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-notificaciones-shopo')">
-                        <span>Notificaciones</span><span>⌄</span>
-                    </div>
+                <div id="modulo-notificaciones-shopo" class="accion-modal-source">
                     <div id="body-config-notificaciones-shopo" class="modulo-body hidden">
                         <div class="pwa-install-card">
                             <p>Recibí avisos de nuevos pedidos, stock bajo y cambios importantes de tu suscripción, incluso cuando Shopo no esté abierto.</p>
                             <div class="pwa-install-actions"><button id="btn-activar-push" type="button" onclick="window.activarNotificacionesPWA()">Activar notificaciones</button></div>
                             <div id="pwa-push-status" class="pwa-status">Las notificaciones todavía no están activadas en este dispositivo.</div>
-                        </div>
+                </div>
                     </div>
                 </div>
 
@@ -2941,7 +2960,7 @@
                 </div>
             </div>
 
-            <div id="config-pwa-mobile-actions" class="mobile-only-action config-pwa-mobile-actions">
+            <div id="config-direct-actions" class="config-direct-actions">
                 <button id="btn-config-instalar-mobile" type="button" class="secondary" onclick="window.abrirModalConfigPWAMobile('instalar')">Instalar Shopo</button>
                 <button id="btn-config-notificaciones-mobile" type="button" class="secondary" onclick="window.abrirModalConfigPWAMobile('notificaciones')">Activar notificaciones</button>
                 <button id="btn-config-cerrar-sesion-mobile" type="button" class="secondary" onclick="window.cerrarSesion()">Cerrar sesión</button>
@@ -3190,7 +3209,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         async function registrarServiceWorkerPWA() {
             if(!('serviceWorker' in navigator)) return null;
             try {
-                const reg = await navigator.serviceWorker.register('./service-worker.js?v=14', { scope: './' });
+                const reg = await navigator.serviceWorker.register('./service-worker.js?v=15', { scope: './' });
                 pwaServiceWorkerRegistration = reg;
                 reg.update().catch(()=>{});
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -4477,7 +4496,7 @@ async function obtenerHeadersBackendAdmin() {
                             negocioIdActual = String(datosUsuario.negocioId).trim();
                             const nombreNegocioAdmin = String(datosUsuario.nombreNegocio || 'Negocio').trim() || 'Negocio';
                             document.getElementById('nombre-negocio-display').textContent = `${nombreNegocioAdmin} · ID: ${negocioIdActual}`;
-                            const mobileBrand = document.getElementById('admin-mobile-brand');
+                            const mobileBrand = document.getElementById('admin-topbar-brand');
                             if(mobileBrand) {
                                 mobileBrand.textContent = nombreNegocioAdmin;
                                 mobileBrand.setAttribute('aria-label', nombreNegocioAdmin);
@@ -5609,7 +5628,7 @@ async function obtenerHeadersBackendAdmin() {
             if(confUbicacion) confUbicacion.value=configTienda.ubicacionTexto || '';
 
             const nombrePublicoInput=document.getElementById('conf-tienda-nombre-publico'); if(nombrePublicoInput) nombrePublicoInput.value=configTienda.nombrePublico || '';
-            const mobileBrand=document.getElementById('admin-mobile-brand'); if(mobileBrand&&configTienda.nombrePublico){ mobileBrand.textContent=configTienda.nombrePublico; mobileBrand.setAttribute('aria-label',configTienda.nombrePublico); }
+            const mobileBrand=document.getElementById('admin-topbar-brand'); if(mobileBrand&&configTienda.nombrePublico){ mobileBrand.textContent=configTienda.nombrePublico; mobileBrand.setAttribute('aria-label',configTienda.nombrePublico); }
 
             const dp=configTienda.descuentosPago||{}, dpe=dp.efectivo||{}, dpt=dp.transferencia||{};
             const ea=document.getElementById('desc-pago-efectivo-activo'); if(ea) ea.checked=!!dpe.activo;
