@@ -14,7 +14,7 @@
     <meta name="color-scheme" content="light">
     <meta name="apple-mobile-web-app-title" content="Shopo">
     <meta name="description" content="Panel integral de control de negocios y ventas">
-    <link rel="manifest" href="./manifest.webmanifest?v=15">
+    <link rel="manifest" href="./manifest.webmanifest?v=17">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -2328,7 +2328,116 @@
                 opacity:1 !important;
             }
         }
-</style>
+
+        /* ===== Ajustes escritorio v16: logo lateral Shopo + búsqueda/filtro inventario alineados ===== */
+        .admin-sidebar-brand { display:none; }
+        .admin-sidebar-brand-mark {
+            width: 68px;
+            height: 68px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #7a5446 0%, #6b4a3d 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: .04em;
+            box-shadow: 0 10px 22px rgba(107, 74, 61, 0.18);
+        }
+        .admin-sidebar-brand-name {
+            color: var(--primary);
+            font-size: 0.86rem;
+            font-weight: 500;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+        @media (min-width: 769px) {
+            .admin-sidebar {
+                padding-top: 26px !important;
+                gap: 18px !important;
+            }
+            .admin-sidebar-brand {
+                display: flex !important;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                padding: 2px 0 6px;
+                margin: 0 0 18px;
+            }
+            .admin-sidebar-nav {
+                margin-top: 8px !important;
+                gap: 8px !important;
+            }
+            #panel-inventario .inventario-cabecera {
+                margin-bottom: 30px !important;
+            }
+            #panel-inventario .inventario-busqueda-fila {
+                display: grid !important;
+                grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) !important;
+                align-items: center !important;
+                gap: 12px !important;
+                width: min(560px, 100%) !important;
+                max-width: 100% !important;
+                margin: 10px 0 0 !important;
+            }
+            #panel-inventario .inventario-search {
+                width: 100% !important;
+                max-width: none !important;
+                min-width: 0 !important;
+            }
+            #panel-inventario .inventario-search input {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            #panel-inventario .inventario-filtro-btn {
+                width: 100% !important;
+                min-width: 0 !important;
+                height: 48px !important;
+                min-height: 48px !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                justify-self: stretch !important;
+                align-self: center !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                color: var(--primary) !important;
+                box-shadow: none !important;
+            }
+            #panel-inventario .inventario-filtro-btn:hover,
+            #panel-inventario .inventario-filtro-btn:active,
+            #panel-inventario .inventario-filtro-btn:focus {
+                background: transparent !important;
+                color: var(--primary) !important;
+                box-shadow: none !important;
+                transform: none !important;
+                outline: none !important;
+            }
+            #panel-inventario .inventario-filtro-btn svg {
+                width: 24px !important;
+                height: 24px !important;
+                display: block !important;
+                margin: 0 auto !important;
+                fill: none !important;
+                stroke: currentColor !important;
+                stroke-width: 1.8 !important;
+                stroke-linecap: round !important;
+                stroke-linejoin: round !important;
+            }
+        }
+        @media (max-width: 768px) {
+            .admin-sidebar-brand {
+                display: none !important;
+            }
+        }
+
+    </style>
 </head>
 <body>
 
@@ -2391,6 +2500,11 @@
             <div class="admin-sidebar-title">
                 <strong>Panel<br>Administración</strong>
                 <span id="nombre-negocio-display"></span>
+            </div>
+
+            <div class="admin-sidebar-brand" aria-label="Shopo">
+                <div class="admin-sidebar-brand-mark">S</div>
+                <div class="admin-sidebar-brand-name">Shopo</div>
             </div>
 
             <nav class="admin-sidebar-nav">
@@ -3209,7 +3323,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         async function registrarServiceWorkerPWA() {
             if(!('serviceWorker' in navigator)) return null;
             try {
-                const reg = await navigator.serviceWorker.register('./service-worker.js?v=15', { scope: './' });
+                const reg = await navigator.serviceWorker.register('./service-worker.js?v=17', { scope: './' });
                 pwaServiceWorkerRegistration = reg;
                 reg.update().catch(()=>{});
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -4613,40 +4727,54 @@ async function obtenerHeadersBackendAdmin() {
                 return alert("La contraseña debe tener al menos 6 caracteres.");
             }
 
+            let userCreado = null;
+
             try {
                 registroEnCurso = true;
                 if(btn) {
                     btn.disabled = true;
-                    btn.textContent = "Registrando...";
+                    btn.textContent = "Creando cuenta...";
                 }
 
-                // 1. Crear el usuario en Authentication.
+                // 1. Firebase Authentication crea la identidad.
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                const user = userCredential.user;
-                const nuevoNegocioId = genIdDB();
+                userCreado = userCredential.user;
 
-                // 2. Crear PRIMERO el documento del usuario.
-                // Esto evita que quede un negocio creado sin usuario asociado.
-                await setDoc(doc(db, "usuarios", user.uid), {
-                    email: email,
-                    nombreNegocio: nombreNegocio,
-                    negocioId: nuevoNegocioId,
-                    rol: "pendiente",
-                    creadoEl: new Date(),
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
+                // 2. El backend crea de forma autoritativa el perfil del negocio
+                //    con rol admin y una suscripción de prueba por 7 días.
+                const headers = await obtenerHeadersBackendAdmin();
+                const response = await fetch(
+                    `${SHOPO_BACKEND_URL}/api/v1/admin/registro/activar-negocio`,
+                    {
+                        method: "POST",
+                        headers: {
+                            ...headers,
+                            "Content-Type": "application/json"
+                        },
+                        cache: "no-store",
+                        body: JSON.stringify({ nombreNegocio })
+                    }
+                );
 
-                // No se crea la colección "negocios" desde el navegador:
-                // las reglas actuales sólo necesitan usuarios/{uid}.negocioId y rol.
-                // Cuando apruebes al usuario, cambiá rol de "pendiente" a "admin".
+                const data = await response.json().catch(() => ({}));
 
-                alert("¡Registro exitoso! Tu solicitud fue enviada. Podrás ingresar al panel una vez que el administrador central apruebe tu cuenta.");
+                if(!response.ok) {
+                    throw new Error(
+                        data?.mensaje ||
+                        data?.error ||
+                        `No se pudo activar la cuenta (${response.status}).`
+                    );
+                }
 
+                await userCreado.getIdToken(true);
+
+                alert("Cuenta creada correctamente. Ya tenés acceso al panel y 7 días de prueba gratis.");
+
+                // Se cierra esta sesión de alta para iniciar normalmente con el perfil ya creado.
                 await signOut(auth);
 
                 document.getElementById('login-negocio').value = '';
-                document.getElementById('login-email').value = '';
+                document.getElementById('login-email').value = email;
                 document.getElementById('login-pass').value = '';
 
                 if(!modoLogin) {
@@ -4655,12 +4783,11 @@ async function obtenerHeadersBackendAdmin() {
 
             } catch (error) {
                 console.error("Error en el registro:", error);
+
                 if (error.code === 'auth/email-already-in-use') {
                     alert("Este correo electrónico ya está registrado. Por favor, inicia sesión o usa uno diferente.");
-                } else if (error.code === 'permission-denied') {
-                    alert("No se pudo crear el usuario en Firestore por permisos. Revisá las reglas de la colección usuarios para permitir crear el documento con el UID del usuario autenticado.");
                 } else {
-                    alert("No se pudo completar el registro: " + error.message);
+                    alert("No se pudo completar el registro: " + (error.message || "Error desconocido."));
                 }
             } finally {
                 registroEnCurso = false;
