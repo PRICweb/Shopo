@@ -14,7 +14,7 @@
     <meta name="color-scheme" content="light">
     <meta name="apple-mobile-web-app-title" content="Shopo">
     <meta name="description" content="Panel integral de control de negocios y ventas">
-    <link rel="manifest" href="./manifest.webmanifest?v=13">
+    <link rel="manifest" href="./manifest.webmanifest?v=14">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -2252,6 +2252,54 @@
                 margin-bottom: 8px !important;
             }
         }
+
+        /* ===== CONFIGURACIÓN REFINADA V14 ===== */
+        .tienda-public-link-section { margin-bottom: 4px; }
+        .logistica-seccion { padding: 2px 0 22px; margin-bottom: 22px; border-bottom: 1px solid var(--border-light); }
+        .logistica-seccion:last-of-type { margin-bottom: 14px; }
+        .logistica-seccion-head { margin-bottom: 14px; }
+        .logistica-seccion-head h4 { margin:0 0 5px; color:var(--primary); font-size:.86rem; font-weight:500 !important; text-transform:uppercase; letter-spacing:.8px; }
+        .logistica-seccion-head p { margin:0; color:var(--text-muted); font-size:.76rem; line-height:1.5; }
+        .logistica-grid-dos { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .logistica-descuentos { display:grid; gap:10px; }
+        .logistica-descuento-fila { display:grid; grid-template-columns:minmax(0,1fr) 150px; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border-light); }
+        .logistica-descuento-fila:last-child { border-bottom:0; }
+        .logistica-descuento-toggle { display:flex; align-items:center; gap:10px; margin:0; font-size:.82rem; color:var(--text-main); }
+        .logistica-descuento-toggle input { width:auto; margin:0; }
+        .logistica-pct { display:flex; align-items:center; gap:8px; }
+        .logistica-pct span { color:var(--text-muted); }
+        .logistica-aplicaciones { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+        .logistica-pedidos-cerrado { margin-top:16px; }
+        .logistica-guardar { width:100%; margin-top:4px; }
+        .suscripcion-bloque-separado { margin-top:22px !important; }
+        .suscripcion-historial-wrap { padding-top:2px; }
+        #suscripcion-historial { margin-top:10px; font-size:.78rem; color:var(--text-muted); }
+
+        @media (max-width:768px) {
+            .logistica-grid-dos { grid-template-columns:1fr; }
+            .logistica-descuento-fila { grid-template-columns:minmax(0,1fr) 110px; }
+            .logistica-aplicaciones { grid-template-columns:1fr; }
+            #body-config-logistica .wa-check-item { border:0; padding:10px 0; border-radius:0; background:transparent; }
+            #body-config-suscripcion .suscripcion-bloque-separado { margin-top:26px !important; }
+            #body-config-suscripcion .suscripcion-aviso { padding:14px !important; line-height:1.55; }
+            #body-config-suscripcion .suscripcion-renovacion-grid { padding-top:2px; }
+            #body-config-suscripcion .suscripcion-historial-wrap { padding-top:2px; }
+            .config-pwa-mobile-actions { gap:10px !important; }
+            #btn-config-instalar-mobile, #btn-config-notificaciones-mobile, #btn-config-cerrar-sesion-mobile {
+                border:1px solid var(--primary) !important;
+                min-height:54px !important;
+                font-weight:500 !important;
+            }
+            #btn-config-instalar-mobile:not(:disabled), #btn-config-notificaciones-mobile:not(:disabled), #btn-config-cerrar-sesion-mobile {
+                background:var(--primary) !important;
+                color:#fff !important;
+            }
+            #btn-config-instalar-mobile:disabled, #btn-config-notificaciones-mobile:disabled {
+                background:#fff !important;
+                color:var(--primary) !important;
+                opacity:1 !important;
+            }
+        }
 </style>
 </head>
 <body>
@@ -2653,7 +2701,7 @@
                 </div>
                 <div class="modulo-oscuro" id="modulo-plan-pagos">
                     <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-suscripcion')">
-                        <span>Plan y pagos</span><span>⌄</span>
+                        <span>Plan</span><span>⌄</span>
                     </div>
                     <div id="body-config-suscripcion" class="modulo-body hidden">
                         <div class="suscripcion-card">
@@ -2663,12 +2711,12 @@
                                 <div class="suscripcion-dato"><span>Vencimiento</span><strong id="suscripcion-vencimiento">—</strong></div>
                                 <div class="suscripcion-dato"><span>Tiempo restante</span><strong id="suscripcion-restante">—</strong></div>
                             </div>
-                            <div id="suscripcion-aviso" class="suscripcion-aviso">Consultando suscripción…</div>
-                            <div class="suscripcion-renovacion-grid">
+                            <div id="suscripcion-aviso" class="suscripcion-aviso suscripcion-bloque-separado">Consultando suscripción…</div>
+                            <div class="suscripcion-renovacion-grid suscripcion-bloque-separado">
                                 <div><label class="mini-label">Plan para renovar</label><select id="suscripcion-plan-select"><option value="mensual">Mensual · $30.000</option></select></div>
                                 <button id="btn-renovar-suscripcion" type="button" onclick="window.renovarSuscripcionMercadoPago()">Renovar con Mercado Pago</button>
                             </div>
-                            <div style="margin-top:18px;"><span class="mini-label">Últimos pagos</span><div id="suscripcion-historial" style="font-size:.78rem; color:var(--text-muted);">El historial aparecerá aquí cuando existan pagos.</div></div>
+                            <div class="suscripcion-historial-wrap suscripcion-bloque-separado"><span class="mini-label">Últimos pagos</span><div id="suscripcion-historial">El historial aparecerá aquí cuando existan pagos.</div></div>
                         </div>
                     </div>
                 </div>
@@ -2704,6 +2752,20 @@
                     </div>
                     <div id="body-config-tienda" class="modulo-body hidden">
                         <div class="store-settings-section">
+                            <div class="tienda-public-link-section">
+                                <div class="store-settings-heading">
+                                    <div>
+                                        <h4>Link de la tienda</h4>
+                                        <p>Este es el enlace público que podés compartir con tus clientes.</p>
+                                    </div>
+                                </div>
+                                <div class="config-tienda-link">
+                                    <input id="conf-tienda-link" type="text" readonly placeholder="Guardá un nombre público para generar el enlace">
+                                    <button type="button" class="secondary" onclick="window.copiarLinkTienda()">Copiar</button>
+                                    <button type="button" onclick="window.abrirTiendaPublica()">Abrir tienda</button>
+                                </div>
+                            </div>
+                            <div class="store-settings-divider"></div>
                             <div class="store-settings-heading">
                                 <div>
                                     <h4>Apariencia</h4>
@@ -2786,52 +2848,61 @@
                         <span>Logística</span><span>⌄</span>
                     </div>
                     <div id="body-config-logistica" class="modulo-body hidden">
-                        <div class="dark-input-group">
-                            <div><label>Envíos</label><select id="conf-envio-disp"><option value="si">Habilitado</option><option value="no">Deshabilitado</option></select></div>
-                            <div><label>Tarifa $</label><input type="number" id="conf-envio-precio"></div>
-                        </div>
-
-                        <hr>
-                        <h4 style="margin:0 0 15px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Descuentos por forma de pago</h4>
-                        <p style="margin:-5px 0 15px; font-size:.78rem; color:var(--text-muted); line-height:1.5;">El descuento se aplica automáticamente al elegir el medio de pago.</p>
-                        <div style="display:flex; flex-direction:column; gap:12px;">
-                            <div style="display:grid; grid-template-columns:auto 150px minmax(160px,1fr); gap:12px; align-items:center;">
-                                <input type="checkbox" id="desc-pago-efectivo-activo" style="width:auto; margin:0;">
-                                <label for="desc-pago-efectivo-activo" style="margin:0; font-size:.82rem; text-transform:uppercase;">Efectivo</label>
-                                <div style="display:flex; align-items:center; gap:8px;"><input type="number" id="desc-pago-efectivo-pct" min="0" max="100" step="0.01" placeholder="0" style="width:100%;"><span style="color:var(--text-muted);">%</span></div>
+                        <div class="logistica-seccion">
+                            <div class="logistica-seccion-head">
+                                <h4>Envíos</h4>
+                                <p>Definí si realizás envíos y cuál es la tarifa base.</p>
                             </div>
-                            <div style="display:grid; grid-template-columns:auto 150px minmax(160px,1fr); gap:12px; align-items:center;">
-                                <input type="checkbox" id="desc-pago-transferencia-activo" style="width:auto; margin:0;">
-                                <label for="desc-pago-transferencia-activo" style="margin:0; font-size:.82rem; text-transform:uppercase;">Transferencia</label>
-                                <div style="display:flex; align-items:center; gap:8px;"><input type="number" id="desc-pago-transferencia-pct" min="0" max="100" step="0.01" placeholder="0" style="width:100%;"><span style="color:var(--text-muted);">%</span></div>
+                            <div class="logistica-grid-dos">
+                                <div><label class="mini-label">Disponibilidad</label><select id="conf-envio-disp"><option value="si">Habilitado</option><option value="no">Deshabilitado</option></select></div>
+                                <div><label class="mini-label">Tarifa $</label><input type="number" id="conf-envio-precio" min="0" step="0.01" placeholder="0"></div>
                             </div>
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;">
-                            <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-ofertas"> Aplicar también a ofertas</label>
-                            <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-packs"> Aplicar también a packs</label>
+
+                        <div class="logistica-seccion">
+                            <div class="logistica-seccion-head">
+                                <h4>Descuentos por forma de pago</h4>
+                                <p>Se aplican automáticamente cuando el cliente elige el medio de pago.</p>
+                            </div>
+                            <div class="logistica-descuentos">
+                                <div class="logistica-descuento-fila">
+                                    <label class="logistica-descuento-toggle"><input type="checkbox" id="desc-pago-efectivo-activo"><span>Efectivo</span></label>
+                                    <div class="logistica-pct"><input type="number" id="desc-pago-efectivo-pct" min="0" max="100" step="0.01" placeholder="0"><span>%</span></div>
+                                </div>
+                                <div class="logistica-descuento-fila">
+                                    <label class="logistica-descuento-toggle"><input type="checkbox" id="desc-pago-transferencia-activo"><span>Transferencia</span></label>
+                                    <div class="logistica-pct"><input type="number" id="desc-pago-transferencia-pct" min="0" max="100" step="0.01" placeholder="0"><span>%</span></div>
+                                </div>
+                            </div>
+                            <div class="logistica-aplicaciones">
+                                <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-ofertas"> Aplicar también a ofertas</label>
+                                <label class="wa-check-item"><input type="checkbox" id="desc-pago-aplica-packs"> Aplicar también a packs</label>
+                            </div>
                         </div>
 
-                        <hr>
-                        <h4 style="margin:0 0 12px; color:var(--primary); font-size:.85rem; text-transform:uppercase;">Horarios del local</h4>
-                        <p class="mini-ayuda-logistica">Podés configurar hasta dos franjas por día, por ejemplo 08:00–14:00 y 16:00–21:00.</p>
-                        <div id="horarios-detallados-editor" class="horarios-detallados-editor"></div>
-
-                        <div class="form-group" style="margin-top:14px;">
-                            <label>Pedidos con el local cerrado</label>
-                            <select id="conf-pedidos-cerrado">
-                                <option value="si">Permitir pedidos fuera de horario</option>
-                                <option value="no">Bloquear pedidos fuera de horario</option>
-                            </select>
-                            <span class="field-status">Si se bloquean, la tienda mostrará una pantalla de cerrado y no permitirá continuar con la compra.</span>
+                        <div class="logistica-seccion">
+                            <div class="logistica-seccion-head">
+                                <h4>Horarios del local</h4>
+                                <p>Podés configurar hasta dos franjas por día, por ejemplo 08:00–14:00 y 16:00–21:00.</p>
+                            </div>
+                            <div id="horarios-detallados-editor" class="horarios-detallados-editor"></div>
+                            <div class="logistica-pedidos-cerrado">
+                                <label class="mini-label">Pedidos con el local cerrado</label>
+                                <select id="conf-pedidos-cerrado">
+                                    <option value="si">Permitir pedidos fuera de horario</option>
+                                    <option value="no">Bloquear pedidos fuera de horario</option>
+                                </select>
+                                <span class="field-status">Si elegís bloquearlos, el cliente verá la tienda cerrada y no podrá finalizar la compra.</span>
+                            </div>
                         </div>
 
-                        <button style="margin-top:20px; width:100%;" onclick="window.ejecutarAccionBoton(this, 'Guardando...', () => window.guardarConfiguracion())">Guardar preferencias</button>
+                        <button class="logistica-guardar" onclick="window.ejecutarAccionBoton(this, 'Guardando...', () => window.guardarConfiguracion())">Guardar preferencias</button>
                     </div>
                 </div>
 
                 <div class="modulo-oscuro">
                     <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-config-whatsapp')">
-                        <span>Mensajes automáticos y conexión con WhatsApp</span><span>⌄</span>
+                        <span>Mensajes</span><span>⌄</span>
                     </div>
                     <div id="body-config-whatsapp" class="modulo-body hidden">
                         <div class="form-group"><label>Mensaje al marcar un pedido como entregado</label><textarea id="wa-mensaje-entrega" rows="4" style="width:100%; resize:vertical;" placeholder="Gracias por tu compra. Tu pedido fue entregado."></textarea><span class="field-status">Podés usar {nombre}, {codigo} y {total}.</span></div>
@@ -2846,7 +2917,7 @@
                             <label class="wa-check-item"><input type="checkbox" id="wa-campo-pago"> Método de pago</label>
                             <label class="wa-check-item"><input type="checkbox" id="wa-campo-items"> Productos del pedido</label>
                         </div>
-                        <button style="margin-top:20px; width:100%;" onclick="window.ejecutarAccionBoton(this, 'Guardando...', () => window.guardarMensajesWhatsApp())">Guardar mensajes y WhatsApp</button>
+                        <button style="margin-top:20px; width:100%;" onclick="window.ejecutarAccionBoton(this, 'Guardando...', () => window.guardarMensajesWhatsApp())">Guardar mensajes</button>
                     </div>
                 </div>
 
@@ -3050,11 +3121,11 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
             const instalada=pwaEsStandalone();
             if(instalar){
                 instalar.textContent=instalada?'Ya instalado':'Instalar Shopo';
-                instalar.disabled=instalada;
+                instalar.disabled=instalada; instalar.setAttribute('aria-pressed', instalada ? 'true' : 'false');
             }
             if(notif){
                 notif.textContent=pushPWAActivo?'Notificaciones activadas':'Activar notificaciones';
-                notif.disabled=pushPWAActivo;
+                notif.disabled=pushPWAActivo; notif.setAttribute('aria-pressed', pushPWAActivo ? 'true' : 'false');
             }
         }
 
@@ -3119,7 +3190,7 @@ const SHOPO_BACKEND_URL = "https://shopo-backend-254059510929.southamerica-east1
         async function registrarServiceWorkerPWA() {
             if(!('serviceWorker' in navigator)) return null;
             try {
-                const reg = await navigator.serviceWorker.register('./service-worker.js?v=13', { scope: './' });
+                const reg = await navigator.serviceWorker.register('./service-worker.js?v=14', { scope: './' });
                 pwaServiceWorkerRegistration = reg;
                 reg.update().catch(()=>{});
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
