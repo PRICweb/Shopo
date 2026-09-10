@@ -200,6 +200,15 @@
         .modulo-header:hover { background:#fff; color:var(--primary); } 
         .modulo-body { padding:18px 0 0; border-top:0; } 
 
+        .movimientos-contenido {
+            padding: 0;
+            margin: 0;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
         .finance-actions-box {
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -316,8 +325,6 @@
         @media (max-width:768px){.gestion-borrado-grid{grid-template-columns:1fr;}}
         .estado-badge { display:none !important; padding:4px 8px; border-radius:999px; background:var(--border-light); color:var(--primary); font-size:0.68rem; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
         .filtros-pedidos { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px; padding:15px; border:1px solid var(--border); border-radius:8px; margin-bottom:18px; background:var(--card-bg); }
-        .pedidos-mobile-cabecera { display:block; }
-        .pedidos-mobile-filtros-btn { display:none; }
         .preview-img-admin { width:70px; height:70px; object-fit:cover; border:1px solid var(--border); border-radius:6px; display:none; margin-top:8px; }
         .storage-upload-box { border:1px solid var(--border); border-radius:8px; padding:10px; background:var(--card-bg); }
         .storage-upload-box input[type="file"] { padding:8px; background:var(--bg-color); }
@@ -776,63 +783,6 @@
 
             button {
                 border-radius: 9px;
-            }
-
-            .pedidos-mobile-cabecera {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-
-            .pedidos-mobile-cabecera h3 {
-                margin: 0 !important;
-            }
-
-            .pedidos-mobile-filtros-btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 42px;
-                min-width: 42px;
-                height: 42px;
-                min-height: 42px;
-                padding: 0;
-                border: 1px solid var(--border);
-                border-radius: 11px;
-                background: var(--card-bg);
-                color: var(--primary);
-            }
-
-            .pedidos-mobile-filtros-btn svg {
-                width: 20px;
-                height: 20px;
-                fill: none;
-                stroke: currentColor;
-                stroke-width: 1.8;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-            }
-
-            .pedidos-mobile-filtros-btn:hover,
-            .pedidos-mobile-filtros-btn:active {
-                background: var(--card-hover) !important;
-                color: var(--primary) !important;
-                transform: none !important;
-            }
-
-            #slot-filtros-pedidos-desktop {
-                display: none;
-            }
-
-            #modal-filtros-pedidos .filtros-pedidos {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 12px;
-                margin: 0;
-                padding: 0;
-                border: 0;
             }
 
             .mobile-ocultar-eliminar-registros,
@@ -2329,21 +2279,86 @@
             }
         }
 
-        /* ===== Ajustes escritorio v16: logo lateral Shopo + búsqueda/filtro inventario alineados ===== */
-        .admin-sidebar-brand { display:none; }
-        .admin-sidebar-brand-mark {
-            width: 68px;
-            height: 68px;
-            border-radius: 18px;
-            background: linear-gradient(180deg, #7a5446 0%, #6b4a3d 100%);
-            color: #ffffff;
+        /* ===== PEDIDOS: FILTRO COMPACTO UNIFICADO ===== */
+        .pedidos-cabecera {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .pedidos-cabecera h3 {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 500 !important;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .pedidos-filtro-btn {
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            font-size: 1.6rem;
-            font-weight: 600;
-            letter-spacing: .04em;
-            box-shadow: 0 10px 22px rgba(107, 74, 61, 0.18);
+            width: 48px;
+            min-width: 48px;
+            height: 48px;
+            min-height: 48px;
+            margin-left: auto;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: var(--primary);
+            box-shadow: none;
+        }
+        .pedidos-filtro-btn:hover,
+        .pedidos-filtro-btn:active,
+        .pedidos-filtro-btn:focus {
+            background: transparent !important;
+            color: var(--primary) !important;
+            transform: none !important;
+            box-shadow: none !important;
+            outline: none;
+        }
+        .pedidos-filtro-btn svg {
+            width: 24px;
+            height: 24px;
+            display: block;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        #modal-filtros-pedidos .filtros-pedidos {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+        #modal-filtros-pedidos .filtros-pedidos > div:nth-child(3) {
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 768px) {
+            .pedidos-cabecera { margin-bottom: 18px; }
+            .pedidos-cabecera h3 { font-size: .9rem; }
+            .pedidos-filtro-btn { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
+            #modal-filtros-pedidos .filtros-pedidos { grid-template-columns: 1fr; }
+            #modal-filtros-pedidos .filtros-pedidos > div:nth-child(3) { grid-column: auto; }
+        }
+
+        /* ===== Ajustes escritorio v16: logo lateral Shopo + búsqueda/filtro inventario alineados ===== */
+        .admin-sidebar-brand { display:none; }
+        .admin-sidebar-brand-logo {
+            width: 68px;
+            height: 68px;
+            display: block;
+            object-fit: contain;
+            border-radius: 18px;
+            box-shadow: 0 10px 22px rgba(107, 74, 61, 0.12);
         }
         .admin-sidebar-brand-name {
             color: var(--primary);
@@ -2503,7 +2518,7 @@
             </div>
 
             <div class="admin-sidebar-brand" aria-label="Shopo">
-                <div class="admin-sidebar-brand-mark">S</div>
+                <img class="admin-sidebar-brand-logo" src="./icons/icon-512.png" alt="Logo de Shopo">
                 <div class="admin-sidebar-brand-name">Shopo</div>
             </div>
 
@@ -2607,19 +2622,13 @@
         </div>
 
         <div id="panel-pedidos" class="panel-oscuro-container hidden">
-            <div class="pedidos-mobile-cabecera">
-                <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem; color: var(--text-main);">Gestión de Operaciones</h3>
+            <div class="pedidos-cabecera">
+                <h3>Gestión de Operaciones</h3>
+                <button id="btn-abrir-filtros-pedidos" type="button" class="pedidos-filtro-btn" onclick="window.abrirFiltrosPedidos()" aria-label="Filtrar pedidos" title="Filtros">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.4 7.2v5.3l-3.2 1.5v-6.8L4 5Z"></path></svg>
+                </button>
             </div>
-            <div id="slot-filtros-pedidos-desktop">
-            <div class="filtros-pedidos">
-                <div><label class="mini-label">Desde</label><input type="date" id="filtro-pedido-desde" onchange="window.aplicarFiltrosPedidos()"></div>
-                <div><label class="mini-label">Hasta</label><input type="date" id="filtro-pedido-hasta" onchange="window.aplicarFiltrosPedidos()"></div>
-                <div><label class="mini-label">Cliente / Teléfono</label><input type="text" id="filtro-pedido-cliente" placeholder="Buscar..." oninput="window.aplicarFiltrosPedidos()"></div>
-                <div><label class="mini-label">Pago</label><select id="filtro-pedido-pago" onchange="window.aplicarFiltrosPedidos()"><option value="">Todos</option><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option></select></div>
-                <div><label class="mini-label">Entrega</label><select id="filtro-pedido-entrega" onchange="window.aplicarFiltrosPedidos()"><option value="">Todas</option><option value="Retiro">Retiro</option><option value="Envio">Envío</option></select></div>
-            </div>
-            </div>
-            <div class="modulo-oscuro pedidos-pendientes-modulo"><div class="modulo-header pedidos-pendientes-header" aria-expanded="false" onclick="if(window.innerWidth>768) window.toggleAcordeon('body-pedidos-pendientes')"><span>Operaciones Pendientes</span><button id="btn-abrir-filtros-pedidos" type="button" class="secondary pedidos-mobile-filtros-btn" onclick="event.stopPropagation(); window.abrirFiltrosPedidosMobile()" aria-label="Filtrar pedidos" title="Filtros"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.4 7.2v5.3l-3.2 1.5v-6.8L4 5Z"></path></svg></button></div><div id="body-pedidos-pendientes" class="modulo-body hidden"><div id="lista-pedidos-pendientes"></div></div></div>
+            <div class="modulo-oscuro pedidos-pendientes-modulo"><div class="modulo-header pedidos-pendientes-header" aria-expanded="false" onclick="window.toggleAcordeon('body-pedidos-pendientes')"><span>Operaciones Pendientes</span></div><div id="body-pedidos-pendientes" class="modulo-body hidden"><div id="lista-pedidos-pendientes"></div></div></div>
             <div class="modulo-oscuro pedidos-historial-modulo"><div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-pedidos-historial')"><span>Historial de Entregas</span></div><div id="body-pedidos-historial" class="modulo-body hidden"><div id="lista-pedidos-historial"></div><div class="pagination-actions"><button id="btn-cargar-mas-pedidos-ui" type="button" class="secondary" onclick="window.cargarMasPedidosUI(this)">Cargar 10 más</button></div></div></div>
         </div>
 
@@ -2728,7 +2737,7 @@
 
         <div id="panel-movimientos" class="panel-oscuro-container">
             <h3 style="margin: 0 0 25px 0; font-weight: 500; text-transform: uppercase; font-size: 1rem;">Movimientos</h3>
-            <div class="movimientos-contenido" style="border: 1px solid var(--border); border-radius: 8px; padding: 20px; background: var(--card-bg);">
+            <div class="movimientos-contenido">
                 <div class="modulo-oscuro">
                     <div class="modulo-header" aria-expanded="false" onclick="window.toggleAcordeon('body-ventas-mostrador')"><span>Ventas en el Mostrador</span></div>
                     <div id="body-ventas-mostrador" class="modulo-body hidden">
@@ -3180,12 +3189,18 @@
         </div>
     </div>
 
-    <div id="modal-filtros-pedidos" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="titulo-filtros-pedidos">
+    <div id="modal-filtros-pedidos" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="titulo-filtros-pedidos" onclick="if(event.target===this) window.cerrarFiltrosPedidos()">
         <div class="modal-content modal-filtros-pedidos-content">
             <h3 id="titulo-filtros-pedidos">Filtros de Pedidos</h3>
-            <div id="slot-filtros-pedidos-mobile"></div>
+            <div class="filtros-pedidos">
+                <div><label class="mini-label">Desde</label><input type="date" id="filtro-pedido-desde" onchange="window.aplicarFiltrosPedidos()"></div>
+                <div><label class="mini-label">Hasta</label><input type="date" id="filtro-pedido-hasta" onchange="window.aplicarFiltrosPedidos()"></div>
+                <div><label class="mini-label">Cliente / Teléfono</label><input type="text" id="filtro-pedido-cliente" placeholder="Buscar..." oninput="window.aplicarFiltrosPedidos()"></div>
+                <div><label class="mini-label">Pago</label><select id="filtro-pedido-pago" onchange="window.aplicarFiltrosPedidos()"><option value="">Todos</option><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option></select></div>
+                <div><label class="mini-label">Entrega</label><select id="filtro-pedido-entrega" onchange="window.aplicarFiltrosPedidos()"><option value="">Todas</option><option value="Retiro">Retiro</option><option value="Envio">Envío</option></select></div>
+            </div>
             <div class="modal-actions">
-                <button type="button" onclick="window.cerrarFiltrosPedidosMobile()">Aplicar y cerrar</button>
+                <button type="button" onclick="window.cerrarFiltrosPedidos()">Aplicar y cerrar</button>
             </div>
         </div>
     </div>
@@ -5029,24 +5044,13 @@ async function obtenerHeadersBackendAdmin() {
             if(id === 'panel-finanzas') window.prepararMetricasFinancieras?.();
         };
 
-        const sincronizarFiltrosPedidosResponsive = () => {
-            const filtros = document.querySelector('.filtros-pedidos');
-            const desktop = document.getElementById('slot-filtros-pedidos-desktop');
-            const mobile = document.getElementById('slot-filtros-pedidos-mobile');
-            if(!filtros || !desktop || !mobile) return;
-
-            const destino = esVistaAdminMobile() ? mobile : desktop;
-            if(filtros.parentElement !== destino) destino.appendChild(filtros);
-        };
-
-        window.abrirFiltrosPedidosMobile = () => {
-            sincronizarFiltrosPedidosResponsive();
+        window.abrirFiltrosPedidos = () => {
             const modal = document.getElementById('modal-filtros-pedidos');
             if(!modal) return;
             modal.classList.remove('hidden');
         };
 
-        window.cerrarFiltrosPedidosMobile = () => {
+        window.cerrarFiltrosPedidos = () => {
             cerrarModalDirecto('modal-filtros-pedidos');
         };
 
@@ -5124,7 +5128,6 @@ async function obtenerHeadersBackendAdmin() {
         };
 
         const sincronizarAdminResponsive = () => {
-            sincronizarFiltrosPedidosResponsive();
             instalarSwipeAdminMobile();
 
             if(esVistaAdminMobile()) {
