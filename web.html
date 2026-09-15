@@ -182,6 +182,12 @@
             .input-cantidad { width: 100%; }
         }
 
+
+        /* ===== FORMAS DE PAGO ===== */
+        .payment-choice-help { display:block; margin-top:7px; color:var(--text-muted); font-size:.75rem; line-height:1.4; }
+        .transfer-payment-info { margin-top:10px; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--card-bg); color:var(--text-muted); font-size:.78rem; line-height:1.55; }
+        .transfer-payment-info strong { color:var(--text-main); }
+
         /* ===== PANTALLA DE CARGA ===== */
         #pantalla-carga {
             position: fixed; inset: 0;
@@ -1317,7 +1323,7 @@
                 <div class="checkout-options" id="checkout-form" style="margin-top: 25px;">
                     <div style="display: flex; gap: 15px; margin-bottom: 20px;"><div style="flex: 1;"><label>Nombre</label><input type="text" id="checkout-nombre" required></div><div style="flex: 1;"><label>Apellido</label><input type="text" id="checkout-apellido" required></div></div>
                     <div class="form-group"><label>Teléfono de Contacto</label><input type="tel" id="checkout-telefono" required></div>
-                    <div class="form-group"><label>Forma de Pago</label><select id="metodo-pago" onchange="window.renderizarCarrito()"><option id="opcion-pago-efectivo" value="Efectivo">Efectivo</option><option id="opcion-pago-transferencia" value="Transferencia">Transferencia Bancaria</option></select></div>
+                    <div class="form-group"><label>Forma de Pago</label><select id="metodo-pago" onchange="window.alCambiarFormaPago()"></select><span id="ayuda-metodo-pago" class="payment-choice-help"></span><div id="datos-transferencia-checkout" class="transfer-payment-info hidden"></div></div>
                     <div class="form-group"><label>Entrega</label><select id="metodo-entrega" onchange="window.toggleDireccion()"><option value="Retiro">Retiro en local</option><option value="Envio">Envío a domicilio</option></select></div>
                     <div class="form-group" id="caja-direccion" style="display: none;"><label>Dirección Completa</label><input type="text" id="checkout-direccion"><span id="aviso-envio" style="color: var(--accent); font-size: 0.8rem; display: block; margin-top: 8px;"></span></div>
                 </div>
@@ -1599,7 +1605,7 @@ async function obtenerHeadersBackendPublico() {
             border:'#e0e0e0', borderLight:'#eeeeee',
             textMain:'#212121', textMuted:'#616161', textDark:'#9e9e9e'
         });
-        let configTienda = { logo: '', telefono: '', instagramUrl: '', mapsUrl: '', ubicacionTexto: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, horariosDetallados: {}, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
+        let configTienda = { logo: '', telefono: '', instagramUrl: '', mapsUrl: '', ubicacionTexto: '', horaApertura: '09:00', horaCierre: '18:00', diasApertura: { 'check-lu':true, 'check-ma':true, 'check-mi':true, 'check-ju':true, 'check-vi':true }, horariosDetallados: {}, envioDisponible: false, envioPrecio: 0, permitirPedidosCerrado: true, formasPago: { tarjeta:{activo:false,mercadoPagoConectado:false}, transferencia:{activo:true,alias:'',cbuCvu:'',titular:'',banco:''}, efectivo:{activo:true,disponibilidad:'ambos'} }, descuentosPago: { efectivo:{activo:false,porcentaje:0}, transferencia:{activo:false,porcentaje:0}, aplicaOfertas:false, aplicaPacks:false }, apariencia: { ...TEMA_TIENDA_PREDETERMINADO }, whatsapp: { numeroNegocio:'', mensajeEntrega:'Gracias por tu compra. Tu pedido #{codigo} fue entregado.', camposMensajeCliente:{ fecha:true, nombre:true, total:true, codigo:true, telefono:true, entrega:true, pago:true, items:true } } };
 
         const colorHexValido = (valor) => /^#[0-9a-fA-F]{6}$/.test(String(valor || ''));
         const normalizarTemaTienda = (tema = {}) => {
@@ -2188,7 +2194,7 @@ async function obtenerHeadersBackendPublico() {
         };
 
         window.contactarWspLocal = () => { const numeroLimpio=String(configTienda.whatsapp?.numeroNegocio||configTienda.telefono||'').replace(/[^0-9]/g,''); if(!numeroLimpio)return; window.open(`https://wa.me/${numeroLimpio}?text=${encodeURIComponent('Hola, me comunico desde la tienda en línea.')}`,'_blank','noopener,noreferrer'); };
-        window.toggleDireccion = () => { const m = document.getElementById('metodo-entrega').value; const c = document.getElementById('caja-direccion'); if (m === 'Envio') { if(!configTienda.envioDisponible) { document.getElementById('metodo-entrega').value = 'Retiro'; c.style.display = 'none'; return; } c.style.display = 'block'; document.getElementById('aviso-envio').textContent = `Coste adicional $${window.formatearNum(configTienda.envioPrecio)}`; } else { c.style.display = 'none'; } window.renderizarCarrito(); };
+        window.toggleDireccion = () => { const m = document.getElementById('metodo-entrega').value; const c = document.getElementById('caja-direccion'); if (m === 'Envio') { if(!configTienda.envioDisponible) { document.getElementById('metodo-entrega').value = 'Retiro'; c.style.display = 'none'; actualizarOpcionesMetodoPago(); window.renderizarCarrito(); return; } c.style.display = 'block'; document.getElementById('aviso-envio').textContent = `Coste adicional $${window.formatearNum(configTienda.envioPrecio)}`; } else { c.style.display = 'none'; } actualizarOpcionesMetodoPago(); window.renderizarCarrito(); };
         window.buscarProductos = (texto) => { terminoBusqueda = String(texto || '').toLocaleLowerCase('es-AR').trim(); catalogoPagina = 1; window.renderizarCatalogoYStock(); };
         window.verificarVigenciaOferta = (fechaLimite) => { if(!fechaLimite) return false; const hoy = new Date(); hoy.setHours(0,0,0,0); const limite = new Date(fechaLimite + 'T00:00:00'); return hoy <= limite; };
         window.calcularStockPack = (pack) => { let stocksDisponibles = []; pack.items.forEach(it => { const p = productos.find(x => x.id === it.idProd); if(p && p.variantes[it.idVar]) stocksDisponibles.push(Math.floor(p.variantes[it.idVar].stock / it.cantidad)); else stocksDisponibles.push(0); }); return stocksDisponibles.length > 0 ? Math.min(...stocksDisponibles) : 0; };
@@ -2697,11 +2703,38 @@ async function obtenerHeadersBackendPublico() {
             const dp=normalizarDescuentosPago(), cfg=metodoPago==='Transferencia'?dp.transferencia:dp.efectivo;
             return cfg.activo?cfg.porcentaje:0;
         };
-        const actualizarOpcionesMetodoPago = () => {
-            const ef=document.getElementById('opcion-pago-efectivo'), tr=document.getElementById('opcion-pago-transferencia');
-            if(ef){const pct=porcentajeDescuentoPorPago('Efectivo');ef.textContent=pct>0?`Efectivo — ${window.formatearNum(pct)}% desc.`:'Efectivo';}
-            if(tr){const pct=porcentajeDescuentoPorPago('Transferencia');tr.textContent=pct>0?`Transferencia Bancaria — ${window.formatearNum(pct)}% desc.`:'Transferencia Bancaria';}
+        const normalizarFormasPago = () => {
+            const fp=configTienda.formasPago||{}, tarjeta=fp.tarjeta||{}, transferencia=fp.transferencia||{}, efectivo=fp.efectivo||{};
+            return {
+                tarjeta:{activo:!!tarjeta.activo && !!tarjeta.mercadoPagoConectado,mercadoPagoConectado:!!tarjeta.mercadoPagoConectado},
+                transferencia:{activo:transferencia.activo!==false,alias:String(transferencia.alias||''),cbuCvu:String(transferencia.cbuCvu||''),titular:String(transferencia.titular||''),banco:String(transferencia.banco||'')},
+                efectivo:{activo:efectivo.activo!==false,disponibilidad:['retiro','envio','ambos'].includes(efectivo.disponibilidad)?efectivo.disponibilidad:'ambos'}
+            };
         };
+        const efectivoDisponibleParaEntrega = (entrega) => {
+            const ef=normalizarFormasPago().efectivo;
+            if(!ef.activo) return false;
+            if(ef.disponibilidad==='ambos') return true;
+            return (entrega==='Envio'&&ef.disponibilidad==='envio')||(entrega==='Retiro'&&ef.disponibilidad==='retiro');
+        };
+        const actualizarOpcionesMetodoPago = () => {
+            const select=document.getElementById('metodo-pago'); if(!select) return;
+            const actual=select.value;
+            const entrega=document.getElementById('metodo-entrega')?.value||'Retiro';
+            const fp=normalizarFormasPago();
+            const opciones=[];
+            if(fp.tarjeta.activo) opciones.push({value:'Tarjeta',label:'Tarjeta de crédito o débito'});
+            if(fp.transferencia.activo) { const pct=porcentajeDescuentoPorPago('Transferencia'); opciones.push({value:'Transferencia',label:pct>0?`Transferencia bancaria — ${window.formatearNum(pct)}% desc.`:'Transferencia bancaria'}); }
+            if(efectivoDisponibleParaEntrega(entrega)) { const pct=porcentajeDescuentoPorPago('Efectivo'); opciones.push({value:'Efectivo',label:pct>0?`Efectivo — ${window.formatearNum(pct)}% desc.`:'Efectivo'}); }
+            select.innerHTML=opciones.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
+            if(opciones.some(o=>o.value===actual)) select.value=actual;
+            const ayuda=document.getElementById('ayuda-metodo-pago');
+            if(ayuda) ayuda.textContent=!opciones.length?'Este negocio todavía no habilitó formas de pago.':select.value==='Tarjeta'?'Pago automático y seguro procesado por Mercado Pago.':select.value==='Transferencia'?'Al confirmar, recibirás los datos para transferir y deberás enviar el comprobante al WhatsApp del negocio.':'El comercio confirmará el pago manualmente.';
+            const box=document.getElementById('datos-transferencia-checkout');
+            if(box){ const tr=fp.transferencia; const mostrar=select.value==='Transferencia'; box.classList.toggle('hidden',!mostrar); if(mostrar) box.innerHTML='<strong>Transferencia manual</strong><br>Los datos bancarios aparecerán también en el mensaje del pedido. Luego enviá el comprobante a ese mismo número.'; }
+            const btn=document.getElementById('btn-comprar'); if(btn&&carrito.length) btn.disabled=!opciones.length;
+        };
+        window.alCambiarFormaPago = () => { actualizarOpcionesMetodoPago(); window.renderizarCarrito(); };
         const aplicaDescuentoPagoAItem = (item) => {
             const dp=normalizarDescuentosPago();
             if(item?.isPack) return dp.aplicaPacks;
@@ -2712,7 +2745,7 @@ async function obtenerHeadersBackendPublico() {
         window.renderizarCarrito = () => {
             const l = document.getElementById('lista-carrito'); const ts = document.getElementById('total-carrito'); const bc = document.getElementById('btn-comprar'); if(!l) return;
             const perfilCli=categoriasClientes[0]||{nombre:'Consumidor Final',descuentoGlobal:0,descuentosCat:{}};
-            const metodoPagoActual=document.getElementById('metodo-pago')?.value||'Efectivo';
+            actualizarOpcionesMetodoPago(); const metodoPagoActual=document.getElementById('metodo-pago')?.value||'';
             const descuentoPagoPct=porcentajeDescuentoPorPago(metodoPagoActual);
             l.innerHTML=''; let subtotalBruto=0; let descuentoMonto=0; let descuentoPagoMonto=0;
             
@@ -2913,7 +2946,7 @@ async function obtenerHeadersBackendPublico() {
         window.enviarWhatsapp = async () => {
             const numeroLimpio=String(configTienda.whatsapp?.numeroNegocio||configTienda.telefono||'').replace(/[^0-9]/g,''); if(!numeroLimpio){await window.mostrarAvisoTienda('El local aún no configuró su número de contacto.', {titulo:'Contacto no disponible', tipo:'warning'});return;}
             let texto='Hola! Me comunico desde la tienda en línea.';
-            if(ultimoPedidoConf){ const campos={fecha:true,nombre:true,total:true,codigo:true,telefono:true,entrega:true,pago:true,items:true,...(configTienda.whatsapp?.camposMensajeCliente||{})}; const lineas=['Hola! Acabo de generar un pedido desde la tienda en línea.']; if(campos.codigo)lineas.push(`Código del pedido: *#${ultimoPedidoConf.idCorto}*`); if(campos.fecha){const fecha=ultimoPedidoConf.fechaClienteISO?new Date(ultimoPedidoConf.fechaClienteISO):new Date();lineas.push(`Fecha y hora: ${isNaN(fecha.getTime())?new Date().toLocaleString('es-AR'):fecha.toLocaleString('es-AR')}`);} if(campos.nombre)lineas.push(`Nombre: ${ultimoPedidoConf.nombreCliente} ${ultimoPedidoConf.apellidoCliente}`); if(campos.telefono)lineas.push(`Teléfono: ${ultimoPedidoConf.telefono}`); if(campos.entrega){lineas.push(`Entrega: ${ultimoPedidoConf.metodoEntrega}`);lineas.push(`Dirección/Retiro: ${ultimoPedidoConf.direccion}`);} if(campos.pago){lineas.push(`Método de pago: ${ultimoPedidoConf.metodoPago}`); if(Number(ultimoPedidoConf.descuentoMonto)>0) lineas.push(`Descuento aplicado: -$${window.formatearNum(Number(ultimoPedidoConf.descuentoMonto)||0)}`);} if(campos.items){lineas.push('','*Productos*');ultimoPedidoConf.items.forEach(i=>lineas.push(`- ${i.cantidad}x ${i.nombre} (${i.detalle}): $${window.formatearNum(i.precio*i.cantidad)}`));} if(campos.total)lineas.push('',`*Total final: $${window.formatearNum(ultimoPedidoConf.total)}*`); lineas.push('','Por favor coordinemos la confirmación, el pago y la entrega.'); texto=lineas.join('\n'); }
+            if(ultimoPedidoConf){ const campos={fecha:true,nombre:true,total:true,codigo:true,telefono:true,entrega:true,pago:true,items:true,...(configTienda.whatsapp?.camposMensajeCliente||{})}; const lineas=['Hola! Acabo de generar un pedido desde la tienda en línea.']; if(campos.codigo)lineas.push(`Código del pedido: *#${ultimoPedidoConf.idCorto}*`); if(campos.fecha){const fecha=ultimoPedidoConf.fechaClienteISO?new Date(ultimoPedidoConf.fechaClienteISO):new Date();lineas.push(`Fecha y hora: ${isNaN(fecha.getTime())?new Date().toLocaleString('es-AR'):fecha.toLocaleString('es-AR')}`);} if(campos.nombre)lineas.push(`Nombre: ${ultimoPedidoConf.nombreCliente} ${ultimoPedidoConf.apellidoCliente}`); if(campos.telefono)lineas.push(`Teléfono: ${ultimoPedidoConf.telefono}`); if(campos.entrega){lineas.push(`Entrega: ${ultimoPedidoConf.metodoEntrega}`);lineas.push(`Dirección/Retiro: ${ultimoPedidoConf.direccion}`);} if(campos.pago){lineas.push(`Método de pago: ${ultimoPedidoConf.metodoPago}`); if(Number(ultimoPedidoConf.descuentoMonto)>0) lineas.push(`Descuento aplicado: -$${window.formatearNum(Number(ultimoPedidoConf.descuentoMonto)||0)}`);} if(campos.items){lineas.push('','*Productos*');ultimoPedidoConf.items.forEach(i=>lineas.push(`- ${i.cantidad}x ${i.nombre} (${i.detalle}): $${window.formatearNum(i.precio*i.cantidad)}`));} if(campos.total)lineas.push('',`*Total final: $${window.formatearNum(ultimoPedidoConf.total)}*`); if(ultimoPedidoConf.metodoPago==='Transferencia'){const tr=normalizarFormasPago().transferencia;lineas.push('','*Datos para transferir*',`Titular: ${tr.titular}`,`Banco / billetera: ${tr.banco}`,`Alias: ${tr.alias}`,`CBU / CVU: ${tr.cbuCvu}`,'','Una vez realizada la transferencia, enviá el comprobante a este mismo número para que el comercio confirme el pago.');} else {lineas.push('','Por favor coordinemos la confirmación, el pago y la entrega.');} texto=lineas.join('\n'); }
             window.open(`https://wa.me/${numeroLimpio}?text=${encodeURIComponent(texto)}`,'_blank','noopener,noreferrer');
         };
 
@@ -2943,7 +2976,11 @@ async function obtenerHeadersBackendPublico() {
                 direccion: d
             });
 
-            if(!['Efectivo','Transferencia'].includes(metodoPago)) erroresCheckout.push('El método de pago no es válido.');
+            if(!['Efectivo','Transferencia','Tarjeta'].includes(metodoPago)) erroresCheckout.push('El método de pago no es válido.');
+            const fpCheckout=normalizarFormasPago();
+            if(metodoPago==='Transferencia' && !fpCheckout.transferencia.activo) erroresCheckout.push('La transferencia no está habilitada por este negocio.');
+            if(metodoPago==='Efectivo' && !efectivoDisponibleParaEntrega(mE)) erroresCheckout.push('El efectivo no está habilitado para esta forma de entrega.');
+            if(metodoPago==='Tarjeta') erroresCheckout.push('El pago con tarjeta quedará disponible cuando el negocio conecte Mercado Pago.');
             if(mE === 'Envio' && !configTienda.envioDisponible) erroresCheckout.push('Esta tienda no tiene envíos habilitados.');
 
             if(erroresCheckout.length) {
