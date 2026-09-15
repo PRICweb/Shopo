@@ -3041,7 +3041,7 @@
                                         <div><label>Titular de la cuenta</label><input id="pago-mp-titular" type="text" readonly placeholder="Se completará al conectar"></div>
                                         <div><label>DNI</label><input id="pago-mp-dni" type="text" readonly placeholder="Se completará si Mercado Pago lo informa"></div>
                                     </div>
-                                    <button type="button" id="btn-conectar-mp-ventas" disabled>Conectar Mercado Pago</button>
+                                    <button type="button" id="btn-conectar-mp-ventas" onclick="window.conectarMercadoPagoVentas()">Conectar Mercado Pago</button>
                                 </section>
                                 <section class="payment-method-card">
                                     <div class="payment-method-head">
@@ -3706,6 +3706,42 @@ async function obtenerHeadersBackendAdmin() {
 }
 
     window.obtenerHeadersBackendAdmin = obtenerHeadersBackendAdmin;
+
+    window.conectarMercadoPagoVentas = async () => {
+        const btn = document.getElementById('btn-conectar-mp-ventas');
+        const textoOriginal = btn?.textContent || 'Conectar Mercado Pago';
+        try {
+            exigirContextoAdmin();
+            if(btn){ btn.disabled=true; btn.textContent='Conectando…'; }
+            const headers = await obtenerHeadersBackendAdmin();
+            const response = await fetch(`${SHOPO_BACKEND_URL}/api/v1/mercadopago/connect`, {
+                method:'GET', headers, cache:'no-store'
+            });
+            const data = await response.json().catch(()=>({}));
+            if(!response.ok) throw new Error(data?.mensaje || data?.error || `Error ${response.status}`);
+            if(!data?.authUrl) throw new Error('El backend no devolvió la URL de autorización de Mercado Pago.');
+            window.location.href = data.authUrl;
+        } catch(error) {
+            console.error(error);
+            window.mostrarAlertaUI(error.message || 'No se pudo conectar Mercado Pago.');
+            if(btn){ btn.disabled=false; btn.textContent=textoOriginal; }
+        }
+    };
+
+    function procesarRetornoMercadoPagoOAuth() {
+        const url = new URL(window.location.href);
+        const estado = url.searchParams.get('mercadopago');
+        if(!estado) return;
+        url.searchParams.delete('mercadopago');
+        url.searchParams.delete('motivo');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
+        if(estado === 'conectado') {
+            window.mostrarAlertaUI('Mercado Pago quedó conectado para las ventas de esta tienda. Ahora podés activar Tarjeta de crédito o débito y guardar la configuración.');
+        } else if(estado === 'error') {
+            window.mostrarAlertaUI('No se pudo completar la conexión con Mercado Pago. Volvé a intentarlo desde Formas de pago.');
+        }
+    }
+    procesarRetornoMercadoPagoOAuth();
 
 
     async function ejecutarAccionPedidoBackend(idDoc, accion, body = null) {
@@ -5854,6 +5890,7 @@ async function obtenerHeadersBackendAdmin() {
             const mpTit=document.getElementById('pago-mp-titular'); if(mpTit) mpTit.value=fpt.titular||'';
             const mpDni=document.getElementById('pago-mp-dni'); if(mpDni) mpDni.value=fpt.dni||'';
             const mpEstado=document.getElementById('pago-mp-estado'); if(mpEstado) mpEstado.innerHTML=fpt.mercadoPagoConectado?'<strong>Mercado Pago conectado para ventas.</strong><br>Podés activar o desactivar tarjeta para esta tienda.':'<strong>Mercado Pago no conectado para ventas.</strong><br>La suscripción de Shopo permanece separada de esta conexión.';
+            const mpBtn=document.getElementById('btn-conectar-mp-ventas'); if(mpBtn){ mpBtn.disabled=false; mpBtn.textContent=fpt.mercadoPagoConectado?'Reconectar Mercado Pago':'Conectar Mercado Pago'; }
             const trAct=document.getElementById('pago-transferencia-activo'); if(trAct) trAct.checked=fptr.activo!==false;
             const trAlias=document.getElementById('pago-transferencia-alias'); if(trAlias) trAlias.value=fptr.alias||'';
             const trCbu=document.getElementById('pago-transferencia-cbu'); if(trCbu) trCbu.value=fptr.cbuCvu||'';
